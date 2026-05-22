@@ -487,24 +487,32 @@ function renderLessonSection(section, module, index, state) {
     : "Not started";
 
   return `
-    <details class="lesson-accordion" ${index === 0 ? "open" : ""}>
+    <details class="lesson-accordion canvas-assignment" ${index === 0 ? "open" : ""}>
       <summary>
-        <span class="summary-title">${section.title}</span>
-        <span class="summary-meta">${section.status}</span>
-        <span class="summary-score">${progressText}</span>
+        <span class="assignment-grip">⋮⋮</span>
+        <span class="assignment-main">
+          <span class="assignment-icon">${index + 1}</span>
+          <span>
+            <strong>${section.title}</strong>
+            <small>${section.status}</small>
+          </span>
+        </span>
+        <span class="assignment-tags">
+          <span class="module-pill">${progressText}</span>
+        </span>
       </summary>
       <div class="lesson-body">
-        <div class="lesson-grid">
+        <div class="assignment-blocks">
           <section class="lesson-panel notes-panel">
-            <div class="panel-kicker">Notes</div>
+            <div class="assignment-row-title"><span class="assignment-dot notes"></span>Notes</div>
             <div class="rich-notes">${section.notes}</div>
           </section>
           <section class="lesson-panel watch-panel">
-            <div class="panel-kicker">Watch This</div>
+            <div class="assignment-row-title"><span class="assignment-dot watch"></span>Watch This</div>
             <iframe src="${section.video}" title="${module.title} - ${section.title}" allowfullscreen></iframe>
           </section>
           <section class="lesson-panel quiz-panel">
-            <div class="panel-kicker">Quiz</div>
+            <div class="assignment-row-title"><span class="assignment-dot quiz"></span>Quiz</div>
             ${renderQuizForm(section, module)}
           </section>
         </div>
@@ -520,7 +528,7 @@ function renderModuleAccordion(module, state) {
     .join("");
 
   return `
-    <details class="module-accordion">
+    <details class="module-accordion canvas-course" open>
       <summary>
         <span class="module-summary-left">
           <span class="module-icon">${UI_ICONS[module.icon || "dashboard"]}</span>
@@ -535,8 +543,20 @@ function renderModuleAccordion(module, state) {
         </span>
       </summary>
       <div class="module-body">
-        <p class="module-outcome">${module.outcome}</p>
-        <div class="lesson-stack">${sections}</div>
+        <div class="module-outcome-row">
+          <p class="module-outcome">${module.outcome}</p>
+          <div class="module-meta-grid">
+            <span class="module-meta-chip">${module.sections.length} sections</span>
+            <span class="module-meta-chip">${module.quizzes.length} quizzes</span>
+          </div>
+        </div>
+        <div class="assignment-list">
+          <div class="assignment-group-row">
+            <span class="assignment-group-title">Module Assignments</span>
+            <span class="assignment-group-meta">Notes · Watch This · Quiz</span>
+          </div>
+          <div class="lesson-stack">${sections}</div>
+        </div>
       </div>
     </details>
   `;
