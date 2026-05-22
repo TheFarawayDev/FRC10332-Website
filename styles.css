@@ -198,73 +198,216 @@ a {
 
 .layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
   gap: 18px;
 }
 
-.side-nav,
-.panel,
-.card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--card);
-  backdrop-filter: blur(14px) saturate(125%);
-  box-shadow: var(--shadow);
-}
-
-.side-nav {
-  padding: 14px;
-  position: sticky;
-  top: 18px;
-  height: fit-content;
-  background: linear-gradient(180deg, rgba(11, 35, 64, 0.85), rgba(9, 27, 48, 0.75));
-}
-
-.side-nav h2 {
-  margin: 4px 0 8px;
-  font-size: 0.82rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--silver-300);
-}
-
-.side-nav a {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-radius: 12px;
-  padding: 10px 12px;
-  margin-bottom: 7px;
-  border: 1px solid transparent;
-  color: var(--silver-200);
-  font-size: 0.93rem;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-}
-
-.side-nav a::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  border: 1px solid var(--silver-300);
-  background: rgba(191, 200, 212, 0.15);
-}
-
-.side-nav a:hover,
-.side-nav a.active {
-  border-color: var(--line-strong);
-  background: rgba(132, 166, 205, 0.16);
-  color: #f4f8ff;
-  transform: translateX(2px);
-}
-
-.side-nav a.active::before {
-  background: var(--silver-200);
-}
+/* side-nav removed — canvas-rail is now the only navigation */
 
 .content-area {
   display: grid;
   gap: 18px;
+}
+
+/* ─── Canvas Module Row ─────────────────────────────── */
+.canvas-module-row {
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: rgba(9, 26, 48, 0.72);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.canvas-module-row > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  user-select: none;
+}
+
+.canvas-module-row > summary::-webkit-details-marker {
+  display: none;
+}
+
+.cmr-grip {
+  color: var(--ink-1);
+  letter-spacing: -2px;
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.cmr-arrow {
+  font-size: 10px;
+  color: var(--silver-300);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.canvas-module-row[open] > summary .cmr-arrow {
+  transform: rotate(90deg);
+}
+
+.cmr-title {
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: var(--ink-0);
+  flex: 1;
+}
+
+.cmr-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.cmr-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--silver-300);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: transparent;
+  flex-shrink: 0;
+}
+
+.cmr-check.done {
+  background: #1a7f4b;
+  border-color: #1a7f4b;
+  color: #fff;
+}
+
+.cmr-plus {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  color: var(--ink-1);
+  font-size: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.cmr-dots {
+  color: var(--ink-1);
+}
+
+/* ─── Canvas Module Items (open body) ────────────────── */
+.canvas-module-items {
+  border-top: 1px solid var(--line);
+}
+
+.canvas-text-header {
+  padding: 10px 48px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--silver-200);
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ─── Canvas Item Row ─────────────────────────────────── */
+.canvas-item-row {
+  border-bottom: 1px solid var(--line);
+}
+
+.canvas-item-row:last-child {
+  border-bottom: none;
+}
+
+.canvas-item-row > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px 12px 48px;
+  user-select: none;
+}
+
+.canvas-item-row > summary::-webkit-details-marker {
+  display: none;
+}
+
+.cir-grip {
+  color: var(--ink-1);
+  letter-spacing: -2px;
+  font-size: 0.88rem;
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.cir-icon {
+  color: var(--silver-300);
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.cir-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cir-title {
+  flex: 1;
+  font-size: 0.93rem;
+  color: var(--ink-0);
+}
+
+.cir-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.cir-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--silver-300);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: transparent;
+  flex-shrink: 0;
+}
+
+.cir-check.done {
+  background: #1a7f4b;
+  border-color: #1a7f4b;
+  color: #fff;
+}
+
+.cir-dots {
+  color: var(--ink-1);
+  font-size: 0.9rem;
+}
+
+.cir-body {
+  border-top: 1px solid var(--line);
+  padding: 16px 24px 20px;
+  background: rgba(5, 18, 38, 0.45);
+}
+
+.cir-body .assignment-blocks {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1.2fr;
+  gap: 12px;
 }
 
 .panel {
@@ -332,19 +475,11 @@ a {
 .module-accordion-list,
 .lesson-stack {
   display: grid;
-  gap: 12px;
+  gap: 0;
 }
 
 .module-accordion,
 .lesson-accordion {
-  border: 1px solid var(--line-strong);
-  border-radius: 16px;
-  background: rgba(8, 27, 49, 0.5);
-  overflow: hidden;
-}
-
-.canvas-course {
-  background: rgba(9, 26, 48, 0.72);
 }
 
 .module-accordion > summary,
@@ -466,9 +601,7 @@ a {
 }
 
 .assignment-list,
-.assignment-blocks,
-.module-accordion-list,
-.lesson-stack {
+.assignment-blocks {
   display: grid;
   gap: 12px;
 }
@@ -724,22 +857,10 @@ a {
   gap: 14px;
 }
 
-.module-accordion-list,
-.lesson-stack {
+.module-accordion-list {
   display: grid;
-  gap: 12px;
+  gap: 0;
 }
-
-.module-accordion,
-.lesson-accordion {
-  border: 1px solid var(--line-strong);
-  border-radius: 16px;
-  background: rgba(8, 27, 49, 0.5);
-  overflow: hidden;
-}
-
-.module-accordion > summary,
-.lesson-accordion > summary {
   list-style: none;
   cursor: pointer;
   display: flex;
@@ -1177,8 +1298,13 @@ select {
   }
 
   .account-grid,
-  .lesson-grid {
+  .lesson-grid,
+  .cir-body .assignment-blocks {
     grid-template-columns: 1fr;
+  }
+
+  .canvas-item-row > summary {
+    padding-left: 16px;
   }
 
   .module-accordion > summary,
@@ -1191,14 +1317,6 @@ select {
   .module-summary-right,
   .badge-row {
     justify-content: flex-start;
-  }
-
-  .layout {
-    grid-template-columns: 1fr;
-  }
-
-  .side-nav {
-    position: static;
   }
 
   .canvas-rail {

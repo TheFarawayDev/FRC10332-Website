@@ -478,30 +478,25 @@ function renderQuizForm(section, module) {
   `;
 }
 
-function renderLessonSection(section, module, index, state) {
-  const quizState = state.completedQuizzes[getSectionStorageKey(module, section)];
-  const progressText = quizState
-    ? quizState.passed
-      ? `Passed ${quizState.score}%`
-      : `Needs review ${quizState.score}%`
-    : "Not started";
+const FILE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="10" y1="12" x2="16" y2="12"/><line x1="10" y1="16" x2="16" y2="16"/></svg>`;
+
+function renderCanvasItemRow(section, module, index, state) {
+  const quizKey = getSectionStorageKey(module, section);
+  const quizState = state.completedQuizzes[quizKey];
+  const passed = quizState && quizState.passed;
 
   return `
-    <details class="lesson-accordion canvas-assignment" ${index === 0 ? "open" : ""}>
+    <details class="canvas-item-row">
       <summary>
-        <span class="assignment-grip">⋮⋮</span>
-        <span class="assignment-main">
-          <span class="assignment-icon">${index + 1}</span>
-          <span>
-            <strong>${section.title}</strong>
-            <small>${section.status}</small>
-          </span>
-        </span>
-        <span class="assignment-tags">
-          <span class="module-pill">${progressText}</span>
+        <span class="cir-grip">⋮⋮</span>
+        <span class="cir-icon">${FILE_ICON}</span>
+        <span class="cir-title">${index + 1}. ${section.title}</span>
+        <span class="cir-right">
+          <span class="cir-check ${passed ? "done" : ""}" aria-label="${passed ? "Complete" : "Incomplete"}">${passed ? "✓" : ""}</span>
+          <span class="cir-dots">⋮</span>
         </span>
       </summary>
-      <div class="lesson-body">
+      <div class="cir-body">
         <div class="assignment-blocks">
           <section class="lesson-panel notes-panel">
             <div class="assignment-row-title"><span class="assignment-dot notes"></span>Notes</div>
@@ -521,42 +516,27 @@ function renderLessonSection(section, module, index, state) {
   `;
 }
 
-function renderModuleAccordion(module, state) {
+function renderModuleAccordion(module, state, defaultOpen = false) {
   const progress = getModuleProgress(module, state);
   const sections = getModuleSections(module)
-    .map((section, index) => renderLessonSection(section, module, index, state))
+    .map((section, index) => renderCanvasItemRow(section, module, index, state))
     .join("");
 
   return `
-    <details class="module-accordion canvas-course" open>
+    <details class="canvas-module-row" ${defaultOpen ? "open" : ""}>
       <summary>
-        <span class="module-summary-left">
-          <span class="module-icon">${UI_ICONS[module.icon || "dashboard"]}</span>
-          <span>
-            <strong>${module.title}</strong>
-            <small>${module.owner}</small>
-          </span>
-        </span>
-        <span class="module-summary-right">
-          <span class="module-pill">${progress.passedCount}/${progress.totalCount}</span>
-          <span class="module-pill muted">${progress.statusText}</span>
+        <span class="cmr-grip">⋮</span>
+        <span class="cmr-arrow">▶</span>
+        <span class="cmr-title">${module.title}</span>
+        <span class="cmr-right">
+          <span class="cmr-check ${progress.complete ? "done" : ""}" aria-label="${progress.complete ? "Complete" : "In Progress"}">${progress.complete ? "✓" : ""}</span>
+          <button class="cmr-plus" type="button" aria-label="Expand">+</button>
+          <span class="cmr-dots">⋮</span>
         </span>
       </summary>
-      <div class="module-body">
-        <div class="module-outcome-row">
-          <p class="module-outcome">${module.outcome}</p>
-          <div class="module-meta-grid">
-            <span class="module-meta-chip">${module.sections.length} sections</span>
-            <span class="module-meta-chip">${module.quizzes.length} quizzes</span>
-          </div>
-        </div>
-        <div class="assignment-list">
-          <div class="assignment-group-row">
-            <span class="assignment-group-title">Module Assignments</span>
-            <span class="assignment-group-meta">Notes · Watch This · Quiz</span>
-          </div>
-          <div class="lesson-stack">${sections}</div>
-        </div>
+      <div class="canvas-module-items">
+        <div class="canvas-text-header">${module.outcome}</div>
+        ${sections}
       </div>
     </details>
   `;
@@ -611,7 +591,7 @@ function renderModuleContent() {
     </article>
     <article class="panel canvas-module-list">
       <div class="module-accordion-list single-module">
-        ${renderModuleAccordion(module, state)}
+        ${renderModuleAccordion(module, state, true)}
       </div>
     </article>
   `;
@@ -700,7 +680,7 @@ function wireInlineQuizForms(root = document) {
           : `Scored ${score}% - you need ${passingScore}% to pass this section.`;
       }
 
-      form.closest(".lesson-accordion")?.setAttribute("open", "open");
+      form.closest(".canvas-item-row")?.setAttribute("open", "open");
     });
   });
 }
