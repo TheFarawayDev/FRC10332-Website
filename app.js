@@ -1,5 +1,25 @@
 const STORAGE_KEY = "forge-training-state-v1";
 
+function assetPrefix() {
+  const path = window.location.pathname;
+  if (path.includes("/modules/") || path.includes("/quizzes/")) {
+    return "../";
+  }
+  return "";
+}
+
+function ensureFavicon() {
+  const href = `${assetPrefix()}favicon.svg`;
+  let iconLink = document.querySelector("link[rel='icon']");
+  if (!iconLink) {
+    iconLink = document.createElement("link");
+    iconLink.rel = "icon";
+    document.head.appendChild(iconLink);
+  }
+  iconLink.type = "image/svg+xml";
+  iconLink.href = href;
+}
+
 function readState() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) {
@@ -106,7 +126,7 @@ function renderCommonHeader() {
 
   target.innerHTML = `
     <div class="brand">
-      <div class="brand-mark">${FORGE_PROGRAM.appName}</div>
+      <div class="brand-mark"><img src="${assetPrefix()}favicon.svg" alt="FORGE icon" /></div>
       <div class="brand-copy">
         <h1>${FORGE_PROGRAM.fullName}</h1>
         <p>${FORGE_PROGRAM.cohort}</p>
@@ -251,6 +271,7 @@ function wireQuizForm(quizFile, answers) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  ensureFavicon();
   renderCommonHeader();
   renderRoleControls();
   renderPortalMetrics();
