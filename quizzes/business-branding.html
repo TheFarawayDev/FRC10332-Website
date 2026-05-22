@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FORGE Quiz | Business Branding</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="topbar" data-forge-header></header>
+      <section class="panel hero">
+        <h2>Quiz: Business Branding Basics</h2>
+        <p>File: quizzes/business-branding.html</p>
+        <iframe src="https://www.youtube.com/embed/4KlyPZ6ztiM" title="Branding clip" allowfullscreen></iframe>
+        <div class="button-row">
+          <a class="btn alt" href="../modules/business-media.html">Back to Module</a>
+          <a class="btn alt" href="../portal.html">Back to Dashboard</a>
+        </div>
+      </section>
+      <section class="panel">
+        <form class="quiz-form" data-quiz-form>
+          <div class="question">
+            <h4>1. What should every sponsor post include?</h4>
+            <label><input type="radio" name="q1" value="a" /> Just robot photos</label>
+            <label><input type="radio" name="q1" value="b" /> Sponsor value + team impact</label>
+            <label><input type="radio" name="q1" value="c" /> Internal team jokes</label>
+          </div>
+          <div class="question">
+            <h4>2. Brand consistency means:</h4>
+            <label><input type="radio" name="q2" value="a" /> Random colors per post</label>
+            <label><input type="radio" name="q2" value="b" /> Same logo, tone, and style guidelines</label>
+            <label><input type="radio" name="q2" value="c" /> No captions needed</label>
+          </div>
+          <button class="btn primary" type="submit">Submit Quiz</button>
+        </form>
+        <div class="result" data-quiz-result>Submit to see result.</div>
+      </section>
+    </main>
+    <script src="../data.js"></script><script src="../app.js"></script>
+    <script>document.addEventListener("DOMContentLoaded", () => wireQuizForm("quizzes/business-branding.html", ["b", "b"]));</script>
+  </body>
+</html>

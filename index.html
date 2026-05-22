@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FORGE | FRC 10332 Training</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="topbar" data-forge-header></header>
+
+      <section class="panel hero">
+        <h2>FORGE Training Hub</h2>
+        <p>
+          A Canvas-style command center for FRC 10332 where each sub-category has required modules,
+          embedded learning videos, and pass/fail quiz checkpoints.
+        </p>
+        <div class="quick-grid" data-portal-metrics></div>
+        <div class="button-row">
+          <a class="btn primary" href="portal.html">Open Navigation Center</a>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Role and Exemption Preview</h3>
+        <p>
+          Existing members are exempt by default. Leads or mentors can enforce retraining by enabling
+          override.
+        </p>
+        <form class="quiz-form" data-role-form>
+          <label>
+            Member Role
+            <select name="memberRole">
+              <option value="rookie">Rookie Member</option>
+              <option value="existing">Existing Member</option>
+              <option value="lead">Lead/Mentor</option>
+            </select>
+          </label>
+          <label>
+            <input type="checkbox" name="mentorOverride" />
+            Lead/Mentor override required (forces all required modules)
+          </label>
+        </form>
+        <div class="notice">
+          <strong>Prototype note:</strong> this is a static front-end mockup. Data is stored locally in
+          your browser for preview and can later connect to real student/member records.
+        </div>
+      </section>
+    </main>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

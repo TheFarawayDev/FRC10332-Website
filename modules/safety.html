@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FORGE | Safety</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="topbar" data-forge-header></header>
+      <section class="layout">
+        <aside class="side-nav">
+          <h2>Sub-categories</h2>
+          <a href="../portal.html">Dashboard</a>
+          <a href="business-media.html">Business and Media</a>
+          <a class="active" href="safety.html">Safety</a>
+          <a href="strategy.html">Strategy</a>
+          <a href="design.html">Design</a>
+          <a href="control.html">Control</a>
+          <a href="fabrication.html">Fabrication</a>
+          <a href="art.html">Art</a>
+        </aside>
+        <section class="content-area">
+          <article class="panel hero">
+            <h2>Safety Module</h2>
+            <p>Focus: PPE standards, shop zones, pit behavior, and incident prevention procedures.</p>
+            <iframe src="https://www.youtube.com/embed/6J4J5Jf3DoY" title="Safety video" allowfullscreen></iframe>
+          </article>
+          <article class="panel">
+            <h3>Required Quiz Files</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Quiz</th><th>File</th><th>Status</th></tr></thead>
+                <tbody data-module-checklist></tbody>
+              </table>
+            </div>
+            <div class="notice"><strong>Rule:</strong> all safety quizzes must be passed before shop access approval.</div>
+          </article>
+        </section>
+      </section>
+    </main>
+    <script src="../data.js"></script>
+    <script src="../app.js"></script>
+    <script>document.addEventListener("DOMContentLoaded", () => renderModuleChecklist("safety"));</script>
+  </body>
+</html>
