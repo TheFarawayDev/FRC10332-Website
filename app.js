@@ -1,11 +1,163 @@
 const STORAGE_KEY = "forge-training-state-v1";
 
+const UI_ICONS = {
+  dashboard:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 3h8v8H3z"/></svg>',
+  business:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v14H3zM8 7V5h8v2M3 11h18"/></svg>',
+  safety:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v6c0 5-3.4 7.9-8 9-4.6-1.1-8-4-8-9V7l8-4zM9 12l2 2 4-4"/></svg>',
+  strategy:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l7-7M14 6l4-4 4 4-4 4zM13 7l4 4M4 10l4-4 4 4-4 4z"/></svg>',
+  design:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5 4 13-13-5-5L3 17zM14 5l5 5"/></svg>',
+  control:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3v6M16 3v6M5 9h14v12H5zM9 13h6M9 17h6"/></svg>',
+  fabrication:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19h18M7 15l5-11 5 11"/></svg>',
+  art:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 0-4h-1a2 2 0 0 1 0-4h5a4 4 0 0 0 0-8h-5z"/></svg>',
+  account:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"/></svg>'
+};
+
+const RAIL_LINKS = [
+  { href: "portal.html", label: "Dashboard", icon: "dashboard" },
+  { href: "modules/business-media.html", label: "Business", icon: "business" },
+  { href: "modules/safety.html", label: "Safety", icon: "safety" },
+  { href: "modules/strategy.html", label: "Strategy", icon: "strategy" },
+  { href: "modules/design.html", label: "Design", icon: "design" },
+  { href: "modules/control.html", label: "Control", icon: "control" },
+  { href: "modules/fabrication.html", label: "Fabrication", icon: "fabrication" },
+  { href: "modules/art.html", label: "Art", icon: "art" },
+  { href: "index.html", label: "Account", icon: "account" }
+];
+
 function assetPrefix() {
   const path = window.location.pathname;
   if (path.includes("/modules/") || path.includes("/quizzes/")) {
     return "../";
   }
   return "";
+}
+
+function currentFilePath() {
+  const path = window.location.pathname;
+  if (path.endsWith("/")) {
+    return `${path}index.html`;
+  }
+  return path;
+}
+
+function cleanVisibleUrl() {
+  const path = window.location.pathname;
+  if (path.endsWith("index.html")) {
+    const clean = path.slice(0, -"index.html".length) || "/";
+    window.history.replaceState({}, "", clean + window.location.search + window.location.hash);
+    return;
+  }
+  if (path.endsWith(".html")) {
+    const clean = path.slice(0, -".html".length);
+    window.history.replaceState({}, "", clean + window.location.search + window.location.hash);
+  }
+}
+
+function resolveAppHref(href) {
+  if (href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("#")) {
+    return href;
+  }
+  const prefix = assetPrefix();
+  return `${prefix}${href}`;
+}
+
+function renderCanvasRail() {
+  if (document.querySelector(".canvas-rail")) return;
+
+  const rail = document.createElement("nav");
+  rail.className = "canvas-rail";
+  rail.setAttribute("aria-label", "Primary Navigation");
+
+  const current = window.location.pathname;
+  const isRoot = current === "/" || current === "";
+  rail.innerHTML = `
+    <div class="rail-logo"><img src="${assetPrefix()}favicon.svg" alt="FORGE" /></div>
+    ${RAIL_LINKS.map((link) => {
+      const pageKey = link.href.replace(".html", "");
+      const active =
+        (pageKey === "index" && isRoot) ||
+        current.includes(`/${pageKey}`) ||
+        current.endsWith(link.href);
+      return `
+        <a class="rail-link ${active ? "active" : ""}" href="${resolveAppHref(link.href)}" aria-label="${link.label}">
+          ${UI_ICONS[link.icon]}
+          <span>${link.label}</span>
+        </a>
+      `;
+    }).join("")}
+  `;
+  document.body.prepend(rail);
+}
+
+function injectMobileNavToggle() {
+  const topbar = document.querySelector(".topbar");
+  if (!topbar || topbar.querySelector(".mobile-nav-toggle")) return;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "mobile-nav-toggle btn alt";
+  button.textContent = "Menu";
+  button.addEventListener("click", () => {
+    document.body.classList.toggle("rail-open");
+  });
+  topbar.prepend(button);
+}
+
+function decorateSideNav() {
+  const map = [
+    ["Dashboard", "dashboard"],
+    ["Business", "business"],
+    ["Safety", "safety"],
+    ["Strategy", "strategy"],
+    ["Design", "design"],
+    ["Control", "control"],
+    ["Fabrication", "fabrication"],
+    ["Art", "art"],
+    ["Role", "account"]
+  ];
+
+  document.querySelectorAll(".side-nav a").forEach((link) => {
+    if (link.dataset.decorated === "true") return;
+    const key = map.find(([name]) => link.textContent.includes(name))?.[1] || "dashboard";
+    link.insertAdjacentHTML("afterbegin", `<span class="nav-icon">${UI_ICONS[key]}</span>`);
+    link.dataset.decorated = "true";
+  });
+}
+
+function normalizeExtensionlessLinks(scope = document) {
+  scope.querySelectorAll("a[href]").forEach((link) => {
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("#")) {
+      return;
+    }
+    if (href.endsWith(".html")) {
+      link.dataset.fileHref = href;
+      link.setAttribute("href", href.slice(0, -5));
+    }
+  });
+}
+
+function wireExtensionlessNavigation() {
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest("a[data-file-href]");
+    if (!link) return;
+    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+    if (link.target && link.target !== "_self") return;
+
+    event.preventDefault();
+    window.location.href = link.dataset.fileHref;
+  });
 }
 
 function ensureFavicon() {
@@ -165,17 +317,19 @@ function renderModuleCards() {
       const progress = getModuleProgress(module, state);
 
       return `
-        <article class="card">
-          <h3>${module.title}</h3>
+        <article class="card module-row-card">
+          <div class="module-row-head">
+            <h3>${module.title}</h3>
+            <span class="tag">${progress.passedCount}/${progress.totalCount}</span>
+          </div>
           <p>${module.outcome}</p>
           <div class="tag-row">
             <span class="tag">Owner: ${module.owner}</span>
-            <span class="tag">Quizzes: ${module.quizzes.length}</span>
+            <span class="tag">${progress.statusText}</span>
           </div>
           <div class="progress-track" aria-hidden="true">
             <div class="progress-fill" style="width: ${progress.percentage}%"></div>
           </div>
-          <p><strong>${progress.statusText}</strong> • ${progress.passedCount}/${progress.totalCount} complete</p>
           <div class="button-row">
             <a class="btn primary" href="${module.modulePage}">Open Module</a>
           </div>
@@ -238,6 +392,8 @@ function renderModuleChecklist(moduleKey) {
       `;
     })
     .join("");
+
+  normalizeExtensionlessLinks(host);
 }
 
 function wireQuizForm(quizFile, answers) {
@@ -271,9 +427,15 @@ function wireQuizForm(quizFile, answers) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  cleanVisibleUrl();
   ensureFavicon();
+  wireExtensionlessNavigation();
+  renderCanvasRail();
   renderCommonHeader();
+  injectMobileNavToggle();
+  decorateSideNav();
   renderRoleControls();
   renderPortalMetrics();
   renderModuleCards();
+  normalizeExtensionlessLinks();
 });
