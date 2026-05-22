@@ -20,6 +20,9 @@ This repository now contains a full static prototype of a team training platform
 - Completion rule: every quiz in a sub-category must be passed
 - Exemption rule: existing members are exempt by default unless a lead/mentor override is enabled
 - Local progress persistence using browser `localStorage`
+- Extensionless visible URLs in the browser for a cleaner Canvas-style feel
+- A fake account page with role controls and progress summary
+- Six dropdown sections per module for testing, each with notes, watch content, and a quiz
 
 ## Project Structure
 
@@ -27,6 +30,8 @@ This repository now contains a full static prototype of a team training platform
 	- Landing page and role/exemption controls
 - `portal.html`
 	- All-in-one navigation center and progress overview
+- `account.html`
+	- Fake member account and training status page
 - `styles.css`
 	- Shared visual system and responsive layout
 - `data.js`

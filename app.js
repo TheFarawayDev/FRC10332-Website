@@ -1,11 +1,174 @@
 const STORAGE_KEY = "forge-training-state-v1";
 
+const UI_ICONS = {
+  dashboard:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 3h8v8H3z"/></svg>',
+  business:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v14H3zM8 7V5h8v2M3 11h18"/></svg>',
+  safety:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v6c0 5-3.4 7.9-8 9-4.6-1.1-8-4-8-9V7l8-4zM9 12l2 2 4-4"/></svg>',
+  strategy:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l7-7M14 6l4-4 4 4-4 4zM13 7l4 4M4 10l4-4 4 4-4 4z"/></svg>',
+  design:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5 4 13-13-5-5L3 17zM14 5l5 5"/></svg>',
+  control:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3v6M16 3v6M5 9h14v12H5zM9 13h6M9 17h6"/></svg>',
+  fabrication:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19h18M7 15l5-11 5 11"/></svg>',
+  art:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 0-4h-1a2 2 0 0 1 0-4h5a4 4 0 0 0 0-8h-5z"/></svg>',
+  account:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"/></svg>'
+};
+
+const RAIL_LINKS = [
+  { href: "portal.html", label: "Dashboard", icon: "dashboard" },
+  { href: "modules/business-media.html", label: "Business", icon: "business" },
+  { href: "modules/safety.html", label: "Safety", icon: "safety" },
+  { href: "modules/strategy.html", label: "Strategy", icon: "strategy" },
+  { href: "modules/design.html", label: "Design", icon: "design" },
+  { href: "modules/control.html", label: "Control", icon: "control" },
+  { href: "modules/fabrication.html", label: "Fabrication", icon: "fabrication" },
+  { href: "modules/art.html", label: "Art", icon: "art" },
+  { href: "account.html", label: "Account", icon: "account" }
+];
+
 function assetPrefix() {
   const path = window.location.pathname;
   if (path.includes("/modules/") || path.includes("/quizzes/")) {
     return "../";
   }
   return "";
+}
+
+function cleanVisibleUrl() {
+  const path = window.location.pathname;
+  if (path.endsWith("index.html")) {
+    const clean = path.slice(0, -"index.html".length) || "/";
+    window.history.replaceState({}, "", clean + window.location.search + window.location.hash);
+    return;
+  }
+
+  if (path.endsWith(".html")) {
+    const clean = path.slice(0, -".html".length);
+    window.history.replaceState({}, "", clean + window.location.search + window.location.hash);
+  }
+}
+
+function resolveAppHref(href) {
+  if (href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("#")) {
+    return href;
+  }
+
+  const path = window.location.pathname;
+  const inNestedFolder = path.includes("/modules/") || path.includes("/quizzes/");
+  if (!inNestedFolder) {
+    return href;
+  }
+
+  if (href.startsWith("modules/")) {
+    return href.replace("modules/", "");
+  }
+
+  if (href.startsWith("quizzes/")) {
+    return href.replace("quizzes/", "");
+  }
+
+  return `../${href}`;
+}
+
+function wireExtensionlessNavigation() {
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest("a[data-file-href]");
+    if (!link) return;
+    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+    if (link.target && link.target !== "_self") return;
+
+    event.preventDefault();
+    window.location.href = link.dataset.fileHref;
+  });
+}
+
+function normalizeExtensionlessLinks(scope = document) {
+  scope.querySelectorAll("a[href]").forEach((link) => {
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("#")) {
+      return;
+    }
+
+    if (href.endsWith(".html")) {
+      link.dataset.fileHref = href;
+      link.setAttribute("href", href.slice(0, -5));
+    }
+  });
+}
+
+function renderCanvasRail() {
+  if (document.querySelector(".canvas-rail")) return;
+
+  const rail = document.createElement("nav");
+  rail.className = "canvas-rail";
+  rail.setAttribute("aria-label", "Primary Navigation");
+
+  const current = window.location.pathname;
+  const isRoot = current === "/" || current === "";
+  rail.innerHTML = `
+    <div class="rail-logo"><img src="${assetPrefix()}favicon.svg" alt="FORGE" /></div>
+    ${RAIL_LINKS.map((link) => {
+      const pageKey = link.href.replace(".html", "");
+      const active =
+        (pageKey === "index" && isRoot) ||
+        current.includes(`/${pageKey}`) ||
+        current.endsWith(link.href);
+      return `
+        <a class="rail-link ${active ? "active" : ""}" href="${resolveAppHref(link.href)}" aria-label="${link.label}">
+          ${UI_ICONS[link.icon]}
+          <span>${link.label}</span>
+        </a>
+      `;
+    }).join("")}
+  `;
+
+  document.body.prepend(rail);
+  normalizeExtensionlessLinks(rail);
+}
+
+function injectMobileNavToggle() {
+  const topbar = document.querySelector(".topbar");
+  if (!topbar || topbar.querySelector(".mobile-nav-toggle")) return;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "mobile-nav-toggle btn alt";
+  button.textContent = "Menu";
+  button.addEventListener("click", () => {
+    document.body.classList.toggle("rail-open");
+  });
+  topbar.prepend(button);
+}
+
+function decorateSideNav() {
+  const map = [
+    ["Dashboard", "dashboard"],
+    ["Business", "business"],
+    ["Safety", "safety"],
+    ["Strategy", "strategy"],
+    ["Design", "design"],
+    ["Control", "control"],
+    ["Fabrication", "fabrication"],
+    ["Art", "art"],
+    ["Account", "account"],
+    ["Role", "account"]
+  ];
+
+  document.querySelectorAll(".side-nav a").forEach((link) => {
+    if (link.dataset.decorated === "true") return;
+    const key = map.find(([name]) => link.textContent.includes(name))?.[1] || "dashboard";
+    link.insertAdjacentHTML("afterbegin", `<span class="nav-icon">${UI_ICONS[key]}</span>`);
+    link.dataset.decorated = "true";
+  });
 }
 
 function ensureFavicon() {
@@ -67,27 +230,39 @@ function markQuizResult(quizFile, passed, score) {
   saveState(state);
 }
 
+function getModuleSections(module) {
+  return Array.isArray(module.sections) && module.sections.length
+    ? module.sections
+    : [];
+}
+
+function getSectionStorageKey(module, section) {
+  return `${module.key}:${section.id}`;
+}
+
 function isExempt(state) {
   return state.role === "existing" && !state.overrideRequired;
 }
 
 function getModuleProgress(module, state) {
+  const sections = getModuleSections(module);
+
   if (isExempt(state)) {
     return {
       complete: true,
-      passedCount: module.quizzes.length,
-      totalCount: module.quizzes.length,
+      passedCount: sections.length,
+      totalCount: sections.length,
       percentage: 100,
       statusText: "Exempt (existing member)"
     };
   }
 
-  const passedCount = module.quizzes.filter((quizPath) => {
-    const row = state.completedQuizzes[quizPath];
+  const passedCount = sections.filter((section) => {
+    const row = state.completedQuizzes[getSectionStorageKey(module, section)];
     return row && row.passed;
   }).length;
 
-  const totalCount = module.quizzes.length;
+  const totalCount = sections.length;
   const percentage = Math.round((passedCount / totalCount) * 100);
   const complete = passedCount === totalCount;
 
@@ -140,18 +315,36 @@ function renderCommonHeader() {
 }
 
 function renderRoleControls() {
-  const form = document.querySelector("[data-role-form]");
-  if (!form) return;
+  const scope = document.querySelector("[data-role-form]");
+  if (!scope || scope.dataset.bound === "true") return;
 
   const state = readState();
-  form.querySelector("[name='memberRole']").value = state.role;
-  form.querySelector("[name='mentorOverride']").checked = state.overrideRequired;
+  const roleControls = scope.querySelectorAll("[name='memberRole']");
+  const overrideControl = scope.querySelector("[name='mentorOverride']");
 
-  form.addEventListener("change", () => {
-    setRole(form.querySelector("[name='memberRole']").value);
-    setOverride(form.querySelector("[name='mentorOverride']").checked);
+  roleControls.forEach((control) => {
+    if (control.type === "radio") {
+      control.checked = control.value === state.role;
+    } else {
+      control.value = state.role;
+    }
+  });
+
+  if (overrideControl) {
+    overrideControl.checked = state.overrideRequired;
+  }
+
+  scope.addEventListener("change", () => {
+    const selectedRole = scope.querySelector("[name='memberRole']:checked")?.value
+      || scope.querySelector("[name='memberRole']")?.value
+      || state.role;
+    const overrideValue = Boolean(scope.querySelector("[name='mentorOverride']")?.checked);
+    setRole(selectedRole);
+    setOverride(overrideValue);
     window.location.reload();
   });
+
+  scope.dataset.bound = "true";
 }
 
 function renderModuleCards() {
@@ -210,6 +403,286 @@ function renderPortalMetrics() {
       <span>Exempt from required flow</span>
     </article>
   `;
+}
+
+function getPageKind() {
+  const path = window.location.pathname;
+  if (path.includes("/modules/")) return "module";
+  if (path.includes("/account")) return "account";
+  if (path.includes("/portal")) return "portal";
+  return "home";
+}
+
+function getModuleFromPath() {
+  const key = window.location.pathname.split("/").filter(Boolean).pop()?.replace(/\.html$/, "");
+  return FORGE_PROGRAM.modules.find((module) => module.key === key) || FORGE_PROGRAM.modules[0];
+}
+
+function renderMetricTiles(state) {
+  const summary = getOverallProgress(state);
+
+  return `
+    <article class="stat">
+      <span class="value">${summary.percentage}%</span>
+      <span>Program completion</span>
+    </article>
+    <article class="stat">
+      <span class="value">${summary.completedModules}/${summary.totalModules}</span>
+      <span>Modules complete</span>
+    </article>
+    <article class="stat">
+      <span class="value">${Object.keys(state.completedQuizzes).length}</span>
+      <span>Checks logged</span>
+    </article>
+    <article class="stat">
+      <span class="value">${isExempt(state) ? "Yes" : "No"}</span>
+      <span>Existing member exempt</span>
+    </article>
+  `;
+}
+
+function renderQuizForm(section, module) {
+  const storageKey = getSectionStorageKey(module, section);
+
+  const questions = section.quiz
+    .map((question, questionIndex) => {
+      const options = question.options
+        .map((option, optionIndex) => {
+          return `
+            <label class="option-pill">
+              <input type="radio" name="${storageKey}-q${questionIndex}" value="${optionIndex}" />
+              <span>${option}</span>
+            </label>
+          `;
+        })
+        .join("");
+
+      return `
+        <div class="question quiz-question">
+          <h4>${questionIndex + 1}. ${question.q}</h4>
+          <div class="option-grid">${options}</div>
+        </div>
+      `;
+    })
+    .join("");
+
+  return `
+    <form class="quiz-form inline-quiz" data-inline-quiz data-quiz-key="${storageKey}" data-passing-score="${FORGE_PROGRAM.passingScore}">
+      ${questions}
+      <div class="button-row">
+        <button class="btn primary" type="submit">Submit Checkoff</button>
+        <span class="quiz-meta">${section.quiz.length} questions • ${section.status}</span>
+      </div>
+      <div class="result" data-quiz-result>Submit to lock this section.</div>
+    </form>
+  `;
+}
+
+function renderLessonSection(section, module, index, state) {
+  const quizState = state.completedQuizzes[getSectionStorageKey(module, section)];
+  const progressText = quizState
+    ? quizState.passed
+      ? `Passed ${quizState.score}%`
+      : `Needs review ${quizState.score}%`
+    : "Not started";
+
+  return `
+    <details class="lesson-accordion" ${index === 0 ? "open" : ""}>
+      <summary>
+        <span class="summary-title">${section.title}</span>
+        <span class="summary-meta">${section.status}</span>
+        <span class="summary-score">${progressText}</span>
+      </summary>
+      <div class="lesson-body">
+        <div class="lesson-grid">
+          <section class="lesson-panel notes-panel">
+            <div class="panel-kicker">Notes</div>
+            <div class="rich-notes">${section.notes}</div>
+          </section>
+          <section class="lesson-panel watch-panel">
+            <div class="panel-kicker">Watch This</div>
+            <iframe src="${section.video}" title="${module.title} - ${section.title}" allowfullscreen></iframe>
+          </section>
+          <section class="lesson-panel quiz-panel">
+            <div class="panel-kicker">Quiz</div>
+            ${renderQuizForm(section, module)}
+          </section>
+        </div>
+      </div>
+    </details>
+  `;
+}
+
+function renderModuleAccordion(module, state) {
+  const progress = getModuleProgress(module, state);
+  const sections = getModuleSections(module)
+    .map((section, index) => renderLessonSection(section, module, index, state))
+    .join("");
+
+  return `
+    <details class="module-accordion">
+      <summary>
+        <span class="module-summary-left">
+          <span class="module-icon">${UI_ICONS[module.icon || "dashboard"]}</span>
+          <span>
+            <strong>${module.title}</strong>
+            <small>${module.owner}</small>
+          </span>
+        </span>
+        <span class="module-summary-right">
+          <span class="module-pill">${progress.passedCount}/${progress.totalCount}</span>
+          <span class="module-pill muted">${progress.statusText}</span>
+        </span>
+      </summary>
+      <div class="module-body">
+        <p class="module-outcome">${module.outcome}</p>
+        <div class="lesson-stack">${sections}</div>
+      </div>
+    </details>
+  `;
+}
+
+function renderDashboardContent() {
+  const host = document.querySelector("[data-dashboard-content], .content-area");
+  if (!host) return;
+
+  const state = readState();
+
+  host.innerHTML = `
+    <article class="panel hero dashboard-hero">
+      <div>
+        <h2>FORGE Module Dashboard</h2>
+        <p>Canvas-style module browser with dropdown sections, notes, watch items, and quiz checkoffs.</p>
+      </div>
+      <div class="quick-grid">${renderMetricTiles(state)}</div>
+    </article>
+    <article class="panel canvas-module-list">
+      <div class="section-head">
+        <div>
+          <h3>Training Modules</h3>
+          <p>Open a module to reveal six sections. Each section includes notes, a watch panel, and a quiz.</p>
+        </div>
+      </div>
+      <div class="module-accordion-list">
+        ${FORGE_PROGRAM.modules.map((module) => renderModuleAccordion(module, state)).join("")}
+      </div>
+    </article>
+  `;
+}
+
+function renderModuleContent() {
+  const host = document.querySelector("[data-module-content], .content-area");
+  if (!host) return;
+
+  const module = getModuleFromPath();
+  const state = readState();
+
+  host.innerHTML = `
+    <article class="panel hero module-hero">
+      <div>
+        <h2>${module.title}</h2>
+        <p>${module.outcome}</p>
+      </div>
+      <div class="quick-grid">
+        <article class="stat"><span class="value">${getModuleProgress(module, state).passedCount}/${getModuleProgress(module, state).totalCount}</span><span>Sections complete</span></article>
+        <article class="stat"><span class="value">6</span><span>Sections available</span></article>
+        <article class="stat"><span class="value">${isExempt(state) ? "Exempt" : "Required"}</span><span>Current rule</span></article>
+      </div>
+    </article>
+    <article class="panel canvas-module-list">
+      <div class="module-accordion-list single-module">
+        ${renderModuleAccordion(module, state)}
+      </div>
+    </article>
+  `;
+}
+
+function renderAccountContent() {
+  const host = document.querySelector("[data-account-content], .content-area");
+  if (!host) return;
+
+  const state = readState();
+  const summary = getOverallProgress(state);
+  const demo = FORGE_PROGRAM.demo;
+
+  host.innerHTML = `
+    <article class="panel hero account-hero">
+      <div class="account-badge">${demo.initials}</div>
+      <div>
+        <h2>${demo.name}</h2>
+        <p>${demo.role === "existing" ? "Existing member" : "Training account preview"} • ${demo.subteam} • ${demo.memberId}</p>
+      </div>
+    </article>
+    <article class="panel account-grid">
+      <section class="account-card">
+        <h3>Profile</h3>
+        <div class="account-row"><span>Email</span><strong>${demo.email}</strong></div>
+        <div class="account-row"><span>Joined</span><strong>${demo.joined}</strong></div>
+        <div class="account-row"><span>Subteam</span><strong>${demo.subteam}</strong></div>
+      </section>
+      <section class="account-card">
+        <h3>Training Status</h3>
+        <div class="account-row"><span>Program progress</span><strong>${summary.percentage}%</strong></div>
+        <div class="account-row"><span>Modules complete</span><strong>${summary.completedModules}/${summary.totalModules}</strong></div>
+        <div class="account-row"><span>Exempt</span><strong>${isExempt(state) ? "Yes" : "No"}</strong></div>
+      </section>
+      <section class="account-card">
+        <h3>Role Controls</h3>
+        <div class="role-control-stack" data-role-form>
+          <label class="switch-row"><input type="checkbox" name="mentorOverride" ${state.overrideRequired ? "checked" : ""} /><span>Mentor override required</span></label>
+          <div class="segmented-control">
+            <label><input type="radio" name="memberRole" value="rookie" ${state.role === "rookie" ? "checked" : ""} /><span>Rookie</span></label>
+            <label><input type="radio" name="memberRole" value="existing" ${state.role === "existing" ? "checked" : ""} /><span>Existing</span></label>
+            <label><input type="radio" name="memberRole" value="lead" ${state.role === "lead" ? "checked" : ""} /><span>Lead</span></label>
+          </div>
+        </div>
+      </section>
+    </article>
+  `;
+
+  renderRoleControls();
+}
+
+function wireInlineQuizForms(root = document) {
+  root.querySelectorAll("form[data-inline-quiz]").forEach((form) => {
+    if (form.dataset.bound === "true") return;
+    form.dataset.bound = "true";
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const quizKey = form.dataset.quizKey;
+      const passingScore = Number(form.dataset.passingScore || FORGE_PROGRAM.passingScore);
+      const modulesMap = new Map(FORGE_PROGRAM.modules.map((module) => [module.key, module]));
+      const module = Array.from(modulesMap.values()).find((entry) => quizKey.startsWith(entry.key));
+      if (!module) return;
+
+      const section = module.sections.find((entry) => getSectionStorageKey(module, entry) === quizKey);
+      if (!section) return;
+
+      let correctCount = 0;
+      section.quiz.forEach((question, questionIndex) => {
+        const selected = form.querySelector(`input[name='${quizKey}-q${questionIndex}']:checked`);
+        if (selected && Number(selected.value) === question.answer) {
+          correctCount += 1;
+        }
+      });
+
+      const score = Math.round((correctCount / section.quiz.length) * 100);
+      const passed = score >= passingScore;
+      markQuizResult(quizKey, passed, score);
+
+      const resultHost = form.querySelector("[data-quiz-result]");
+      if (resultHost) {
+        resultHost.className = `result ${passed ? "pass" : "fail"}`;
+        resultHost.textContent = passed
+          ? `Passed with ${score}% - this section is now complete.`
+          : `Scored ${score}% - you need ${passingScore}% to pass this section.`;
+      }
+
+      form.closest(".lesson-accordion")?.setAttribute("open", "open");
+    });
+  });
 }
 
 function renderModuleChecklist(moduleKey) {
@@ -271,9 +744,27 @@ function wireQuizForm(quizFile, answers) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  cleanVisibleUrl();
   ensureFavicon();
+  wireExtensionlessNavigation();
+  renderCanvasRail();
   renderCommonHeader();
+  injectMobileNavToggle();
+  decorateSideNav();
   renderRoleControls();
-  renderPortalMetrics();
-  renderModuleCards();
+
+  const pageKind = getPageKind();
+  if (pageKind === "portal") {
+    renderDashboardContent();
+  } else if (pageKind === "module") {
+    renderModuleContent();
+  } else if (pageKind === "account") {
+    renderAccountContent();
+  } else {
+    renderPortalMetrics();
+    renderModuleCards();
+  }
+
+  wireInlineQuizForms();
+  normalizeExtensionlessLinks();
 });
