@@ -1,5 +1,96 @@
 const STORAGE_KEY = "forge-training-state-v1";
 
+// ─── YouTube Player Registry ──────────────────────────────────────────────────
+const VIDEO_PLAYERS = {};
+
+window.onYouTubeIframeAPIReady = function () {
+  initYouTubePlayers();
+};
+
+function extractVideoId(url) {
+  const m = url.match(/embed\/([^?&"'>\s]+)/);
+  return m ? m[1] : url;
+}
+
+function getVideoWatched(sectionKey) {
+  return Boolean(readState().watchedVideos?.[sectionKey]);
+}
+
+function markVideoWatched(sectionKey) {
+  const state = readState();
+  state.watchedVideos = state.watchedVideos || {};
+  state.watchedVideos[sectionKey] = true;
+  saveState(state);
+  unlockQuizGate(sectionKey);
+}
+
+function unlockQuizGate(sectionKey) {
+  const badge = document.querySelector(`[data-vbadge="${sectionKey}"]`);
+  if (badge) {
+    badge.className = "video-watch-badge watched";
+    badge.innerHTML = "&#x2713;&ensp;Video complete &mdash; quiz unlocked";
+  }
+  const gate = document.querySelector(`[data-quiz-gate="${sectionKey}"]`);
+  if (!gate || gate.dataset.locked !== "true") return;
+  gate.dataset.locked = "false";
+  const [moduleKey, sectionId] = sectionKey.split(":");
+  const module = FORGE_PROGRAM.modules.find((m) => m.key === moduleKey);
+  const section = module?.sections.find((s) => s.id === sectionId);
+  if (module && section) {
+    gate.innerHTML = renderQuizForm(section, module);
+    wireInlineQuizForms(gate);
+  }
+  const panel = gate.closest(".quiz-panel");
+  if (panel) {
+    panel.classList.remove("quiz-locked");
+    panel.querySelector(".quiz-lock-tag")?.remove();
+  }
+}
+
+function loadYouTubeAPI() {
+  if (document.getElementById("yt-api-script")) return;
+  const script = document.createElement("script");
+  script.id = "yt-api-script";
+  script.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(script);
+}
+
+function initYouTubePlayers() {
+  if (typeof YT === "undefined" || !YT.Player) return;
+  document.querySelectorAll("[data-player-key]").forEach((wrap) => {
+    const key = wrap.dataset.playerKey;
+    if (VIDEO_PLAYERS[key]) return;
+    const vid = wrap.dataset.videoId;
+    const elemId = "yt-" + key.replace(/[^a-z0-9]/gi, "-");
+    const target = document.getElementById(elemId);
+    if (!target || !vid) return;
+    VIDEO_PLAYERS[key] = new YT.Player(elemId, {
+      videoId: vid,
+      playerVars: { modestbranding: 1, rel: 0, color: "white" },
+      events: {
+        onStateChange: (evt) => {
+          if (evt.data === YT.PlayerState.ENDED) markVideoWatched(key);
+        },
+      },
+    });
+  });
+}
+
+function renderVideoPanel(section, module) {
+  const key = getSectionStorageKey(module, section);
+  const vid = extractVideoId(section.video);
+  const watched = getVideoWatched(key);
+  const elemId = "yt-" + key.replace(/[^a-z0-9]/gi, "-");
+  return `
+    <div class="video-player-wrap" data-player-key="${key}" data-video-id="${vid}">
+      <div id="${elemId}" class="yt-target"></div>
+      <div class="video-watch-badge ${watched ? "watched" : ""}" data-vbadge="${key}">
+        ${watched ? "&#x2713;&ensp;Video complete &mdash; quiz unlocked" : "&#x25B6;&ensp;Watch to completion to unlock the quiz"}
+      </div>
+    </div>
+  `;
+}
+
 const UI_ICONS = {
   dashboard:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 3h8v8H3z"/></svg>',
@@ -189,17 +280,21 @@ function readState() {
     return {
       role: "rookie",
       overrideRequired: false,
-      completedQuizzes: {}
+      completedQuizzes: {},
+      watchedVideos: {}
     };
   }
 
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (!parsed.watchedVideos) parsed.watchedVideos = {};
+    return parsed;
   } catch (error) {
     return {
       role: "rookie",
       overrideRequired: false,
-      completedQuizzes: {}
+      completedQuizzes: {},
+      watchedVideos: {}
     };
   }
 }
@@ -241,19 +336,23 @@ function getSectionStorageKey(module, section) {
 }
 
 function isExempt(state) {
-  return state.role === "existing" && !state.overrideRequired;
+  const roleData = FORGE_PROGRAM.roles[state.role];
+  if (!roleData) return false;
+  if (state.overrideRequired) return false;
+  return roleData.exempt;
 }
 
 function getModuleProgress(module, state) {
   const sections = getModuleSections(module);
 
   if (isExempt(state)) {
+    const roleData = FORGE_PROGRAM.roles[state.role];
     return {
       complete: true,
       passedCount: sections.length,
       totalCount: sections.length,
       percentage: 100,
-      statusText: "Exempt (existing member)"
+      statusText: `Exempt — ${roleData?.label || "veteran member"}`
     };
   }
 
@@ -297,7 +396,8 @@ function renderCommonHeader() {
   if (!target) return;
 
   const state = readState();
-  const roleLabel = FORGE_PROGRAM.roles[state.role] || FORGE_PROGRAM.roles.rookie;
+  const roleData = FORGE_PROGRAM.roles[state.role] || FORGE_PROGRAM.roles.rookie;
+  const roleLabel = roleData.label;
 
   target.innerHTML = `
     <div class="brand">
@@ -308,8 +408,9 @@ function renderCommonHeader() {
       </div>
     </div>
     <div class="badge-row">
-      <span class="badge">Role: ${roleLabel}</span>
+      <span class="badge role-badge" style="--role-color: ${roleData.color}">${roleLabel}</span>
       <span class="badge">Pass Mark: ${FORGE_PROGRAM.passingScore}%</span>
+      ${isExempt(state) ? '<span class="badge exempt-badge">Training Exempt</span>' : ''}
     </div>
   `;
 }
@@ -436,7 +537,7 @@ function renderMetricTiles(state) {
     </article>
     <article class="stat">
       <span class="value">${isExempt(state) ? "Yes" : "No"}</span>
-      <span>Existing member exempt</span>
+      <span>Training exempt</span>
     </article>
   `;
 }
@@ -479,36 +580,50 @@ function renderQuizForm(section, module) {
 }
 
 const FILE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="10" y1="12" x2="16" y2="12"/><line x1="10" y1="16" x2="16" y2="16"/></svg>`;
+const LOCK_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
 
 function renderCanvasItemRow(section, module, index, state) {
   const quizKey = getSectionStorageKey(module, section);
   const quizState = state.completedQuizzes[quizKey];
   const passed = quizState && quizState.passed;
+  const watched = getVideoWatched(quizKey);
+
+  const quizContent = watched
+    ? renderQuizForm(section, module)
+    : `<div class="quiz-lock-overlay">
+         <span class="quiz-lock-icon">${LOCK_ICON}</span>
+         <p>Watch the video above to completion to unlock this assessment.</p>
+       </div>`;
 
   return `
     <details class="canvas-item-row">
       <summary>
-        <span class="cir-grip">⋮⋮</span>
+        <span class="cir-grip">&#x22EE;&#x22EE;</span>
         <span class="cir-icon">${FILE_ICON}</span>
         <span class="cir-title">${index + 1}. ${section.title}</span>
         <span class="cir-right">
-          <span class="cir-check ${passed ? "done" : ""}" aria-label="${passed ? "Complete" : "Incomplete"}">${passed ? "✓" : ""}</span>
-          <span class="cir-dots">⋮</span>
+          <span class="cir-check ${passed ? "done" : ""}" aria-label="${passed ? "Complete" : "Incomplete"}">${passed ? "&#x2713;" : ""}</span>
+          <span class="cir-dots">&#x22EE;</span>
         </span>
       </summary>
       <div class="cir-body">
         <div class="assignment-blocks">
           <section class="lesson-panel notes-panel">
-            <div class="assignment-row-title"><span class="assignment-dot notes"></span>Notes</div>
+            <div class="assignment-row-title"><span class="assignment-dot notes"></span>Reference Notes</div>
             <div class="rich-notes">${section.notes}</div>
           </section>
           <section class="lesson-panel watch-panel">
-            <div class="assignment-row-title"><span class="assignment-dot watch"></span>Watch This</div>
-            <iframe src="${section.video}" title="${module.title} - ${section.title}" allowfullscreen></iframe>
+            <div class="assignment-row-title"><span class="assignment-dot watch"></span>Training Video</div>
+            ${renderVideoPanel(section, module)}
           </section>
-          <section class="lesson-panel quiz-panel">
-            <div class="assignment-row-title"><span class="assignment-dot quiz"></span>Quiz</div>
-            ${renderQuizForm(section, module)}
+          <section class="lesson-panel quiz-panel ${watched ? "" : "quiz-locked"}">
+            <div class="assignment-row-title">
+              <span class="assignment-dot quiz"></span>Knowledge Assessment
+              ${!watched ? `<span class="quiz-lock-tag">${LOCK_ICON}</span>` : ""}
+            </div>
+            <div data-quiz-gate="${quizKey}" ${watched ? "" : 'data-locked="true"'}>
+              ${quizContent}
+            </div>
           </section>
         </div>
       </div>
@@ -627,13 +742,24 @@ function renderAccountContent() {
         <div class="account-row"><span>Exempt</span><strong>${isExempt(state) ? "Yes" : "No"}</strong></div>
       </section>
       <section class="account-card">
-        <h3>Role Controls</h3>
-        <div class="role-control-stack" data-role-form>
-          <label class="switch-row"><input type="checkbox" name="mentorOverride" ${state.overrideRequired ? "checked" : ""} /><span>Mentor override required</span></label>
-          <div class="segmented-control">
-            <label><input type="radio" name="memberRole" value="rookie" ${state.role === "rookie" ? "checked" : ""} /><span>Rookie</span></label>
-            <label><input type="radio" name="memberRole" value="existing" ${state.role === "existing" ? "checked" : ""} /><span>Existing</span></label>
-            <label><input type="radio" name="memberRole" value="lead" ${state.role === "lead" ? "checked" : ""} /><span>Lead</span></label>
+        <h3>Role &amp; Access Level</h3>
+        <div class="role-selector" data-role-form>
+          <label class="override-toggle switch-row">
+            <input type="checkbox" name="mentorOverride" ${state.overrideRequired ? "checked" : ""} />
+            <span>Mentor override &mdash; require full training track regardless of role</span>
+          </label>
+          <div class="role-card-list">
+            ${Object.entries(FORGE_PROGRAM.roles).map(([key, role]) => `
+              <label class="role-card ${state.role === key ? "selected" : ""}">
+                <input type="radio" name="memberRole" value="${key}" ${state.role === key ? "checked" : ""} />
+                <span class="role-card-dot" style="background:${role.color}"></span>
+                <span class="role-card-text">
+                  <strong>${role.label}</strong>
+                  <small>${role.description}</small>
+                </span>
+                <span class="role-level-pip" style="border-color:${role.color};color:${role.color}">L${role.level}</span>
+              </label>
+            `).join("")}
           </div>
         </div>
       </section>
@@ -746,6 +872,7 @@ function wireQuizForm(quizFile, answers) {
 document.addEventListener("DOMContentLoaded", () => {
   cleanVisibleUrl();
   ensureFavicon();
+  loadYouTubeAPI();
   wireExtensionlessNavigation();
   renderCanvasRail();
   renderCommonHeader();
@@ -767,4 +894,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   wireInlineQuizForms();
   normalizeExtensionlessLinks();
+  // Init YouTube players in case API already loaded before DOM render
+  initYouTubePlayers();
+  // Re-init when any module accordion is opened
+  document.addEventListener("toggle", () => initYouTubePlayers(), true);
 });
