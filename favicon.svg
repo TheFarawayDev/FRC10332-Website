@@ -1,24 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="FORGE Favicon">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#071a33" />
-      <stop offset="1" stop-color="#12335a" />
-    </linearGradient>
-    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f3f7fc" />
-      <stop offset="1" stop-color="#b8c4d1" />
-    </linearGradient>
-  </defs>
-  <rect x="1" y="1" width="62" height="62" rx="16" fill="url(#bg)" stroke="#d5dde7" stroke-width="1.4" />
-  <g stroke="#9db0c8" stroke-opacity="0.28" stroke-width="1">
-    <path d="M10 16h44" />
-    <path d="M10 28h44" />
-    <path d="M10 40h44" />
-    <path d="M16 10v44" />
-    <path d="M28 10v44" />
-    <path d="M40 10v44" />
-    <path d="M52 10v44" />
-  </g>
-  <path d="M18 17h20a8 8 0 0 1 0 16H27v14h-9V17zm9 8h10a2 2 0 0 0 0-4H27v4z" fill="url(#shine)" />
-  <path d="M43 20h4v24h-4z" fill="#d5dde7" opacity="0.9" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Deep black background — no rounding -->
+  <rect width="64" height="64" fill="#08090d"/>
+
+  <!-- Left edge accent — electric blue vertical rule -->
+  <rect x="0" y="0" width="4" height="64" fill="#2563eb"/>
+
+  <!-- Top edge rule -->
+  <rect x="4" y="0" width="60" height="2" fill="#1d3a6e"/>
+
+  <!-- F lettermark — vertical stem -->
+  <rect x="15" y="11" width="7" height="42" fill="#dce8f8"/>
+  <!-- F top crossbar -->
+  <rect x="15" y="11" width="34" height="7" fill="#dce8f8"/>
+  <!-- F mid crossbar -->
+  <rect x="15" y="27" width="24" height="6" fill="#dce8f8"/>
+
+  <!-- Blue accent block — bottom right -->
+  <rect x="34" y="43" width="24" height="10" fill="#2563eb"/>
+  <!-- "10332" label in accent block -->
+  <text
+    x="46" y="51"
+    text-anchor="middle"
+    font-family="'Courier New', Courier, monospace"
+    font-size="6.2"
+    font-weight="700"
+    letter-spacing="-0.4"
+    fill="#bfdbfe"
+  >10332</text>
 </svg>

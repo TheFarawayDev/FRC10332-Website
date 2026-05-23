@@ -24,11 +24,53 @@ const FORGE_PROGRAM = {
     alumnus:   { label: "Alumni Observer",  level: 0, exempt: true,  color: "#9090c0", description: "Alumni with read-only access to all training materials and resources." }
   },
 
+  teams: {
+    mechanical:  {
+      label: "Mechanical",       code: "MECH",  color: "#ef4444",
+      required: ["safety","fabrication","design"],
+      optional: ["control","strategy"],
+      description: "Build, fabricate, and maintain the physical robot."
+    },
+    electrical:  {
+      label: "Electrical",       code: "ELEC",  color: "#f97316",
+      required: ["safety","control","fabrication"],
+      optional: ["design"],
+      description: "Wire, power, and diagnose all robot electronics."
+    },
+    software:    {
+      label: "Software",         code: "SW",    color: "#3b82f6",
+      required: ["safety","control","strategy"],
+      optional: ["design","fabrication"],
+      description: "Program the robot using Java/WPILib and drive-team tools."
+    },
+    media:       {
+      label: "Business & Media", code: "BIZ",   color: "#a855f7",
+      required: ["safety","business-media","art"],
+      optional: ["strategy"],
+      description: "Manage sponsorships, social media, and team brand."
+    },
+    strategy:    {
+      label: "Strategy",         code: "STRAT", color: "#22c55e",
+      required: ["safety","strategy","business-media"],
+      optional: ["art","design"],
+      description: "Scout, analyze game data, and optimize match strategy."
+    },
+    leadership:  {
+      label: "Leadership",       code: "LEAD",  color: "#eab308",
+      required: ["safety","strategy","business-media","design"],
+      optional: ["fabrication","control","art"],
+      description: "Captains and leads — cross-functional leadership track."
+    }
+  },
+
   modules: [
     {
       key: "safety",
       title: "Safety",
       icon: "safety",
+      difficulty: "beginner",
+      estimatedTime: "90 min",
+      prerequisites: [],
       owner: "Safety Captains",
       modulePage: "modules/safety.html",
       outcome: "Operate in the shop and pit with zero-compromise safety habits.",
@@ -104,8 +146,9 @@ const FORGE_PROGRAM = {
     {
       key: "business-media",
       title: "Business and Media",
-      icon: "business",
-      owner: "Business Team + Media Team",
+      icon: "business",      difficulty: "beginner",
+      estimatedTime: "60 min",
+      prerequisites: ["safety"],      owner: "Business Team + Media Team",
       modulePage: "modules/business-media.html",
       outcome: "Build sponsor-ready, community-facing communication.",
       sections: [
@@ -181,6 +224,9 @@ const FORGE_PROGRAM = {
       key: "strategy",
       title: "Strategy",
       icon: "strategy",
+      difficulty: "intermediate",
+      estimatedTime: "75 min",
+      prerequisites: ["safety"],
       owner: "Scouting + Drive Team",
       modulePage: "modules/strategy.html",
       outcome: "Turn game analysis into winning match decisions.",
@@ -257,6 +303,9 @@ const FORGE_PROGRAM = {
       key: "design",
       title: "Design",
       icon: "design",
+      difficulty: "intermediate",
+      estimatedTime: "80 min",
+      prerequisites: ["safety"],
       owner: "CAD + Systems Design",
       modulePage: "modules/design.html",
       outcome: "Create robust mechanisms and clear design documentation.",
@@ -333,6 +382,9 @@ const FORGE_PROGRAM = {
       key: "control",
       title: "Control",
       icon: "control",
+      difficulty: "advanced",
+      estimatedTime: "100 min",
+      prerequisites: ["safety","design"],
       owner: "Programming + Electrical",
       modulePage: "modules/control.html",
       outcome: "Deliver reliable wiring, firmware, and software workflows.",
@@ -409,6 +461,9 @@ const FORGE_PROGRAM = {
       key: "fabrication",
       title: "Fabrication",
       icon: "fabrication",
+      difficulty: "intermediate",
+      estimatedTime: "85 min",
+      prerequisites: ["safety"],
       owner: "Manufacturing Team",
       modulePage: "modules/fabrication.html",
       outcome: "Produce safe, accurate parts with repeatable quality.",
@@ -485,6 +540,9 @@ const FORGE_PROGRAM = {
       key: "art",
       title: "Art",
       icon: "art",
+      difficulty: "beginner",
+      estimatedTime: "55 min",
+      prerequisites: ["safety","business-media"],
       owner: "Brand + Aesthetic Team",
       modulePage: "modules/art.html",
       outcome: "Maintain visual identity across robot, pit, and media assets.",

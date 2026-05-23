@@ -27,8 +27,9 @@ function markVideoWatched(sectionKey) {
 function unlockQuizGate(sectionKey) {
   const badge = document.querySelector(`[data-vbadge="${sectionKey}"]`);
   if (badge) {
-    badge.className = "video-watch-badge watched";
+    badge.className = "video-watch-badge watched just-unlocked";
     badge.innerHTML = "&#x2713;&ensp;Video complete &mdash; quiz unlocked";
+    badge.addEventListener("animationend", () => badge.classList.remove("just-unlocked"), { once: true });
   }
   const gate = document.querySelector(`[data-quiz-gate="${sectionKey}"]`);
   if (!gate || gate.dataset.locked !== "true") return;
@@ -284,6 +285,7 @@ function readState() {
   if (!raw) {
     return {
       role: "rookie",
+      team: null,
       overrideRequired: false,
       completedQuizzes: {},
       watchedVideos: {}
@@ -293,10 +295,12 @@ function readState() {
   try {
     const parsed = JSON.parse(raw);
     if (!parsed.watchedVideos) parsed.watchedVideos = {};
+    if (parsed.team === undefined) parsed.team = null;
     return parsed;
   } catch (error) {
     return {
       role: "rookie",
+      team: null,
       overrideRequired: false,
       completedQuizzes: {},
       watchedVideos: {}
@@ -312,6 +316,25 @@ function setRole(roleValue) {
   const state = readState();
   state.role = roleValue;
   saveState(state);
+}
+
+function setTeam(teamKey) {
+  const state = readState();
+  state.team = teamKey || null;
+  saveState(state);
+}
+
+function getTeamData(state) {
+  if (!state.team || !FORGE_PROGRAM.teams) return null;
+  return FORGE_PROGRAM.teams[state.team] || null;
+}
+
+function getModuleTeamStatus(moduleKey, state) {
+  const team = getTeamData(state);
+  if (!team) return "available";
+  if (team.required && team.required.includes(moduleKey)) return "required";
+  if (team.optional && team.optional.includes(moduleKey)) return "optional";
+  return "available";
 }
 
 function setOverride(enabled) {
@@ -403,17 +426,19 @@ function renderCommonHeader() {
   const state = readState();
   const roleData = FORGE_PROGRAM.roles[state.role] || FORGE_PROGRAM.roles.rookie;
   const roleLabel = roleData.label;
+  const teamData = getTeamData(state);
 
   target.innerHTML = `
     <div class="brand">
       <div class="brand-mark"><img src="${assetPrefix()}favicon.svg" alt="FORGE icon" /></div>
       <div class="brand-copy">
-        <h1>${FORGE_PROGRAM.fullName}</h1>
+        <h1>${FORGE_PROGRAM.appName}</h1>
         <p>${FORGE_PROGRAM.cohort}</p>
       </div>
     </div>
     <div class="badge-row">
       <span class="badge role-badge" style="--role-color: ${roleData.color}">${roleLabel}</span>
+      ${teamData ? `<span class="badge team-badge" style="--role-color:${teamData.color};border-left-color:${teamData.color}">[${teamData.code}] ${teamData.label}</span>` : ""}
       <span class="badge">Pass Mark: ${FORGE_PROGRAM.passingScore}%</span>
       ${isExempt(state) ? '<span class="badge exempt-badge">Training Exempt</span>' : ''}
     </div>
@@ -526,10 +551,12 @@ function getModuleFromPath() {
 
 function renderMetricTiles(state) {
   const summary = getOverallProgress(state);
+  const checksLogged = Object.keys(state.completedQuizzes).length;
+  const videosWatched = Object.keys(state.watchedVideos || {}).length;
 
   return `
     <article class="stat">
-      <span class="value">${summary.percentage}%</span>
+      <span class="value" data-count="${summary.percentage}" data-suffix="%">${summary.percentage}%</span>
       <span>Program completion</span>
     </article>
     <article class="stat">
@@ -537,12 +564,12 @@ function renderMetricTiles(state) {
       <span>Modules complete</span>
     </article>
     <article class="stat">
-      <span class="value">${Object.keys(state.completedQuizzes).length}</span>
+      <span class="value" data-count="${checksLogged}">${checksLogged}</span>
       <span>Checks logged</span>
     </article>
     <article class="stat">
-      <span class="value">${isExempt(state) ? "Yes" : "No"}</span>
-      <span>Training exempt</span>
+      <span class="value" data-count="${videosWatched}">${videosWatched}</span>
+      <span>Videos watched</span>
     </article>
   `;
 }
@@ -663,20 +690,48 @@ function renderCanvasItemRow(section, module, index, state) {
 
 function renderModuleAccordion(module, state, defaultOpen = false) {
   const progress = getModuleProgress(module, state);
+  const teamStatus = getModuleTeamStatus(module.key, state);
   const sections = getModuleSections(module)
     .map((section, index) => renderCanvasItemRow(section, module, index, state))
     .join("");
 
+  // Team status tag
+  let tagHtml = "";
+  if (teamStatus === "required") {
+    tagHtml = `<span class="cmr-tag req">REQUIRED</span>`;
+  } else if (teamStatus === "optional") {
+    tagHtml = `<span class="cmr-tag opt">OPTIONAL</span>`;
+  }
+
+  // Metadata chips
+  const diffColor = { beginner: "#22c55e", intermediate: "#f59e0b", advanced: "#ef4444" };
+  const diffChip = module.difficulty
+    ? `<span style="font-size:0.65rem;font-family:var(--mono);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${diffColor[module.difficulty]||"#9db0c4"}">${module.difficulty}</span>`
+    : "";
+  const timeChip = module.estimatedTime
+    ? `<span class="cmr-meta">${module.estimatedTime}</span>`
+    : "";
+
+  // Progress fill
+  const pct = progress.percentage || 0;
+  const fillClass = progress.complete ? "cmr-progress-fill complete" : "cmr-progress-fill";
+
+  // Team class on the row
+  const rowClass = teamStatus === "required" ? " team-required" : teamStatus === "optional" ? " team-optional" : "";
+
   return `
-    <details class="canvas-module-row" ${defaultOpen ? "open" : ""}>
+    <details class="canvas-module-row${rowClass}" ${defaultOpen ? "open" : ""}>
       <summary>
-        <span class="cmr-grip">⋮</span>
         <span class="cmr-arrow">▶</span>
-        <span class="cmr-title">${module.title}</span>
+        <span class="cmr-title">${module.title}${tagHtml}</span>
         <span class="cmr-right">
+          ${diffChip}
+          ${timeChip}
+          <span class="cmr-progress-wrap" title="${pct}% complete">
+            <span class="${fillClass}" style="width:${pct}%"></span>
+          </span>
+          <span class="cmr-score">${progress.passedCount}/${progress.totalCount}</span>
           <span class="cmr-check ${progress.complete ? "done" : ""}" aria-label="${progress.complete ? "Complete" : "In Progress"}">${progress.complete ? "✓" : ""}</span>
-          <button class="cmr-plus" type="button" aria-label="Expand">+</button>
-          <span class="cmr-dots">⋮</span>
         </span>
       </summary>
       <div class="canvas-module-items">
@@ -692,24 +747,42 @@ function renderDashboardContent() {
   if (!host) return;
 
   const state = readState();
+  const teamData = getTeamData(state);
+
+  // Sort modules: required first, then optional, then available
+  const sortedModules = [...FORGE_PROGRAM.modules].sort((a, b) => {
+    const rank = { required: 0, optional: 1, available: 2 };
+    return (rank[getModuleTeamStatus(a.key, state)] || 2) - (rank[getModuleTeamStatus(b.key, state)] || 2);
+  });
+
+  // Team banner
+  const teamBanner = teamData ? `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border:1px solid var(--line-strong);border-left:3px solid ${teamData.color};background:#0e1016;font-size:0.8rem;">
+      <span style="font-family:var(--mono);font-weight:700;color:${teamData.color};letter-spacing:0.08em;">[${teamData.code}]</span>
+      <span style="color:var(--ink-0);font-weight:600;">${teamData.label}</span>
+      <span style="color:var(--ink-1);">${teamData.description}</span>
+      <span style="margin-left:auto;font-family:var(--mono);font-size:0.68rem;color:var(--ink-1);">${teamData.required.length} required · ${teamData.optional.length} optional</span>
+    </div>
+  ` : "";
 
   host.innerHTML = `
     <article class="panel hero dashboard-hero">
       <div>
-        <h2>FORGE Module Dashboard</h2>
-        <p>Canvas-style module browser with dropdown sections, notes, watch items, and quiz checkoffs.</p>
+        <h2>FORGE Training Dashboard</h2>
+        <p>Focused Operations for Robotics Growth &amp; Excellence — FRC 10332 · 2026 Season</p>
       </div>
       <div class="quick-grid">${renderMetricTiles(state)}</div>
     </article>
+    ${teamBanner}
     <article class="panel canvas-module-list">
       <div class="section-head">
         <div>
           <h3>Training Modules</h3>
-          <p>Open a module to reveal six sections. Each section includes notes, a watch panel, and a quiz.</p>
+          <p>${teamData ? `Showing ${teamData.required.length} required + ${teamData.optional.length} optional for <strong>${teamData.label}</strong>` : "All modules — assign a sub-team on your account page to filter by role."}</p>
         </div>
       </div>
       <div class="module-accordion-list">
-        ${FORGE_PROGRAM.modules.map((module) => renderModuleAccordion(module, state)).join("")}
+        ${sortedModules.map((module) => renderModuleAccordion(module, state)).join("")}
       </div>
     </article>
   `;
@@ -749,13 +822,74 @@ function renderAccountContent() {
   const state = readState();
   const summary = getOverallProgress(state);
   const demo = FORGE_PROGRAM.demo;
+  const teamData = getTeamData(state);
+  const isAdmin = ["captain", "lead", "mentor"].includes(state.role);
+
+  // Team assignment card
+  const teamsObj = FORGE_PROGRAM.teams || {};
+  const teamCard = `
+    <section class="account-card">
+      <h3>Sub-Team Assignment</h3>
+      <p style="font-size:0.78rem;color:var(--ink-1);margin:0 0 10px;">Your assigned sub-team controls which modules are marked Required or Optional on your dashboard.</p>
+      <div class="team-card-list" data-team-form>
+        <label class="team-card ${!state.team ? "selected" : ""}">
+          <input type="radio" name="memberTeam" value="" ${!state.team ? "checked" : ""} />
+          <span class="team-card-dot" style="background:var(--ink-1)"></span>
+          <span class="team-card-text">
+            <strong>No Sub-Team</strong>
+            <small>All modules listed without priority</small>
+          </span>
+        </label>
+        ${Object.entries(teamsObj).map(([key, t]) => `
+          <label class="team-card ${state.team === key ? "selected" : ""}" style="border-left-color:${state.team === key ? t.color : "transparent"}">
+            <input type="radio" name="memberTeam" value="${key}" ${state.team === key ? "checked" : ""} />
+            <span class="team-card-dot" style="background:${t.color}"></span>
+            <span class="team-card-text">
+              <strong>${t.label}</strong>
+              <small>${t.description}</small>
+            </span>
+            <span class="team-code-pill" style="color:${t.color};border-color:${t.color}20;background:${t.color}12">${t.code}</span>
+          </label>
+        `).join("")}
+      </div>
+    </section>
+  `;
+
+  // Admin panel: module matrix per team (only for admins)
+  const adminPanel = isAdmin ? `
+    <div class="admin-panel">
+      <h3>Admin — Module Requirement Matrix</h3>
+      <p style="font-size:0.78rem;color:var(--ink-1);margin:4px 0 0;">Shows which modules each sub-team must complete. Assign teams to members via the roster (coming soon).</p>
+      <table class="admin-matrix">
+        <thead>
+          <tr>
+            <th>Sub-Team</th>
+            <th>Required Modules</th>
+            <th>Optional Modules</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Object.entries(teamsObj).map(([, t]) => `
+            <tr>
+              <td><span style="font-family:var(--mono);font-weight:700;font-size:0.78rem;color:${t.color}">[${t.code}]</span> ${t.label}</td>
+              <td>${t.required.map(k => `<span class="mod-tag req">${k}</span>`).join("")}</td>
+              <td>${t.optional.map(k => `<span class="mod-tag opt">${k}</span>`).join("")}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  ` : "";
 
   host.innerHTML = `
-    <article class="panel hero account-hero">
+    <article class="account-hero">
       <div class="account-badge">${demo.initials}</div>
       <div>
         <h2>${demo.name}</h2>
-        <p>${demo.role === "existing" ? "Existing member" : "Training account preview"} • ${demo.subteam} • ${demo.memberId}</p>
+        <p>${demo.memberId} &nbsp;·&nbsp; ${teamData ? `[${teamData.code}] ${teamData.label}` : demo.subteam} &nbsp;·&nbsp; ${demo.joined}</p>
+      </div>
+      <div style="margin-left:auto">
+        <span class="badge role-badge" style="--role-color:${(FORGE_PROGRAM.roles[state.role]||{}).color}">${(FORGE_PROGRAM.roles[state.role]||{label:"—"}).label}</span>
       </div>
     </article>
     <article class="panel account-grid">
@@ -763,7 +897,7 @@ function renderAccountContent() {
         <h3>Profile</h3>
         <div class="account-row"><span>Email</span><strong>${demo.email}</strong></div>
         <div class="account-row"><span>Joined</span><strong>${demo.joined}</strong></div>
-        <div class="account-row"><span>Subteam</span><strong>${demo.subteam}</strong></div>
+        <div class="account-row"><span>Subteam</span><strong>${teamData ? teamData.label : demo.subteam}</strong></div>
       </section>
       <section class="account-card">
         <h3>Training Status</h3>
@@ -780,7 +914,7 @@ function renderAccountContent() {
           </label>
           <div class="role-card-list">
             ${Object.entries(FORGE_PROGRAM.roles).map(([key, role]) => `
-              <label class="role-card ${state.role === key ? "selected" : ""}">
+              <label class="role-card ${state.role === key ? "selected" : ""}" style="border-left-color:${state.role === key ? role.color : "transparent"}">
                 <input type="radio" name="memberRole" value="${key}" ${state.role === key ? "checked" : ""} />
                 <span class="role-card-dot" style="background:${role.color}"></span>
                 <span class="role-card-text">
@@ -793,10 +927,37 @@ function renderAccountContent() {
           </div>
         </div>
       </section>
+      ${teamCard}
     </article>
+    ${adminPanel}
   `;
 
   renderRoleControls();
+  wireTeamControls();
+}
+
+function wireTeamControls() {
+  const scope = document.querySelector("[data-team-form]");
+  if (!scope || scope.dataset.bound === "true") return;
+  scope.dataset.bound = "true";
+
+  scope.addEventListener("change", () => {
+    const selected = scope.querySelector("[name='memberTeam']:checked");
+    const teamKey = selected ? selected.value : null;
+    setTeam(teamKey || null);
+
+    // Update card highlight immediately
+    scope.querySelectorAll(".team-card").forEach((card) => {
+      const radio = card.querySelector("input[type='radio']");
+      const isSelected = radio && radio.checked;
+      card.classList.toggle("selected", isSelected);
+      const teamsObj = FORGE_PROGRAM.teams || {};
+      const teamColor = teamsObj[radio?.value]?.color || "";
+      card.style.borderLeftColor = isSelected && teamColor ? teamColor : "transparent";
+    });
+
+    renderCommonHeader();
+  });
 }
 
 function wireInlineQuizForms(root = document) {
@@ -910,6 +1071,9 @@ document.addEventListener("DOMContentLoaded", () => {
   decorateSideNav();
   renderRoleControls();
 
+  // Wire accordion stagger animations globally (before content render)
+  wireAccordionAnimations();
+
   const pageKind = getPageKind();
   if (pageKind === "portal") {
     renderDashboardContent();
@@ -928,4 +1092,135 @@ document.addEventListener("DOMContentLoaded", () => {
   initYouTubePlayers();
   // Re-init when any module accordion is opened
   document.addEventListener("toggle", () => initYouTubePlayers(), true);
+
+  // Run post-render animations (counters, intersection observer)
+  runPostRenderAnimations();
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ANIMATION ENGINE
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Animate stat counter values from 0 up to their data-count target.
+ * Elements must have data-count (number) and optional data-suffix.
+ */
+function animateCounters(root = document) {
+  root.querySelectorAll(".stat .value[data-count]").forEach((el) => {
+    const target = parseFloat(el.dataset.count) || 0;
+    if (target === 0) return;
+    const suffix = el.dataset.suffix || "";
+    const isInt = Number.isInteger(target);
+    const duration = Math.min(900, 300 + target * 6);
+    const start = performance.now();
+
+    function tick(now) {
+      const t = Math.min((now - start) / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - t, 3);
+      const current = target * eased;
+      el.textContent = (isInt ? Math.round(current) : current.toFixed(1)) + suffix;
+      if (t < 1) requestAnimationFrame(tick);
+    }
+
+    // Delay to match CSS animation timing on stat tiles
+    const delay = parseFloat(
+      getComputedStyle(el.closest(".stat") || el).animationDelay || "0"
+    ) * 1000;
+    setTimeout(() => requestAnimationFrame(tick), delay + 50);
+  });
+}
+
+/**
+ * Stagger-animate direct children of an accordion body when it opens.
+ * Listens to the native <details> toggle event.
+ */
+function wireAccordionAnimations() {
+  document.addEventListener(
+    "toggle",
+    (e) => {
+      const details = e.target;
+      if (!details.open) return;
+
+      // Target the items container inside this details
+      const body =
+        details.querySelector(".canvas-module-items") ||
+        details.querySelector(".cir-body") ||
+        details.querySelector(".section-subitems") ||
+        details.querySelector(".subitem-body");
+      if (!body) return;
+
+      const items = Array.from(body.children);
+      items.forEach((item, i) => {
+        item.style.setProperty("--delay", `${i * 35}ms`);
+        item.classList.remove("anim-in");
+        // Force reflow so re-opening works
+        void item.offsetWidth;
+        item.classList.add("anim-in");
+        item.addEventListener(
+          "animationend",
+          () => item.classList.remove("anim-in"),
+          { once: true }
+        );
+      });
+    },
+    true
+  );
+}
+
+/**
+ * Add page transition support via View Transitions API when navigating.
+ * Wraps content renders so the browser can cross-fade.
+ */
+function withPageTransition(callback) {
+  if (typeof document.startViewTransition === "function") {
+    document.startViewTransition(callback);
+  } else {
+    callback();
+  }
+}
+
+/**
+ * After a page is rendered, kick off JS-driven animations:
+ * - counter count-up on stat tiles
+ * - progress bar grow (scaleX 0→1 via CSS, just forces the element into view)
+ * - IntersectionObserver to lazily animate module rows as they scroll into view
+ */
+function runPostRenderAnimations(root = document) {
+  animateCounters(root);
+  observeModuleRows(root);
+}
+
+/**
+ * Use IntersectionObserver to trigger re-entry animation for module rows
+ * that appear below the fold (deferred stagger for long lists).
+ */
+function observeModuleRows(root = document) {
+  if (!window.IntersectionObserver) return;
+
+  const rows = root.querySelectorAll(".canvas-module-row");
+  if (!rows.length) return;
+
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          // Row is visible — make sure it's not stuck opacity:0 from animation
+          entry.target.style.animationPlayState = "running";
+          io.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.05 }
+  );
+
+  rows.forEach((row) => {
+    // Pause CSS animation until row enters viewport (for below-fold rows)
+    const delay = parseFloat(getComputedStyle(row).animationDelay || "0") * 1000;
+    if (delay > 400) {
+      row.style.animationPlayState = "paused";
+    }
+    io.observe(row);
+  });
+}
+
