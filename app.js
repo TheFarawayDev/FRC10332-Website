@@ -40,10 +40,15 @@ function unlockQuizGate(sectionKey) {
     gate.innerHTML = renderQuizForm(section, module);
     wireInlineQuizForms(gate);
   }
-  const panel = gate.closest(".quiz-panel");
-  if (panel) {
-    panel.classList.remove("quiz-locked");
-    panel.querySelector(".quiz-lock-tag")?.remove();
+  const quizSubitem = gate.closest(".quiz-subitem");
+  if (quizSubitem) {
+    quizSubitem.classList.remove("quiz-locked");
+    quizSubitem.querySelector(".subitem-badge.locked")?.remove();
+  }
+  const summaryVideoBadge = document.querySelector(`[data-subitem-vbadge="${sectionKey}"]`);
+  if (summaryVideoBadge) {
+    summaryVideoBadge.className = "subitem-badge watched";
+    summaryVideoBadge.innerHTML = "&#x2713;&nbsp;Watched";
   }
 }
 
@@ -581,6 +586,9 @@ function renderQuizForm(section, module) {
 
 const FILE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="10" y1="12" x2="16" y2="12"/><line x1="10" y1="16" x2="16" y2="16"/></svg>`;
 const LOCK_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+const VIDEO_PLAY_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+const NOTES_SUB_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`;
+const QUIZ_CHECK_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`;
 
 function renderCanvasItemRow(section, module, index, state) {
   const quizKey = getSectionStorageKey(module, section);
@@ -592,7 +600,7 @@ function renderCanvasItemRow(section, module, index, state) {
     ? renderQuizForm(section, module)
     : `<div class="quiz-lock-overlay">
          <span class="quiz-lock-icon">${LOCK_ICON}</span>
-         <p>Watch the video above to completion to unlock this assessment.</p>
+         <p>Watch the training video to completion to unlock this assessment.</p>
        </div>`;
 
   return `
@@ -607,24 +615,46 @@ function renderCanvasItemRow(section, module, index, state) {
         </span>
       </summary>
       <div class="cir-body">
-        <div class="assignment-blocks">
-          <section class="lesson-panel notes-panel">
-            <div class="assignment-row-title"><span class="assignment-dot notes"></span>Reference Notes</div>
-            <div class="rich-notes">${section.notes}</div>
-          </section>
-          <section class="lesson-panel watch-panel">
-            <div class="assignment-row-title"><span class="assignment-dot watch"></span>Training Video</div>
-            ${renderVideoPanel(section, module)}
-          </section>
-          <section class="lesson-panel quiz-panel ${watched ? "" : "quiz-locked"}">
-            <div class="assignment-row-title">
-              <span class="assignment-dot quiz"></span>Knowledge Assessment
-              ${!watched ? `<span class="quiz-lock-tag">${LOCK_ICON}</span>` : ""}
+        <div class="section-subitems">
+
+          <details class="section-subitem video-subitem">
+            <summary class="subitem-summary">
+              <span class="subitem-icon video">${VIDEO_PLAY_ICON}</span>
+              <span class="subitem-title">Training Video</span>
+              <span class="subitem-badge ${watched ? "watched" : ""}" data-subitem-vbadge="${quizKey}">${watched ? "&#x2713;&nbsp;Watched" : "Required"}</span>
+            </summary>
+            <div class="subitem-body">
+              ${renderVideoPanel(section, module)}
             </div>
-            <div data-quiz-gate="${quizKey}" ${watched ? "" : 'data-locked="true"'}>
-              ${quizContent}
+          </details>
+
+          <details class="section-subitem notes-subitem">
+            <summary class="subitem-summary">
+              <span class="subitem-icon notes">${NOTES_SUB_ICON}</span>
+              <span class="subitem-title">Explanation &amp; Notes</span>
+            </summary>
+            <div class="subitem-body">
+              <div class="rich-notes">${section.notes}</div>
             </div>
-          </section>
+          </details>
+
+          <details class="section-subitem quiz-subitem ${watched ? "" : "quiz-locked"}">
+            <summary class="subitem-summary">
+              <span class="subitem-icon quiz">${QUIZ_CHECK_ICON}</span>
+              <span class="subitem-title">Knowledge Test</span>
+              ${!watched
+                ? `<span class="subitem-badge locked">${LOCK_ICON}&nbsp;Locked</span>`
+                : passed
+                  ? `<span class="subitem-badge passed">&#x2713;&nbsp;Passed</span>`
+                  : ""}
+            </summary>
+            <div class="subitem-body">
+              <div data-quiz-gate="${quizKey}" ${watched ? "" : 'data-locked="true"'}>
+                ${quizContent}
+              </div>
+            </div>
+          </details>
+
         </div>
       </div>
     </details>
