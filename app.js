@@ -419,6 +419,42 @@ function getOverallProgress(state) {
   };
 }
 
+function getSortedModulesForState(state) {
+  const rank = { required: 0, optional: 1, available: 2 };
+  return [...FORGE_PROGRAM.modules].sort((a, b) => {
+    const aStatus = getModuleTeamStatus(a.key, state);
+    const bStatus = getModuleTeamStatus(b.key, state);
+    const aComplete = getModuleProgress(a, state).complete;
+    const bComplete = getModuleProgress(b, state).complete;
+    return (rank[aStatus] || 2) - (rank[bStatus] || 2) || Number(aComplete) - Number(bComplete);
+  });
+}
+
+function getRecommendedModules(state, limit = 3) {
+  return getSortedModulesForState(state)
+    .filter((module) => !getModuleProgress(module, state).complete)
+    .slice(0, limit);
+}
+
+function getTrainingExpectation(state) {
+  const requiredCount = FORGE_PROGRAM.modules.filter((module) => getModuleTeamStatus(module.key, state) === "required").length;
+  const optionalCount = FORGE_PROGRAM.modules.filter((module) => getModuleTeamStatus(module.key, state) === "optional").length;
+
+  if (isExempt(state)) {
+    return {
+      title: "Exempt by default",
+      body: "This profile can browse the full library immediately. Leaders can still enforce the standard track with mentor override."
+    };
+  }
+
+  return {
+    title: requiredCount ? `${requiredCount} required modules` : "Program-wide training path",
+    body: optionalCount
+      ? `${optionalCount} more modules are available as optional follow-up training after the required path is complete.`
+      : "All visible modules currently contribute to operational readiness for this profile."
+  };
+}
+
 function renderCommonHeader() {
   const target = document.querySelector("[data-forge-header]");
   if (!target) return;
@@ -452,6 +488,12 @@ function renderRoleControls() {
   const state = readState();
   const roleControls = scope.querySelectorAll("[name='memberRole']");
   const overrideControl = scope.querySelector("[name='mentorOverride']");
+  const syncRoleCardState = () => {
+    scope.querySelectorAll(".role-card").forEach((card) => {
+      const radio = card.querySelector("input[type='radio']");
+      card.classList.toggle("selected", Boolean(radio?.checked));
+    });
+  };
 
   roleControls.forEach((control) => {
     if (control.type === "radio") {
@@ -465,11 +507,14 @@ function renderRoleControls() {
     overrideControl.checked = state.overrideRequired;
   }
 
+  syncRoleCardState();
+
   scope.addEventListener("change", () => {
     const selectedRole = scope.querySelector("[name='memberRole']:checked")?.value
       || scope.querySelector("[name='memberRole']")?.value
       || state.role;
     const overrideValue = Boolean(scope.querySelector("[name='mentorOverride']")?.checked);
+    syncRoleCardState();
     setRole(selectedRole);
     setOverride(overrideValue);
     window.location.reload();
@@ -534,6 +579,103 @@ function renderPortalMetrics() {
       <span>Exempt from required flow</span>
     </article>
   `;
+}
+
+function renderHomeContent() {
+  const state = readState();
+  const roleData = FORGE_PROGRAM.roles[state.role] || FORGE_PROGRAM.roles.rookie;
+  const teamData = getTeamData(state);
+  const summary = getOverallProgress(state);
+  const videosWatched = Object.keys(state.watchedVideos || {}).length;
+  const quizAttempts = Object.keys(state.completedQuizzes).length;
+  const recommendedModules = getRecommendedModules(state, 3);
+  const expectation = getTrainingExpectation(state);
+
+  const pulseHost = document.querySelector("[data-home-pulse]");
+  if (pulseHost) {
+    pulseHost.innerHTML = `
+      <div class="preview-card">
+        <span class="preview-kicker">Live training snapshot</span>
+        <h3>${FORGE_PROGRAM.demo.name}</h3>
+        <p>${roleData.label}${teamData ? ` · ${teamData.label}` : " · Unassigned track"}</p>
+        <div class="preview-metric-row">
+          <div class="preview-metric">
+            <strong>${summary.percentage}%</strong>
+            <span>Completion</span>
+          </div>
+          <div class="preview-metric">
+            <strong>${videosWatched}</strong>
+            <span>Videos watched</span>
+          </div>
+          <div class="preview-metric">
+            <strong>${quizAttempts}</strong>
+            <span>Checks logged</span>
+          </div>
+        </div>
+        <ul class="preview-list">
+          ${recommendedModules.length
+            ? recommendedModules.map((module) => `<li><span>${module.title}</span><strong>${module.estimatedTime || "Ready"}</strong></li>`).join("")
+            : '<li><span>All current modules complete</span><strong>Ready</strong></li>'}
+        </ul>
+      </div>
+    `;
+  }
+
+  const workflowHost = document.querySelector("[data-home-workflow]");
+  if (workflowHost) {
+    workflowHost.innerHTML = `
+      <article class="workflow-card">
+        <span class="workflow-step">01</span>
+        <h4>Assign access</h4>
+        <p>Choose a member role and sub-team so FORGE can set required, optional, and leadership-only learning paths.</p>
+      </article>
+      <article class="workflow-card">
+        <span class="workflow-step">02</span>
+        <h4>Deliver instruction</h4>
+        <p>Members progress through embedded videos, SOP notes, and consistent learning blocks inside every module.</p>
+      </article>
+      <article class="workflow-card">
+        <span class="workflow-step">03</span>
+        <h4>Verify readiness</h4>
+        <p>Video completion unlocks assessments, quiz scores update progress, and leaders get a clean readiness snapshot.</p>
+      </article>
+    `;
+  }
+
+  const trackHost = document.querySelector("[data-home-tracks]");
+  if (trackHost) {
+    trackHost.innerHTML = Object.entries(FORGE_PROGRAM.teams)
+      .slice(0, 4)
+      .map(([, team]) => `
+        <article class="feature-card">
+          <div class="feature-topline">
+            <span class="feature-dot" style="background:${team.color}"></span>
+            <span class="feature-code">${team.code}</span>
+          </div>
+          <h4>${team.label}</h4>
+          <p>${team.description}</p>
+          <div class="feature-pill-row">
+            <span class="track-pill primary">${team.required.length} required</span>
+            <span class="track-pill">${team.optional.length} optional</span>
+          </div>
+        </article>
+      `)
+      .join("");
+  }
+
+  const summaryHost = document.querySelector("[data-home-role-summary]");
+  if (summaryHost) {
+    summaryHost.innerHTML = `
+      <span class="preview-kicker">Current policy</span>
+      <h3>${expectation.title}</h3>
+      <p>${expectation.body}</p>
+      <ul class="preview-list dense">
+        <li><span>Selected role</span><strong>${roleData.label}</strong></li>
+        <li><span>Exempt status</span><strong>${isExempt(state) ? "Exempt" : "Required"}</strong></li>
+        <li><span>Mentor override</span><strong>${state.overrideRequired ? "Enabled" : "Off"}</strong></li>
+      </ul>
+    `;
+  }
 }
 
 function getPageKind() {
@@ -748,43 +890,103 @@ function renderDashboardContent() {
 
   const state = readState();
   const teamData = getTeamData(state);
-
-  // Sort modules: required first, then optional, then available
-  const sortedModules = [...FORGE_PROGRAM.modules].sort((a, b) => {
-    const rank = { required: 0, optional: 1, available: 2 };
-    return (rank[getModuleTeamStatus(a.key, state)] || 2) - (rank[getModuleTeamStatus(b.key, state)] || 2);
-  });
-
-  // Team banner
-  const teamBanner = teamData ? `
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border:1px solid var(--line-strong);border-left:3px solid ${teamData.color};background:#0e1016;font-size:0.8rem;">
-      <span style="font-family:var(--mono);font-weight:700;color:${teamData.color};letter-spacing:0.08em;">[${teamData.code}]</span>
-      <span style="color:var(--ink-0);font-weight:600;">${teamData.label}</span>
-      <span style="color:var(--ink-1);">${teamData.description}</span>
-      <span style="margin-left:auto;font-family:var(--mono);font-size:0.68rem;color:var(--ink-1);">${teamData.required.length} required · ${teamData.optional.length} optional</span>
-    </div>
-  ` : "";
+  const sortedModules = getSortedModulesForState(state);
+  const recommendedModules = getRecommendedModules(state, 3);
+  const expectation = getTrainingExpectation(state);
+  const videosWatched = Object.keys(state.watchedVideos || {}).length;
+  const quizAttempts = Object.keys(state.completedQuizzes).length;
 
   host.innerHTML = `
     <article class="panel hero dashboard-hero">
-      <div>
-        <h2>FORGE Training Dashboard</h2>
-        <p>Focused Operations for Robotics Growth &amp; Excellence — FRC 10332 · 2026 Season</p>
+      <div class="hero-grid dashboard-hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">Operational dashboard</span>
+          <h2>FORGE Training Dashboard</h2>
+          <p>Focused Operations for Robotics Growth &amp; Excellence — a polished workspace for onboarding, safety readiness, and sub-team training execution.</p>
+          <div class="hero-chip-row">
+            <span class="glass-chip">${teamData ? `[${teamData.code}] ${teamData.label}` : "All-team view"}</span>
+            <span class="glass-chip">${videosWatched} video completions</span>
+            <span class="glass-chip">${quizAttempts} logged assessments</span>
+          </div>
+        </div>
+        <aside class="hero-side">
+          <div class="preview-card compact">
+            <span class="preview-kicker">Readiness posture</span>
+            <h3>${expectation.title}</h3>
+            <p>${expectation.body}</p>
+          </div>
+        </aside>
       </div>
       <div class="quick-grid">${renderMetricTiles(state)}</div>
     </article>
-    ${teamBanner}
-    <article class="panel canvas-module-list">
-      <div class="section-head">
-        <div>
-          <h3>Training Modules</h3>
-          <p>${teamData ? `Showing ${teamData.required.length} required + ${teamData.optional.length} optional for <strong>${teamData.label}</strong>` : "All modules — assign a sub-team on your account page to filter by role."}</p>
+
+    <section class="ops-strip">
+      <article class="ops-card">
+        <span class="preview-kicker">Assigned track</span>
+        <strong>${teamData ? teamData.label : "No sub-team assigned"}</strong>
+        <p>${teamData ? teamData.description : "Use the account page to assign a sub-team and prioritize required modules."}</p>
+      </article>
+      <article class="ops-card">
+        <span class="preview-kicker">Verification model</span>
+        <strong>Video gated assessments</strong>
+        <p>Members complete lesson videos before taking knowledge checks, keeping readiness evidence tied to each section.</p>
+      </article>
+      <article class="ops-card">
+        <span class="preview-kicker">Platform state</span>
+        <strong>Prototype ready for demos</strong>
+        <p>Local storage powers previews today and can later connect to roster sync, real sign-offs, and reporting.</p>
+      </article>
+    </section>
+
+    <div class="dashboard-shell">
+      <article class="panel canvas-module-list dashboard-main">
+        <div class="section-head">
+          <div>
+            <h3>Training modules</h3>
+            <p>${teamData ? `Showing ${teamData.required.length} required + ${teamData.optional.length} optional for <strong>${teamData.label}</strong>` : "All modules — assign a sub-team on your account page to prioritize the queue."}</p>
+          </div>
         </div>
-      </div>
-      <div class="module-accordion-list">
-        ${sortedModules.map((module) => renderModuleAccordion(module, state)).join("")}
-      </div>
-    </article>
+        <div class="module-accordion-list">
+          ${sortedModules.map((module) => renderModuleAccordion(module, state)).join("")}
+        </div>
+      </article>
+
+      <aside class="dashboard-side">
+        <article class="panel list-card">
+          <div class="section-head">
+            <div>
+              <h3>Recommended next steps</h3>
+              <p>Priority modules for the active member.</p>
+            </div>
+          </div>
+          <ul class="preview-list">
+            ${recommendedModules.length
+              ? recommendedModules.map((module) => `
+                <li>
+                  <span>${module.title}<small>${module.owner}</small></span>
+                  <strong>${module.estimatedTime || "Queued"}</strong>
+                </li>
+              `).join("")
+              : '<li><span>No remaining incomplete modules</span><strong>Ready</strong></li>'}
+          </ul>
+        </article>
+
+        <article class="panel list-card">
+          <div class="section-head">
+            <div>
+              <h3>Platform capabilities</h3>
+              <p>How the interface behaves like a real training product.</p>
+            </div>
+          </div>
+          <ul class="capability-list">
+            <li>Role and team-based requirement mapping</li>
+            <li>Embedded lesson delivery with SOP notes</li>
+            <li>Readiness verification through checkoffs</li>
+            <li>Member and leadership progress visibility</li>
+          </ul>
+        </article>
+      </aside>
+    </div>
   `;
 }
 
@@ -910,7 +1112,11 @@ function renderAccountContent() {
         <div class="role-selector" data-role-form>
           <label class="override-toggle switch-row">
             <input type="checkbox" name="mentorOverride" ${state.overrideRequired ? "checked" : ""} />
-            <span>Mentor override &mdash; require full training track regardless of role</span>
+            <span class="switch-control" aria-hidden="true"></span>
+            <span class="switch-copy">
+              <strong>Mentor override</strong>
+              <small>Require the full training track regardless of role.</small>
+            </span>
           </label>
           <div class="role-card-list">
             ${Object.entries(FORGE_PROGRAM.roles).map(([key, role]) => `
@@ -1082,6 +1288,7 @@ document.addEventListener("DOMContentLoaded", () => {
   } else if (pageKind === "account") {
     renderAccountContent();
   } else {
+    renderHomeContent();
     renderPortalMetrics();
     renderModuleCards();
   }
@@ -1223,4 +1430,3 @@ function observeModuleRows(root = document) {
     io.observe(row);
   });
 }
-
