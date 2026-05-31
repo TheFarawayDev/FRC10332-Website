@@ -1249,6 +1249,156 @@ details[open] > summary .cmr-arrow {
   border: 1px solid var(--line-strong);
 }
 
+.notes-boost {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: rgba(79,127,255,0.08);
+}
+
+.notes-boost h5 {
+  margin: 0 0 6px;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-lit);
+}
+
+.notes-boost p {
+  margin: 0 0 8px;
+}
+
+.quiz-launch-card {
+  display: grid;
+  gap: 12px;
+}
+
+.quiz-option-btn.selected {
+  border-color: rgba(79,127,255,0.7);
+  box-shadow: 0 0 0 1px rgba(79,127,255,0.25);
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+.forge-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2400;
+  background: rgba(2, 7, 16, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.forge-modal-card {
+  width: min(980px, 100%);
+  max-height: 92vh;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.forge-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.forge-modal-head h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.forge-modal-head p {
+  margin: 0;
+  color: var(--ink-1);
+  font-size: 0.82rem;
+}
+
+.forge-modal-scroll {
+  overflow: auto;
+  padding: 18px 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.forge-modal-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 20px 20px;
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.quiz-fullscreen-modal .forge-modal-card {
+  width: min(1100px, 100%);
+  height: min(94vh, 900px);
+}
+
+.quiz-fullscreen-body {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.memory-game-wrap {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: rgba(255,255,255,0.02);
+}
+
+.memory-game-wrap h4 {
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.memory-game-wrap p {
+  margin: 0;
+  color: var(--ink-1);
+  font-size: 0.8rem;
+}
+
+.memory-game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.memory-card {
+  min-height: 82px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink-0);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px;
+  text-align: left;
+}
+
+.memory-card.open {
+  border-color: rgba(52,211,153,0.45);
+  background: rgba(52,211,153,0.1);
+}
+
 /* ════════════════════════════════════════════════════════════════════
    BUTTONS
    ════════════════════════════════════════════════════════════════════ */

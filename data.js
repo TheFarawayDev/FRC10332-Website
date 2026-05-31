@@ -614,6 +614,43 @@ const FORGE_PROGRAM = {
           ]
         }
       ]
+    },
+    {
+      key: "site-maintenance",
+      title: "Site Maintenance",
+      icon: "design",
+      difficulty: "intermediate",
+      estimatedTime: "45 min",
+      prerequisites: ["safety"],
+      owner: "Web Team",
+      modulePage: "modules/site-maintenance.html",
+      outcome: "Maintain, update, and safely ship improvements to Chargebotic Sites and Forge.",
+      sections: [
+        {
+          id: "maint-1",
+          title: "Update Workflow and Safety",
+          frcReference: "https://frc-docs.readthedocs.io/en/stable/docs/software/advanced-gradlerio/index.html",
+          notes: "<h4>Safe Change Flow</h4><p>When updating the site, keep changes small and verifiable:</p><ul><li>Start from the latest branch and identify only the files needed.</li><li>Preview UI changes in browser after each edit set.</li><li>Keep login and approval pages functional for all users.</li><li>Avoid storing secrets in frontend files and verify auth fallbacks still work.</li></ul>",
+          video: "",
+          quiz: [
+            { q: "The safest way to ship site updates is:", options: ["Large all-at-once changes", "Small scoped changes with browser verification", "Editing directly in production"], answer: 1 },
+            { q: "Sensitive credentials should be stored in:", options: ["Frontend JS files", "README examples", "Secure environment config only"], answer: 2 },
+            { q: "After editing auth screens, you should always:", options: ["Skip testing if UI looks good", "Verify sign in and approval flows still work", "Delete fallback mode"], answer: 1 }
+          ]
+        },
+        {
+          id: "maint-2",
+          title: "Content, Navigation, and Release Checks",
+          frcReference: "https://www.firstinspires.org/robotics/frc",
+          notes: "<h4>Content & Navigation QA</h4><p>Before finalizing updates:</p><ul><li>Ensure extensionless URL behavior works and links still resolve correctly.</li><li>Check member/log/post cards open readable detail modals.</li><li>Confirm admin queue navigation remains visible for authorized users.</li><li>Update README when workflows or architecture change.</li></ul>",
+          video: "",
+          quiz: [
+            { q: "When navigation behavior changes, what is required?", options: ["No documentation updates", "README update plus manual click-through checks", "Only CSS tweaks"], answer: 1 },
+            { q: "Modal detail views should:", options: ["Hide long content", "Show complete details and allow clean close behavior", "Open only on desktop"], answer: 1 },
+            { q: "Admin access links should be:", options: ["Hidden from everyone", "Visible and easy to find for admins", "Removed from all pages"], answer: 1 }
+          ]
+        }
+      ]
     }
   ]
 };

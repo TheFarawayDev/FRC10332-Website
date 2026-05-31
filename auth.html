@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Member Access | FRC 10332</title>
+    <link rel="stylesheet" href="site-v2.css" />
+  </head>
+  <body data-page="auth">
+    <main class="auth-shell">
+      <section class="auth-hero">
+        <p class="kicker">MEMBER ACCESS</p>
+        <h1>Secure sign in for members and mentors.</h1>
+        <p>
+          This access area is reserved for approved team accounts. Requests are reviewed before
+          dashboard access is enabled.
+        </p>
+        <ul class="auth-highlights">
+          <li>Sign in redirects each member to the right workspace</li>
+          <li>Sign-up requests are routed by selected teams for review</li>
+          <li>Approval queue keeps account access safe and accountable</li>
+        </ul>
+        <div class="auth-actions">
+          <a class="btn" href="/">Back to Public Site</a>
+        </div>
+      </section>
+
+      <section class="auth-card">
+        <div class="auth-tabs" role="tablist" aria-label="Login or sign up">
+          <button type="button" class="active" data-auth-tab="login">Sign In</button>
+          <button type="button" data-auth-tab="signup">Sign Up</button>
+        </div>
+
+        <form data-auth-form="login" class="auth-form">
+          <p class="auth-form-title">Welcome back</p>
+          <p class="auth-form-note">Use your approved team account credentials.</p>
+          <label>Email
+            <input type="email" name="email" required autocomplete="email" />
+          </label>
+          <label>Password
+            <input type="password" name="password" required autocomplete="current-password" minlength="6" />
+          </label>
+          <button type="submit">Sign In</button>
+        </form>
+
+        <form data-auth-form="signup" class="auth-form hidden">
+          <p class="auth-form-title">Create your member account</p>
+          <p class="auth-form-note">Complete this form to request access. Approval is required before sign in.</p>
+          <label>Display name
+            <input type="text" name="displayName" required minlength="2" maxlength="48" />
+          </label>
+          <fieldset>
+            <legend>Apply for teams</legend>
+            <label class="team-choice"><input type="checkbox" name="teams" value="Control" /> Control</label>
+            <label class="team-choice"><input type="checkbox" name="teams" value="Design" /> Design</label>
+            <label class="team-choice"><input type="checkbox" name="teams" value="Fabrication" /> Fabrication</label>
+            <label class="team-choice"><input type="checkbox" name="teams" value="Strategy" /> Strategy</label>
+            <label class="team-choice"><input type="checkbox" name="teams" value="Business/Media" /> Business/Media</label>
+            <label class="team-choice"><input type="checkbox" name="teams" value="Safety" /> Safety</label>
+          </fieldset>
+          <label>Email
+            <input type="email" name="email" required autocomplete="email" />
+          </label>
+          <label>Password
+            <input type="password" name="password" required autocomplete="new-password" minlength="6" />
+          </label>
+          <label class="policy-check">
+            <input type="checkbox" name="conduct" required />
+            I will follow team conduct rules and use member access respectfully.
+          </label>
+          <button type="submit">Create Account</button>
+        </form>
+
+        <p class="status" data-auth-status aria-live="polite">Ready.</p>
+      </section>
+    </main>
+
+    <script src="topography-bg.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="firebase-init.js"></script>
+    <script src="auth.js"></script>
+  </body>
+</html>

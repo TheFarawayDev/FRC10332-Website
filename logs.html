@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FRC 10332 | Chargebotic Public Site</title>
+    <title>FRC 10332 | Public Logs</title>
     <link rel="stylesheet" href="site-v2.css" />
   </head>
-  <body data-page="public" data-public-view="overview">
+  <body data-page="public" data-public-view="logs">
     <header class="site-topbar">
       <div class="brand-block">
         <img src="favicon.svg" alt="FRC 10332" class="brand-icon" />
         <div>
           <h1>FRC 10332 Chargebotics</h1>
-          <p>Public Team Hub · Built by Marshall E.</p>
+          <p>Public Logs · If it spins, we grin.</p>
         </div>
       </div>
       <nav class="top-nav" aria-label="Primary">
@@ -26,43 +26,20 @@
     </header>
 
     <main class="site-shell">
-      <section class="hero-card home-hero">
-        <p class="kicker">CHARGEBOTICS HOME BASE</p>
-        <h2>Welcome to the team-built home for updates, robot chaos, and future teammate hype.</h2>
-        <p>
-          This is where our season stories, build logs, and team moments live. Visitors can explore
-          public updates, and members can sign in for internal tools when it is grind time.
-        </p>
-        <div class="hero-actions">
-          <a class="btn" href="auth">Member Sign In</a>
-        </div>
+      <section class="hero-card">
+        <p class="kicker">PUBLIC SECTION</p>
+        <h2>Sub-Team & Team Logs</h2>
+        <p>Progress highlights across software, fabrication, strategy, and outreach — no sugarcoating.</p>
+        <form class="google-search" data-public-search-form>
+          <label for="publicSearch" class="sr-only">Search logs</label>
+          <input id="publicSearch" name="query" type="search" placeholder="Search public logs" autocomplete="off" />
+          <button type="submit">Search</button>
+        </form>
+        <p class="search-meta" data-public-search-meta>Showing all public items.</p>
       </section>
 
-      <section id="snapshot" class="panel-grid three" data-public-counters></section>
-
       <section class="panel-section">
-        <div class="section-head">
-          <h3>Explore the Public Site</h3>
-          <p>Pick a lane and jump in — every section has its own page so everything stays easy to find.</p>
-        </div>
-        <div class="link-grid">
-          <a class="tile-card nav-tile" href="calendar">
-            <h4>Calendar</h4>
-            <p>Build sessions, outreach milestones, and comp prep windows.</p>
-          </a>
-          <a class="tile-card nav-tile" href="members">
-            <h4>Members</h4>
-            <p>Public member directory and sub-team highlights from the crew.</p>
-          </a>
-          <a class="tile-card nav-tile" href="logs">
-            <h4>Logs</h4>
-            <p>Sub-team and all-team progress snapshots, wins, and lessons learned.</p>
-          </a>
-          <a class="tile-card nav-tile" href="posts">
-            <h4>Posts</h4>
-            <p>Public updates and announcements from the team media desk.</p>
-          </a>
-        </div>
+        <div class="panel-grid two" data-public-logs></div>
       </section>
     </main>
 

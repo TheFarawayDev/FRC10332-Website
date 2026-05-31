@@ -1,4 +1,6 @@
 const STORAGE_KEY = "forge-training-state-v1";
+const MIN_READ_SECONDS = 300;
+const MODAL_ROOT_ID = "forge-modal-root";
 
 // ─── YouTube Player Registry ──────────────────────────────────────────────────
 const VIDEO_PLAYERS = {};
@@ -13,11 +15,14 @@ function extractVideoId(url) {
 }
 
 function getVideoWatched(sectionKey) {
-  return Boolean(readState().watchedVideos?.[sectionKey]);
+  const state = readState();
+  return Boolean(state.readSections?.[sectionKey] || state.watchedVideos?.[sectionKey]);
 }
 
 function markVideoWatched(sectionKey) {
   const state = readState();
+  state.readSections = state.readSections || {};
+  state.readSections[sectionKey] = true;
   state.watchedVideos = state.watchedVideos || {};
   state.watchedVideos[sectionKey] = true;
   saveState(state);
@@ -28,7 +33,7 @@ function unlockQuizGate(sectionKey) {
   const badge = document.querySelector(`[data-vbadge="${sectionKey}"]`);
   if (badge) {
     badge.className = "video-watch-badge watched just-unlocked";
-    badge.innerHTML = "&#x2713;&ensp;Video complete &mdash; quiz unlocked";
+    badge.innerHTML = "&#x2713;&ensp;Read complete &mdash; quiz unlocked";
     badge.addEventListener("animationend", () => badge.classList.remove("just-unlocked"), { once: true });
   }
   const gate = document.querySelector(`[data-quiz-gate="${sectionKey}"]`);
@@ -49,7 +54,7 @@ function unlockQuizGate(sectionKey) {
   const summaryVideoBadge = document.querySelector(`[data-subitem-vbadge="${sectionKey}"]`);
   if (summaryVideoBadge) {
     summaryVideoBadge.className = "subitem-badge watched";
-    summaryVideoBadge.innerHTML = "&#x2713;&nbsp;Watched";
+    summaryVideoBadge.innerHTML = "&#x2713;&nbsp;Read";
   }
 }
 
@@ -82,19 +87,159 @@ function initYouTubePlayers() {
   });
 }
 
-function renderVideoPanel(section, module) {
-  const key = getSectionStorageKey(module, section);
-  const vid = extractVideoId(section.video);
-  const watched = getVideoWatched(key);
-  const elemId = "yt-" + key.replace(/[^a-z0-9]/gi, "-");
+function getSectionReadSeconds(section) {
+  return Math.max(MIN_READ_SECONDS, Number(section?.minimumReadSeconds || 0) || MIN_READ_SECONDS);
+}
+
+function getOrCreateModalRoot() {
+  let root = document.getElementById(MODAL_ROOT_ID);
+  if (root) return root;
+  root = document.createElement("div");
+  root.id = MODAL_ROOT_ID;
+  document.body.appendChild(root);
+  return root;
+}
+
+function closeModal() {
+  const root = document.getElementById(MODAL_ROOT_ID);
+  if (!root) return;
+  root.innerHTML = "";
+  document.body.classList.remove("modal-open");
+}
+
+function renderExpandedNotes(section) {
+  const prompts = (section.quiz || [])
+    .slice(0, 3)
+    .map((question, index) => `<li><strong>Memory prompt ${index + 1}:</strong> ${question.q}</li>`)
+    .join("");
+
   return `
-    <div class="video-player-wrap" data-player-key="${key}" data-video-id="${vid}">
-      <div id="${elemId}" class="yt-target"></div>
-      <div class="video-watch-badge ${watched ? "watched" : ""}" data-vbadge="${key}">
-        ${watched ? "&#x2713;&ensp;Video complete &mdash; quiz unlocked" : "&#x25B6;&ensp;Watch to completion to unlock the quiz"}
+    ${section.notes}
+    <div class="notes-boost">
+      <h5>Study Boost</h5>
+      <p>Use this quick pass before the quiz so details stick on match day.</p>
+      <ul>
+        ${prompts}
+        <li><strong>Recall drill:</strong> Explain this lesson in your own words without peeking.</li>
+      </ul>
+    </div>
+  `;
+}
+
+function openReadingModal(section, module) {
+  const key = getSectionStorageKey(module, section);
+  const readSeconds = getSectionReadSeconds(section);
+  const referenceUrl = section.frcReference || "https://www.firstinspires.org/robotics/frc";
+  const root = getOrCreateModalRoot();
+
+  root.innerHTML = `
+    <div class="forge-modal-overlay reading-modal" role="dialog" aria-modal="true" aria-label="Reading session">
+      <div class="forge-modal-card">
+        <header class="forge-modal-head">
+          <div>
+            <h3>${section.title} — Reading Session</h3>
+            <p>Read everything here and stay in session for at least ${Math.round(readSeconds / 60)} minutes.</p>
+          </div>
+          <button type="button" class="btn" data-close-modal>Close</button>
+        </header>
+        <div class="forge-modal-scroll" data-read-scroll>
+          <p><strong>Official FRC reference:</strong> <a href="${referenceUrl}" target="_blank" rel="noopener noreferrer">Open source link</a></p>
+          <div class="rich-notes">${renderExpandedNotes(section)}</div>
+        </div>
+        <footer class="forge-modal-foot">
+          <span class="quiz-meta" data-read-status>Scroll to the bottom and keep reading until the timer completes.</span>
+          <button class="btn primary" type="button" data-read-complete disabled>Finish Reading</button>
+        </footer>
       </div>
     </div>
   `;
+
+  document.body.classList.add("modal-open");
+
+  const scrollHost = root.querySelector("[data-read-scroll]");
+  const status = root.querySelector("[data-read-status]");
+  const completeButton = root.querySelector("[data-read-complete]");
+  const closeButton = root.querySelector("[data-close-modal]");
+
+  if (!scrollHost || !status || !completeButton || !closeButton) return;
+
+  let timerDone = false;
+  let reachedBottom = false;
+  let secondsLeft = readSeconds;
+
+  const updateStatus = () => {
+    const timerText = timerDone ? "timer complete" : `${secondsLeft}s remaining`;
+    const bottomText = reachedBottom ? "bottom reached" : "scroll to bottom";
+    status.textContent = `Reading check: ${bottomText} • ${timerText}`;
+    completeButton.disabled = !(timerDone && reachedBottom);
+  };
+
+  const timer = window.setInterval(() => {
+    secondsLeft -= 1;
+    if (secondsLeft <= 0) {
+      timerDone = true;
+      secondsLeft = 0;
+      window.clearInterval(timer);
+    }
+    updateStatus();
+  }, 1000);
+
+  const onScroll = () => {
+    const threshold = 8;
+    if (scrollHost.scrollTop + scrollHost.clientHeight >= scrollHost.scrollHeight - threshold) {
+      reachedBottom = true;
+      updateStatus();
+    }
+  };
+
+  scrollHost.addEventListener("scroll", onScroll);
+  updateStatus();
+
+  closeButton.addEventListener("click", () => {
+    window.clearInterval(timer);
+    closeModal();
+  });
+
+  completeButton.addEventListener("click", () => {
+    if (!(timerDone && reachedBottom)) return;
+    window.clearInterval(timer);
+    markVideoWatched(key);
+    closeModal();
+  });
+}
+
+function renderVideoPanel(section, module) {
+  const key = getSectionStorageKey(module, section);
+  const watched = getVideoWatched(key);
+  const readSeconds = getSectionReadSeconds(section);
+  return `
+    <div class="video-player-wrap read-player-wrap" data-read-key="${key}">
+      <div class="read-this-panel">
+        <p><strong>Required reading:</strong> Open the reading session modal and finish both checks: timer + scroll completion.</p>
+        <p><strong>Minimum read time:</strong> ${Math.round(readSeconds / 60)} minutes.</p>
+      </div>
+      <div class="video-watch-badge ${watched ? "watched" : ""}" data-vbadge="${key}">
+        ${watched ? "&#x2713;&ensp;Read complete &mdash; quiz unlocked" : "&#x23F1;&ensp;Complete reading checks to unlock the quiz"}
+      </div>
+      ${watched ? "" : `<button class="btn primary" type="button" data-open-reading="${key}">Open Reading Session</button>`}
+    </div>
+  `;
+}
+
+function wireReadCountdownTimers(root = document) {
+  root.querySelectorAll("[data-open-reading]").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => {
+      const key = button.dataset.openReading;
+      if (!key) return;
+      const [moduleKey, sectionId] = key.split(":");
+      const module = FORGE_PROGRAM.modules.find((entry) => entry.key === moduleKey);
+      const section = module?.sections.find((entry) => entry.id === sectionId);
+      if (!module || !section) return;
+      openReadingModal(section, module);
+    });
+  });
 }
 
 const UI_ICONS = {
@@ -118,8 +263,8 @@ const UI_ICONS = {
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"/></svg>'
 };
 
-const RAIL_LINKS = [
-  { href: "portal.html", label: "Dashboard", icon: "dashboard" },
+const FORGE_RAIL_LINKS = [
+  { href: "portal.html", label: "Forge Backend", icon: "dashboard" },
   { href: "modules/business-media.html", label: "Business", icon: "business" },
   { href: "modules/safety.html", label: "Safety", icon: "safety" },
   { href: "modules/strategy.html", label: "Strategy", icon: "strategy" },
@@ -127,7 +272,13 @@ const RAIL_LINKS = [
   { href: "modules/control.html", label: "Control", icon: "control" },
   { href: "modules/fabrication.html", label: "Fabrication", icon: "fabrication" },
   { href: "modules/art.html", label: "Art", icon: "art" },
+  { href: "modules/site-maintenance.html", label: "Site Maintenance", icon: "design" },
   { href: "account.html", label: "Account", icon: "account" }
+];
+
+const MAIN_SITE_RAIL_LINKS = [
+  { href: "index.html", label: "Chargebotic Home", icon: "dashboard" },
+  { href: "account.html", label: "Member Access", icon: "account" }
 ];
 
 function assetPrefix() {
@@ -139,17 +290,12 @@ function assetPrefix() {
 }
 
 function cleanVisibleUrl() {
-  const path = window.location.pathname;
-  if (path.endsWith("index.html")) {
-    const clean = path.slice(0, -"index.html".length) || "/";
-    window.history.replaceState({}, "", clean + window.location.search + window.location.hash);
-    return;
-  }
-
-  if (path.endsWith(".html")) {
-    const clean = path.slice(0, -".html".length);
-    window.history.replaceState({}, "", clean + window.location.search + window.location.hash);
-  }
+  const { pathname, search, hash } = window.location;
+  if (!pathname.endsWith(".html")) return;
+  const cleaned = pathname.endsWith("/index.html")
+    ? pathname.slice(0, -10) || "/"
+    : pathname.slice(0, -".html".length);
+  window.history.replaceState({}, "", `${cleaned || "/"}${search}${hash}`);
 }
 
 function resolveAppHref(href) {
@@ -175,31 +321,28 @@ function resolveAppHref(href) {
 }
 
 function wireExtensionlessNavigation() {
-  document.addEventListener("click", (event) => {
-    const link = event.target.closest("a[data-file-href]");
-    if (!link) return;
-    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-      return;
+  document.querySelectorAll("a[href]").forEach((link) => {
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("http") || href.startsWith("#") || href.startsWith("mailto:")) return;
+    if (href.endsWith(".html")) {
+      const clean = href === "index.html" ? "/" : href.replace(".html", "");
+      link.setAttribute("href", clean);
+      link.dataset.runtimeHref = href;
     }
-    if (link.target && link.target !== "_self") return;
-
-    event.preventDefault();
-    window.location.href = link.dataset.fileHref;
+    link.addEventListener("click", (event) => {
+      const target = event.currentTarget;
+      if (!(target instanceof HTMLAnchorElement)) return;
+      const runtime = target.dataset.runtimeHref;
+      if (!runtime) return;
+      event.preventDefault();
+      window.location.href = resolveAppHref(runtime);
+    });
   });
 }
 
-function normalizeExtensionlessLinks(scope = document) {
-  scope.querySelectorAll("a[href]").forEach((link) => {
-    const href = link.getAttribute("href");
-    if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("#")) {
-      return;
-    }
-
-    if (href.endsWith(".html")) {
-      link.dataset.fileHref = href;
-      link.setAttribute("href", href.slice(0, -5));
-    }
-  });
+function normalizeExtensionlessLinks() {
+  if (!window.location.pathname.endsWith(".html")) return;
+  cleanVisibleUrl();
 }
 
 function renderCanvasRail() {
@@ -211,9 +354,14 @@ function renderCanvasRail() {
 
   const current = window.location.pathname;
   const isRoot = current === "/" || current === "";
+  const onForgeSite =
+    current.includes("/portal")
+    || current.includes("/modules/")
+    || current.includes("/quizzes/");
+  const railLinks = onForgeSite ? FORGE_RAIL_LINKS : MAIN_SITE_RAIL_LINKS;
   rail.innerHTML = `
     <div class="rail-logo"><img src="${assetPrefix()}favicon.svg" alt="FORGE" /></div>
-    ${RAIL_LINKS.map((link) => {
+    ${railLinks.map((link) => {
       const pageKey = link.href.replace(".html", "");
       const active =
         (pageKey === "index" && isRoot) ||
@@ -229,7 +377,6 @@ function renderCanvasRail() {
   `;
 
   document.body.prepend(rail);
-  normalizeExtensionlessLinks(rail);
 }
 
 function injectMobileNavToggle() {
@@ -256,6 +403,7 @@ function decorateSideNav() {
     ["Control", "control"],
     ["Fabrication", "fabrication"],
     ["Art", "art"],
+    ["Site Maintenance", "design"],
     ["Account", "account"],
     ["Role", "account"]
   ];
@@ -288,13 +436,15 @@ function readState() {
       team: null,
       overrideRequired: false,
       completedQuizzes: {},
-      watchedVideos: {}
+      watchedVideos: {},
+      readSections: {}
     };
   }
 
   try {
     const parsed = JSON.parse(raw);
     if (!parsed.watchedVideos) parsed.watchedVideos = {};
+    if (!parsed.readSections) parsed.readSections = { ...(parsed.watchedVideos || {}) };
     if (parsed.team === undefined) parsed.team = null;
     return parsed;
   } catch (error) {
@@ -303,7 +453,8 @@ function readState() {
       team: null,
       overrideRequired: false,
       completedQuizzes: {},
-      watchedVideos: {}
+      watchedVideos: {},
+      readSections: {}
     };
   }
 }
@@ -463,13 +614,17 @@ function renderCommonHeader() {
   const roleData = FORGE_PROGRAM.roles[state.role] || FORGE_PROGRAM.roles.rookie;
   const roleLabel = roleData.label;
   const teamData = getTeamData(state);
+  const page = window.location.pathname.split("/").pop() || "index.html";
+  const onMainSite = page === "index.html" || page === "";
+  const headerTitle = onMainSite ? "Chargebotic Sites" : FORGE_PROGRAM.appName;
+  const headerSubtitle = onMainSite ? "FRC 10332 Main Website" : FORGE_PROGRAM.cohort;
 
   target.innerHTML = `
     <div class="brand">
       <div class="brand-mark"><img src="${assetPrefix()}favicon.svg" alt="FORGE icon" /></div>
       <div class="brand-copy">
-        <h1>${FORGE_PROGRAM.appName}</h1>
-        <p>${FORGE_PROGRAM.cohort}</p>
+        <h1>${headerTitle}</h1>
+        <p>${headerSubtitle}</p>
       </div>
     </div>
     <div class="badge-row">
@@ -586,7 +741,7 @@ function renderHomeContent() {
   const roleData = FORGE_PROGRAM.roles[state.role] || FORGE_PROGRAM.roles.rookie;
   const teamData = getTeamData(state);
   const summary = getOverallProgress(state);
-  const videosWatched = Object.keys(state.watchedVideos || {}).length;
+  const videosWatched = Object.keys(state.readSections || state.watchedVideos || {}).length;
   const quizAttempts = Object.keys(state.completedQuizzes).length;
   const recommendedModules = getRecommendedModules(state, 3);
   const expectation = getTrainingExpectation(state);
@@ -605,7 +760,7 @@ function renderHomeContent() {
           </div>
           <div class="preview-metric">
             <strong>${videosWatched}</strong>
-            <span>Videos watched</span>
+            <span>Reads completed</span>
           </div>
           <div class="preview-metric">
             <strong>${quizAttempts}</strong>
@@ -626,18 +781,68 @@ function renderHomeContent() {
     workflowHost.innerHTML = `
       <article class="workflow-card">
         <span class="workflow-step">01</span>
-        <h4>Assign access</h4>
-        <p>Choose a member role and sub-team so FORGE can set required, optional, and leadership-only learning paths.</p>
+        <h4>Explain the program</h4>
+        <p>Present FRC 10332 values, expectations, and team operations so members and families understand how the program runs.</p>
       </article>
       <article class="workflow-card">
         <span class="workflow-step">02</span>
-        <h4>Deliver instruction</h4>
-        <p>Members progress through embedded videos, SOP notes, and consistent learning blocks inside every module.</p>
+        <h4>Route members to systems</h4>
+        <p>Give students one place to reach Chargebotic Sites info, then move into Forge for backend training.</p>
       </article>
       <article class="workflow-card">
         <span class="workflow-step">03</span>
-        <h4>Verify readiness</h4>
-        <p>Video completion unlocks assessments, quiz scores update progress, and leaders get a clean readiness snapshot.</p>
+        <h4>Track readiness</h4>
+        <p>Use role-based modules, completion checks, and leadership visibility so only prepared members gain advanced shop access.</p>
+      </article>
+    `;
+  }
+
+  const roadmapHost = document.querySelector("[data-home-roadmap]");
+  if (roadmapHost) {
+    roadmapHost.innerHTML = `
+      <article class="workflow-card">
+        <span class="workflow-step">Phase 1</span>
+        <h4>Core curriculum live</h4>
+        <p>Keep mandatory safety and sub-team fundamentals in Forge with standardized lessons and readiness checks.</p>
+      </article>
+      <article class="workflow-card">
+        <span class="workflow-step">Phase 2</span>
+        <h4>Curriculum expansion</h4>
+        <p>Add advanced modules for leadership, offseason projects, and deeper role tracks across mechanical, software, and media.</p>
+      </article>
+      <article class="workflow-card">
+        <span class="workflow-step">Phase 3</span>
+        <h4>Systems online</h4>
+        <p>Bring member tools online through Chargebotic Sites while Forge stays dedicated to training workflows.</p>
+      </article>
+    `;
+  }
+
+  const memberSystemsHost = document.querySelector("[data-home-member-systems]");
+  if (memberSystemsHost) {
+    memberSystemsHost.innerHTML = `
+      <article class="feature-card">
+        <div class="feature-topline">
+          <span class="feature-dot" style="background:#78c8a0"></span>
+          <span class="feature-code">MEMBER</span>
+        </div>
+        <h4>Profile and Access</h4>
+        <p>Manage member role settings, exemptions, and the only main-site route into Forge backend training.</p>
+        <div class="button-row">
+          <a class="btn primary" href="account.html">Open Profile</a>
+        </div>
+      </article>
+      <article class="feature-card">
+        <div class="feature-topline">
+          <span class="feature-dot" style="background:#a855f7"></span>
+          <span class="feature-code">ROBOTICS</span>
+        </div>
+        <h4>External Robotics Systems</h4>
+        <p>Quick links for event schedules and technical docs while internal team systems continue moving online.</p>
+        <div class="button-row">
+          <a class="btn" href="https://frc-events.firstinspires.org/" target="_blank" rel="noreferrer">FIRST Events</a>
+          <a class="btn" href="https://docs.wpilib.org/" target="_blank" rel="noreferrer">WPILib Docs</a>
+        </div>
       </article>
     `;
   }
@@ -694,7 +899,7 @@ function getModuleFromPath() {
 function renderMetricTiles(state) {
   const summary = getOverallProgress(state);
   const checksLogged = Object.keys(state.completedQuizzes).length;
-  const videosWatched = Object.keys(state.watchedVideos || {}).length;
+  const videosWatched = Object.keys(state.readSections || state.watchedVideos || {}).length;
 
   return `
     <article class="stat">
@@ -711,45 +916,24 @@ function renderMetricTiles(state) {
     </article>
     <article class="stat">
       <span class="value" data-count="${videosWatched}">${videosWatched}</span>
-      <span>Videos watched</span>
+      <span>Reads completed</span>
     </article>
   `;
 }
 
 function renderQuizForm(section, module) {
   const storageKey = getSectionStorageKey(module, section);
-
-  const questions = section.quiz
-    .map((question, questionIndex) => {
-      const options = question.options
-        .map((option, optionIndex) => {
-          return `
-            <label class="option-pill">
-              <input type="radio" name="${storageKey}-q${questionIndex}" value="${optionIndex}" />
-              <span>${option}</span>
-            </label>
-          `;
-        })
-        .join("");
-
-      return `
-        <div class="question quiz-question">
-          <h4>${questionIndex + 1}. ${question.q}</h4>
-          <div class="option-grid">${options}</div>
-        </div>
-      `;
-    })
-    .join("");
+  const total = section.quiz.length;
 
   return `
-    <form class="quiz-form inline-quiz" data-inline-quiz data-quiz-key="${storageKey}" data-passing-score="${FORGE_PROGRAM.passingScore}">
-      ${questions}
+    <div class="quiz-launch-card" data-inline-quiz data-quiz-key="${storageKey}">
+      <p>Launch a fullscreen one-way quiz. You cannot go backward during an attempt.</p>
       <div class="button-row">
-        <button class="btn primary" type="submit">Submit Checkoff</button>
-        <span class="quiz-meta">${section.quiz.length} questions • ${section.status}</span>
+        <button class="btn primary" type="button" data-start-quiz="${storageKey}">Start Fullscreen Quiz</button>
+        <span class="quiz-meta">${total} questions • unlimited retakes</span>
       </div>
-      <div class="result" data-quiz-result>Submit to lock this section.</div>
-    </form>
+      <div class="result" data-quiz-result>Pass score: ${FORGE_PROGRAM.passingScore}%.</div>
+    </div>
   `;
 }
 
@@ -769,7 +953,7 @@ function renderCanvasItemRow(section, module, index, state) {
     ? renderQuizForm(section, module)
     : `<div class="quiz-lock-overlay">
          <span class="quiz-lock-icon">${LOCK_ICON}</span>
-         <p>Watch the training video to completion to unlock this assessment.</p>
+         <p>Finish the reading session checks (timer + bottom scroll) to unlock this assessment.</p>
        </div>`;
 
   return `
@@ -789,8 +973,8 @@ function renderCanvasItemRow(section, module, index, state) {
           <details class="section-subitem video-subitem">
             <summary class="subitem-summary">
               <span class="subitem-icon video">${VIDEO_PLAY_ICON}</span>
-              <span class="subitem-title">Training Video</span>
-              <span class="subitem-badge ${watched ? "watched" : ""}" data-subitem-vbadge="${quizKey}">${watched ? "&#x2713;&nbsp;Watched" : "Required"}</span>
+              <span class="subitem-title">Read This</span>
+              <span class="subitem-badge ${watched ? "watched" : ""}" data-subitem-vbadge="${quizKey}">${watched ? "&#x2713;&nbsp;Read" : "Required"}</span>
             </summary>
             <div class="subitem-body">
               ${renderVideoPanel(section, module)}
@@ -803,7 +987,7 @@ function renderCanvasItemRow(section, module, index, state) {
               <span class="subitem-title">Explanation &amp; Notes</span>
             </summary>
             <div class="subitem-body">
-              <div class="rich-notes">${section.notes}</div>
+              <div class="rich-notes">${renderExpandedNotes(section)}</div>
             </div>
           </details>
 
@@ -893,7 +1077,7 @@ function renderDashboardContent() {
   const sortedModules = getSortedModulesForState(state);
   const recommendedModules = getRecommendedModules(state, 3);
   const expectation = getTrainingExpectation(state);
-  const videosWatched = Object.keys(state.watchedVideos || {}).length;
+  const videosWatched = Object.keys(state.readSections || state.watchedVideos || {}).length;
   const quizAttempts = Object.keys(state.completedQuizzes).length;
 
   host.innerHTML = `
@@ -905,7 +1089,7 @@ function renderDashboardContent() {
           <p>Focused Operations for Robotics Growth &amp; Excellence — a polished workspace for onboarding, safety readiness, and sub-team training execution.</p>
           <div class="hero-chip-row">
             <span class="glass-chip">${teamData ? `[${teamData.code}] ${teamData.label}` : "All-team view"}</span>
-            <span class="glass-chip">${videosWatched} video completions</span>
+            <span class="glass-chip">${videosWatched} read completions</span>
             <span class="glass-chip">${quizAttempts} logged assessments</span>
           </div>
         </div>
@@ -928,8 +1112,8 @@ function renderDashboardContent() {
       </article>
       <article class="ops-card">
         <span class="preview-kicker">Verification model</span>
-        <strong>Video gated assessments</strong>
-        <p>Members complete lesson videos before taking knowledge checks, keeping readiness evidence tied to each section.</p>
+        <strong>Read gated assessments</strong>
+        <p>Members read official FRC references plus team notes before taking knowledge checks, keeping readiness evidence tied to each section.</p>
       </article>
       <article class="ops-card">
         <span class="preview-kicker">Platform state</span>
@@ -1166,44 +1350,246 @@ function wireTeamControls() {
   });
 }
 
-function wireInlineQuizForms(root = document) {
-  root.querySelectorAll("form[data-inline-quiz]").forEach((form) => {
-    if (form.dataset.bound === "true") return;
-    form.dataset.bound = "true";
+function createMemoryDeck(section) {
+  return section.quiz.flatMap((question, index) => {
+    const id = `pair-${index}`;
+    const answerText = question.options[question.answer];
+    return [
+      { id, label: `Q${index + 1}: ${question.q}`, type: "question" },
+      { id, label: `A${index + 1}: ${answerText}`, type: "answer" }
+    ];
+  });
+}
 
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
+function shuffleList(values) {
+  const copy = [...values];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swapWith = Math.floor(Math.random() * (index + 1));
+    [copy[index], copy[swapWith]] = [copy[swapWith], copy[index]];
+  }
+  return copy;
+}
 
-      const quizKey = form.dataset.quizKey;
-      const passingScore = Number(form.dataset.passingScore || FORGE_PROGRAM.passingScore);
-      const modulesMap = new Map(FORGE_PROGRAM.modules.map((module) => [module.key, module]));
-      const module = Array.from(modulesMap.values()).find((entry) => quizKey.startsWith(entry.key));
-      if (!module) return;
+function renderMemoryGame(section, gameState) {
+  const status = gameState.matches === gameState.totalPairs
+    ? "Memory game complete. Nice recall."
+    : `Matches: ${gameState.matches}/${gameState.totalPairs}`;
 
-      const section = module.sections.find((entry) => getSectionStorageKey(module, entry) === quizKey);
-      if (!section) return;
+  const cards = gameState.deck
+    .map((card, index) => {
+      const open = gameState.openCards.includes(index) || gameState.matchedCards.has(index);
+      return `
+        <button type="button" class="memory-card ${open ? "open" : ""}" data-memory-card="${index}">
+          <span>${open ? card.label : "?"}</span>
+        </button>
+      `;
+    })
+    .join("");
 
-      let correctCount = 0;
-      section.quiz.forEach((question, questionIndex) => {
-        const selected = form.querySelector(`input[name='${quizKey}-q${questionIndex}']:checked`);
-        if (selected && Number(selected.value) === question.answer) {
-          correctCount += 1;
+  return `
+    <div class="memory-game-wrap">
+      <h4>Post-Quiz Memory Match</h4>
+      <p>Match each question card with its correct answer card.</p>
+      <div class="memory-game-grid">${cards}</div>
+      <div class="quiz-meta">${status}</div>
+      <button type="button" class="btn" data-memory-reset>Shuffle Game</button>
+    </div>
+  `;
+}
+
+function launchFullscreenQuiz(section, quizKey, resultHost) {
+  const root = getOrCreateModalRoot();
+  const passingScore = FORGE_PROGRAM.passingScore;
+  const answers = new Array(section.quiz.length).fill(null);
+  let currentIndex = 0;
+  let finished = false;
+  let gameState = {
+    deck: shuffleList(createMemoryDeck(section)),
+    openCards: [],
+    matchedCards: new Set(),
+    matches: 0,
+    totalPairs: section.quiz.length
+  };
+
+  const closeAllowed = () => finished;
+
+  const drawQuiz = () => {
+    const question = section.quiz[currentIndex];
+    const optionHtml = question.options
+      .map((option, optionIndex) => {
+        const selected = answers[currentIndex] === optionIndex ? "selected" : "";
+        return `<button type="button" class="option-pill quiz-option-btn ${selected}" data-quiz-option="${optionIndex}"><span>${option}</span></button>`;
+      })
+      .join("");
+
+    root.innerHTML = `
+      <div class="forge-modal-overlay quiz-fullscreen-modal" role="dialog" aria-modal="true" aria-label="Quiz attempt">
+        <div class="forge-modal-card quiz-fullscreen-card">
+          <header class="forge-modal-head">
+            <div>
+              <h3>${section.title} — Question ${currentIndex + 1}/${section.quiz.length}</h3>
+              <p>One-way mode is active. No backtracking during this attempt.</p>
+            </div>
+            <button type="button" class="btn" data-close-modal ${closeAllowed() ? "" : "disabled"}>Exit</button>
+          </header>
+          <div class="quiz-fullscreen-body">
+            <div class="question quiz-question">
+              <h4>${question.q}</h4>
+              <div class="option-grid">${optionHtml}</div>
+            </div>
+            <div class="button-row">
+              <span class="quiz-meta">Choose one option to continue.</span>
+              <button type="button" class="btn primary" data-quiz-next ${answers[currentIndex] === null ? "disabled" : ""}>${currentIndex === section.quiz.length - 1 ? "Submit Quiz" : "Next Question"}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    bindQuizInteractions();
+  };
+
+  const drawResults = (score, passed) => {
+    root.innerHTML = `
+      <div class="forge-modal-overlay quiz-fullscreen-modal" role="dialog" aria-modal="true" aria-label="Quiz result">
+        <div class="forge-modal-card quiz-fullscreen-card">
+          <header class="forge-modal-head">
+            <div>
+              <h3>${section.title} — Results</h3>
+              <p>${passed ? "Passed" : "Retry needed"} with ${score}%.</p>
+            </div>
+            <button type="button" class="btn" data-close-modal>Exit</button>
+          </header>
+          <div class="quiz-fullscreen-body">
+            <div class="result ${passed ? "pass" : "fail"}">
+              ${passed
+                ? `Passed with ${score}% - section complete.`
+                : `Scored ${score}% - you need ${passingScore}% to pass.`}
+            </div>
+            ${renderMemoryGame(section, gameState)}
+            <div class="button-row">
+              <button type="button" class="btn primary" data-quiz-retake>Retake Quiz</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    bindResultInteractions(score, passed);
+  };
+
+  const bindMemoryGame = () => {
+    root.querySelectorAll("[data-memory-card]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const index = Number(button.dataset.memoryCard);
+        if (gameState.openCards.includes(index) || gameState.matchedCards.has(index)) return;
+        if (gameState.openCards.length === 2) return;
+        gameState.openCards.push(index);
+        drawResults(
+          Math.round((answers.filter((value, idx) => value === section.quiz[idx].answer).length / section.quiz.length) * 100),
+          Math.round((answers.filter((value, idx) => value === section.quiz[idx].answer).length / section.quiz.length) * 100) >= passingScore
+        );
+        if (gameState.openCards.length < 2) return;
+        const [first, second] = gameState.openCards;
+        const firstCard = gameState.deck[first];
+        const secondCard = gameState.deck[second];
+        if (firstCard.id === secondCard.id && firstCard.type !== secondCard.type) {
+          gameState.matchedCards.add(first);
+          gameState.matchedCards.add(second);
+          gameState.matches += 1;
         }
+        gameState.openCards = [];
+        window.setTimeout(() => {
+          drawResults(
+            Math.round((answers.filter((value, idx) => value === section.quiz[idx].answer).length / section.quiz.length) * 100),
+            Math.round((answers.filter((value, idx) => value === section.quiz[idx].answer).length / section.quiz.length) * 100) >= passingScore
+          );
+        }, 350);
       });
+    });
 
+    root.querySelector("[data-memory-reset]")?.addEventListener("click", () => {
+      gameState = {
+        deck: shuffleList(createMemoryDeck(section)),
+        openCards: [],
+        matchedCards: new Set(),
+        matches: 0,
+        totalPairs: section.quiz.length
+      };
+      drawResults(
+        Math.round((answers.filter((value, idx) => value === section.quiz[idx].answer).length / section.quiz.length) * 100),
+        Math.round((answers.filter((value, idx) => value === section.quiz[idx].answer).length / section.quiz.length) * 100) >= passingScore
+      );
+    });
+  };
+
+  const bindResultInteractions = (score, passed) => {
+    root.querySelector("[data-close-modal]")?.addEventListener("click", () => closeModal());
+    root.querySelector("[data-quiz-retake]")?.addEventListener("click", () => {
+      currentIndex = 0;
+      answers.fill(null);
+      finished = false;
+      gameState = {
+        deck: shuffleList(createMemoryDeck(section)),
+        openCards: [],
+        matchedCards: new Set(),
+        matches: 0,
+        totalPairs: section.quiz.length
+      };
+      drawQuiz();
+    });
+    if (resultHost) {
+      resultHost.className = `result ${passed ? "pass" : "fail"}`;
+      resultHost.textContent = passed
+        ? `Passed with ${score}% - section complete.`
+        : `Scored ${score}% - retry anytime.`;
+    }
+    bindMemoryGame();
+  };
+
+  const bindQuizInteractions = () => {
+    root.querySelector("[data-close-modal]")?.addEventListener("click", () => {
+      if (closeAllowed()) closeModal();
+    });
+    root.querySelectorAll("[data-quiz-option]").forEach((optionButton) => {
+      optionButton.addEventListener("click", () => {
+        answers[currentIndex] = Number(optionButton.dataset.quizOption);
+        drawQuiz();
+      });
+    });
+    root.querySelector("[data-quiz-next]")?.addEventListener("click", () => {
+      if (answers[currentIndex] === null) return;
+      if (currentIndex < section.quiz.length - 1) {
+        currentIndex += 1;
+        drawQuiz();
+        return;
+      }
+      const correctCount = answers.filter((value, index) => value === section.quiz[index].answer).length;
       const score = Math.round((correctCount / section.quiz.length) * 100);
       const passed = score >= passingScore;
       markQuizResult(quizKey, passed, score);
+      finished = true;
+      drawResults(score, passed);
+    });
+  };
 
-      const resultHost = form.querySelector("[data-quiz-result]");
-      if (resultHost) {
-        resultHost.className = `result ${passed ? "pass" : "fail"}`;
-        resultHost.textContent = passed
-          ? `Passed with ${score}% - this section is now complete.`
-          : `Scored ${score}% - you need ${passingScore}% to pass this section.`;
-      }
+  document.body.classList.add("modal-open");
+  drawQuiz();
+}
 
-      form.closest(".canvas-item-row")?.setAttribute("open", "open");
+function wireInlineQuizForms(root = document) {
+  root.querySelectorAll("[data-start-quiz]").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => {
+      const quizKey = button.dataset.startQuiz;
+      if (!quizKey) return;
+      const modulesMap = new Map(FORGE_PROGRAM.modules.map((module) => [module.key, module]));
+      const module = Array.from(modulesMap.values()).find((entry) => quizKey.startsWith(entry.key));
+      if (!module) return;
+      const section = module.sections.find((entry) => getSectionStorageKey(module, entry) === quizKey);
+      if (!section) return;
+      const host = button.closest("[data-inline-quiz]");
+      const resultHost = host?.querySelector("[data-quiz-result]") || null;
+      launchFullscreenQuiz(section, quizKey, resultHost);
     });
   });
 }
@@ -1269,7 +1655,6 @@ function wireQuizForm(quizFile, answers) {
 document.addEventListener("DOMContentLoaded", () => {
   cleanVisibleUrl();
   ensureFavicon();
-  loadYouTubeAPI();
   wireExtensionlessNavigation();
   renderCanvasRail();
   renderCommonHeader();
@@ -1294,11 +1679,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   wireInlineQuizForms();
+  wireReadCountdownTimers();
   normalizeExtensionlessLinks();
-  // Init YouTube players in case API already loaded before DOM render
-  initYouTubePlayers();
-  // Re-init when any module accordion is opened
-  document.addEventListener("toggle", () => initYouTubePlayers(), true);
 
   // Run post-render animations (counters, intersection observer)
   runPostRenderAnimations();

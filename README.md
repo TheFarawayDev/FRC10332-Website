@@ -1,88 +1,98 @@
-# FORGE Training Prototype (FRC 10332)
+# FRC 10332 Chargebotics Website + Forge
 
-FORGE stands for **Focused Operations for Robotics Growth & Excellence**.
+Built by Marshall E.  
+Public website + member dashboard + Forge training backend for FRC 10332.
 
-This repository now contains a full static prototype of a team training platform inspired by Canvas-style navigation, with FRC-specific sub-categories.
+## What’s in this repository
 
-## What This Mockup Includes
+- **Public site pages**
+  - `/index.html` (home)
+  - `/calendar.html`
+  - `/members.html`
+  - `/logs.html`
+  - `/posts.html`
+- **Auth and member system**
+  - `/auth.html` (sign in / sign up)
+  - `/admin-approvals.html` (admin queue)
+  - `/members-dashboard.html` (member dashboard)
+- **Forge backend**
+  - `/portal.html`
+  - `/modules/*.html`
+  - `/quizzes/*.html`
+- **Core scripts**
+  - `/public-site.js` public rendering + modal detail views
+  - `/dashboard.js` member dashboard rendering + modal detail views
+  - `/auth.js` auth flow, redirect guards, admin approvals
+  - `/app.js` Forge UI, read-countdown unlocks, quiz flow
+  - `/data.js` Forge program/module/quiz content
 
-- A 5-letter training system name: **FORGE**
-- All-in-one navigation center: `portal.html`
-- Sub-category module pages with embedded videos:
-	- Business and Media
-	- Safety
-	- Strategy
-	- Design
-	- Control
-	- Fabrication
-	- Art
-- Separate quiz file per quiz (14 files total)
-- Completion rule: every quiz in a sub-category must be passed
-- Exemption rule: existing members are exempt by default unless a lead/mentor override is enabled
-- Local progress persistence using browser `localStorage`
-- Extensionless visible URLs in the browser for a cleaner Canvas-style feel
-- A fake account page with role controls and progress summary
-- Six dropdown sections per module for testing, each with notes, watch content, and a quiz
+## Key updates included
 
-## Project Structure
+- Extensionless URL behavior (`/members`, `/logs`, `/posts`, etc.) while keeping static `.html` runtime files.
+- Improved top navigation styling plus admin bubble quick access.
+- Sign-in screen content and layout polish.
+- Modal detail views for member/log/post cards.
+- Forge switched from “watch video to unlock” messaging to **Read This + countdown unlock** behavior.
+- New **Site Maintenance** training module:
+  - `/modules/site-maintenance.html`
+  - module key: `site-maintenance` in `data.js`
 
-- `index.html`
-	- Landing page and role/exemption controls
-- `portal.html`
-	- All-in-one navigation center and progress overview
-- `account.html`
-	- Fake member account and training status page
-- `styles.css`
-	- Shared visual system and responsive layout
-- `data.js`
-	- Program/module configuration and quiz mapping
-- `app.js`
-	- Shared app logic, progress tracking, exemption handling, quiz grading hooks
-- `modules/`
-	- One module page per sub-category
-- `quizzes/`
-	- One standalone file per quiz
+## Local run
 
-## Module Pages
+This is a static HTML/CSS/JS project (no package manager scripts).
 
-- `modules/business-media.html`
-- `modules/safety.html`
-- `modules/strategy.html`
-- `modules/design.html`
-- `modules/control.html`
-- `modules/fabrication.html`
-- `modules/art.html`
+Run with any static server, or open `index.html` directly in browser.
 
-## Quiz Files
+## Authentication behavior
 
-- `quizzes/business-branding.html`
-- `quizzes/business-outreach.html`
-- `quizzes/safety-ppe.html`
-- `quizzes/safety-shop-zones.html`
-- `quizzes/strategy-scouting.html`
-- `quizzes/strategy-match-planning.html`
-- `quizzes/design-cad-standards.html`
-- `quizzes/design-dfm.html`
-- `quizzes/control-wiring-basics.html`
-- `quizzes/control-code-practices.html`
-- `quizzes/fabrication-measurement.html`
-- `quizzes/fabrication-machine-ops.html`
-- `quizzes/art-brand-visuals.html`
-- `quizzes/art-pit-presentation.html`
+- `firebase-config.js` holds Firebase placeholder config values.
+- `firebase-init.js` provides Firebase wiring + local fallback auth mode.
+- `auth.js` handles:
+  - sign in
+  - sign up with requested team selection
+  - admin approval gate
+  - dashboard/admin route guards
 
-## Running It
+### Local fallback admin credentials
 
-Open `index.html` in a browser in the dev container or VS Code preview.
+- Email: `admin@frc10332.org`
+- Password: `admin10332`
 
-Use the role selector on `index.html` to simulate:
+## Maintenance training (for web team)
 
-- Rookie member required flow
-- Existing member exemption
-- Mentor/lead override that forces completion
+Use the **Site Maintenance** module in Forge for onboarding:
 
-## Next Build Phase Ideas
+1. Open `/portal.html`
+2. Enter **Site Maintenance**
+3. Complete both read sections and checkoff quizzes
 
-- Add user authentication and real member roster sync
-- Add mentor dashboard for overrides and assignment deadlines
-- Replace static quiz answer keys with API-backed quiz authoring
-- Add certificate export and competition readiness checks
+### Required maintenance workflow
+
+1. Scope edits to only required files.
+2. Verify page behavior in browser after each small change.
+3. Re-check auth flow after any auth/nav edit:
+   - sign in
+   - sign up
+   - admin approvals
+4. Re-check public/member content cards and modal behavior.
+5. Confirm extensionless URL appearance still works.
+6. Update this README when architecture or workflow changes.
+
+## File ownership quick map
+
+- **Public UX/UI**: `site-v2.css`, public page HTML, `public-site.js`
+- **Member dashboard UX**: `members-dashboard.html`, `dashboard.js`
+- **Auth/admin flow**: `auth.html`, `admin-approvals.html`, `auth.js`, `firebase-init.js`
+- **Forge learning system**: `portal.html`, `modules/*`, `quizzes/*`, `app.js`, `data.js`
+
+## Deployment notes
+
+- This project currently assumes static file hosting.
+- If hosting supports extensionless rewrites, URLs and direct loads can both be extensionless.
+- Without rewrites, navigation still resolves using runtime `.html` links managed in script.
+
+## Safety and security notes
+
+- Do not commit secrets or private keys.
+- Keep Firebase credentials out of source when possible.
+- Validate any auth-related change in both configured Firebase mode and local fallback mode.

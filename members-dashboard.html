@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Members Dashboard | FRC 10332</title>
+    <link rel="stylesheet" href="site-v2.css" />
+  </head>
+  <body data-page="dashboard">
+    <header class="site-topbar">
+      <div class="brand-block">
+        <img src="favicon.svg" alt="FRC 10332" class="brand-icon" />
+        <div>
+          <h1>FRC 10332 Members Dashboard</h1>
+          <p data-auth-user>Signed in</p>
+        </div>
+      </div>
+      <nav class="top-nav">
+        <a href="/">Public Site</a>
+        <a href="portal">Forge Backend</a>
+        <a class="admin-bubble hidden" href="admin-approvals" data-admin-link>Admin Approvals</a>
+        <button class="btn" type="button" data-auth-logout>Sign Out</button>
+      </nav>
+    </header>
+
+    <main class="site-shell">
+      <section class="hero-card">
+        <p class="kicker">INTERNAL MEMBER VIEW</p>
+        <h2>One place for member updates, logs, and build-season plot twists.</h2>
+        <p>Use search to find dashboard items fast. Team slogan: iterate, test, repeat.</p>
+        <form class="google-search" data-member-search-form>
+          <label for="memberSearch" class="sr-only">Search member dashboard</label>
+          <input id="memberSearch" name="query" type="search" placeholder="Search tasks, logs, updates, and resources" autocomplete="off" />
+          <button type="submit">Search</button>
+        </form>
+        <p class="search-meta" data-member-search-meta>Showing all dashboard items.</p>
+      </section>
+
+      <section class="panel-section">
+        <div class="section-head">
+          <h3>Member Snapshot</h3>
+          <p>Quick pulse on team operations and who's currently in the robot trenches.</p>
+        </div>
+        <div class="panel-grid three" data-member-counters></div>
+      </section>
+
+      <section class="panel-section">
+        <div class="section-head">
+          <h3>Internal Work Logs</h3>
+          <p>Sub-team and all-hands entries for build season progress, wins, and weird bugs.</p>
+        </div>
+        <div class="panel-grid two" data-member-logs></div>
+      </section>
+
+      <section class="panel-section">
+        <div class="section-head">
+          <h3>Member Updates</h3>
+          <p>Internal notes, deadlines, announcements, and occasional \"who moved the wrench\" moments.</p>
+        </div>
+        <div class="panel-grid" data-member-posts></div>
+      </section>
+    </main>
+
+    <script src="topography-bg.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="firebase-init.js"></script>
+    <script src="auth.js"></script>
+    <script src="dashboard.js"></script>
+  </body>
+</html>
