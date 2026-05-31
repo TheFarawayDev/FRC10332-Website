@@ -1112,7 +1112,11 @@ function renderAccountContent() {
         <div class="role-selector" data-role-form>
           <label class="override-toggle switch-row">
             <input type="checkbox" name="mentorOverride" ${state.overrideRequired ? "checked" : ""} />
-            <span>Mentor override &mdash; require full training track regardless of role</span>
+            <span class="switch-control" aria-hidden="true"></span>
+            <span class="switch-copy">
+              <strong>Mentor override</strong>
+              <small>Require the full training track regardless of role.</small>
+            </span>
           </label>
           <div class="role-card-list">
             ${Object.entries(FORGE_PROGRAM.roles).map(([key, role]) => `

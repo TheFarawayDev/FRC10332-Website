@@ -37,6 +37,14 @@
   --radius-lg:   14px;
   --radius-pill: 999px;
 
+  /* ── Spacing ────────────────────────────────────────────── */
+  --space-1:     4px;
+  --space-2:     8px;
+  --space-3:     12px;
+  --space-4:     16px;
+  --space-5:     20px;
+  --space-6:     24px;
+
   /* ── Shadow ────────────────────────────────────────────── */
   --shadow:      0 8px 32px rgba(0,0,0,0.55);
   --shadow-sm:   0 2px 12px rgba(0,0,0,0.4);
@@ -66,6 +74,7 @@ html, body {
   padding: 0;
   font-family: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
   color: var(--ink-0);
+  line-height: 1.5;
   background:
     radial-gradient(ellipse 80% 65% at 10% -10%, rgba(95,149,255,0.24) 0%, transparent 55%),
     radial-gradient(ellipse 65% 55% at 100% 0%, rgba(210,222,238,0.14) 0%, transparent 52%),
@@ -110,9 +119,9 @@ body::after {
 
 .page-shell {
   margin-left: 72px;
-  padding: 18px 22px 56px;
+  padding: var(--space-5) calc(var(--space-6) - 2px) 56px;
   display: grid;
-  gap: 14px;
+  gap: var(--space-4);
   max-width: calc(100vw - 72px);
 }
 
@@ -252,7 +261,7 @@ body::after {
 .badge-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 
@@ -295,7 +304,7 @@ body::after {
   background: linear-gradient(180deg, rgba(17,28,44,0.7), rgba(12,22,34,0.58));
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
-  padding: 18px 20px;
+  padding: var(--space-5);
   backdrop-filter: blur(22px) saturate(145%);
   box-shadow: 0 22px 60px rgba(0, 0, 0, 0.18);
 }
@@ -310,7 +319,7 @@ body::after {
   border-radius: var(--radius-lg);
   padding: 22px 24px;
   display: grid;
-  gap: 14px;
+  gap: var(--space-4);
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(24px) saturate(155%);
@@ -392,8 +401,13 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.section-head > div {
+  display: grid;
+  gap: var(--space-1);
 }
 
 .section-head h3 {
@@ -413,7 +427,7 @@ body::after {
 
 .content-area {
   display: grid;
-  gap: 14px;
+  gap: var(--space-4);
 }
 
 .eyebrow,
@@ -438,7 +452,7 @@ body::after {
 .feature-grid,
 .preview-metric-row {
   display: grid;
-  gap: 14px;
+  gap: var(--space-4);
 }
 
 .hero-grid,
@@ -450,7 +464,7 @@ body::after {
 
 .hero-copy {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
   align-content: start;
 }
 
@@ -467,8 +481,14 @@ body::after {
 
 .hero-chip-row {
   display: flex;
-  gap: 10px;
+  gap: var(--space-3);
   flex-wrap: wrap;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
 .glass-chip,
@@ -578,13 +598,14 @@ body::after {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 0;
-  border-top: 1px solid var(--line);
+  padding: 12px 14px;
+  border: 1px solid rgba(218,229,244,0.1);
+  border-radius: var(--radius);
+  background: rgba(219,229,242,0.04);
 }
 
 .preview-list li:first-child {
-  border-top: 0;
-  padding-top: 0;
+  padding-top: 12px;
 }
 
 .preview-list li span {
@@ -1274,20 +1295,85 @@ details[open] > summary .cmr-arrow {
 .switch-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 12px;
+  padding: 12px 14px;
   border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(223,233,244,0.11), rgba(164,182,204,0.05));
   cursor: pointer;
   font-size: 0.83rem;
   font-weight: 500;
-  transition: border-color 0.14s, background 0.14s;
+  transition: border-color 0.14s, background 0.14s, box-shadow 0.14s;
 }
 
 .switch-row:hover {
-  background: var(--surface-2);
+  background: rgba(220,231,244,0.12);
   border-color: rgba(79,127,255,0.3);
+  box-shadow: 0 0 0 1px rgba(79,127,255,0.08);
+}
+
+.switch-row input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.switch-control {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(218,229,244,0.18);
+  background: rgba(148, 163, 184, 0.16);
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  transition: background 0.16s, border-color 0.16s, box-shadow 0.16s;
+}
+
+.switch-control::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #f8fbff, #dbe8ff);
+  box-shadow: 0 6px 16px rgba(3, 10, 20, 0.24);
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+
+.switch-row input[type="checkbox"]:checked + .switch-control {
+  background: linear-gradient(180deg, rgba(116,166,255,0.76), rgba(79,130,239,0.72));
+  border-color: rgba(169,199,255,0.62);
+  box-shadow: 0 0 0 1px rgba(79,127,255,0.18), 0 10px 24px rgba(79,130,239,0.22);
+}
+
+.switch-row input[type="checkbox"]:checked + .switch-control::after {
+  transform: translateX(20px);
+}
+
+.switch-row input[type="checkbox"]:focus-visible + .switch-control {
+  outline: 2px solid rgba(169,199,255,0.85);
+  outline-offset: 3px;
+}
+
+.switch-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.switch-copy strong {
+  font-size: 0.84rem;
+  color: var(--ink-0);
+}
+
+.switch-copy small {
+  color: var(--ink-1);
+  font-size: 0.74rem;
+  line-height: 1.45;
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -1361,6 +1447,10 @@ details[open] > summary .cmr-arrow {
   align-items: center;
   font-size: 0.82rem;
   gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(218,229,244,0.1);
+  border-radius: var(--radius-sm);
+  background: rgba(219,229,242,0.04);
 }
 
 .account-row span { color: var(--ink-1); }
@@ -1409,6 +1499,7 @@ details[open] > summary .cmr-arrow {
   flex-shrink: 0;
 }
 
+.role-card-text { display: grid; gap: 4px; }
 .role-card-text strong { display: block; font-size: 0.85rem; font-weight: 700; color: var(--ink-0); }
 .role-card-text small  { font-size: 0.73rem; color: var(--ink-1); line-height: 1.4; }
 
@@ -1427,16 +1518,9 @@ details[open] > summary .cmr-arrow {
 .override-toggle {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  cursor: pointer;
+  gap: 12px;
   font-size: 0.82rem;
 }
-
-.override-toggle input { accent-color: var(--accent); }
 
 /* ════════════════════════════════════════════════════════════════════
    TEAM CARDS
