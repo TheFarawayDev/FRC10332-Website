@@ -1,24 +1,24 @@
 const PUBLIC_DATA = {
   events: [
-    { date: 'Jun 04', title: 'Drive Team Practice', detail: 'Field drills + communication reps' },
-    { date: 'Jun 07', title: 'Community Demo', detail: 'Public STEM showcase at district center' },
-    { date: 'Jun 10', title: 'Build Session', detail: 'Mechanical + controls integration block' }
+    { date: 'Jun 04', title: 'Drive Team Practice', detail: 'Field drills + communication reps. Slogan: smooth is fast.' },
+    { date: 'Jun 07', title: 'Community Demo', detail: 'Public STEM showcase at district center — robot says hi, probably loudly.' },
+    { date: 'Jun 10', title: 'Build Session', detail: 'Mechanical + controls integration block, aka bolt-and-pray night.' }
   ],
   members: [
-    { name: 'Alex M.', role: 'Team Captain', subteam: 'Strategy', bio: 'Coordinates season planning and match readiness.' },
-    { name: 'Jordan P.', role: 'Controls Lead', subteam: 'Control', bio: 'Owns wiring standards and controls reliability.' },
-    { name: 'Taylor R.', role: 'Media Lead', subteam: 'Business/Media', bio: 'Manages team communications and sponsor coverage.' },
-    { name: 'Casey L.', role: 'Safety Captain', subteam: 'Safety', bio: 'Runs shop safety checklists and compliance logs.' }
+    { name: 'Alex M.', role: 'Team Captain', subteam: 'Strategy', bio: 'Coordinates season planning and match readiness. Calm brain, loud pit.' },
+    { name: 'Jordan P.', role: 'Controls Lead', subteam: 'Control', bio: 'Owns wiring standards and controls reliability (and keeps CAN from chaos).' },
+    { name: 'Taylor R.', role: 'Media Lead', subteam: 'Business/Media', bio: 'Manages team communications and sponsor coverage. Hype level: full battery.' },
+    { name: 'Casey L.', role: 'Safety Captain', subteam: 'Safety', bio: 'Runs shop safety checklists and reminds us fingers are non-replaceable.' }
   ],
   logs: [
-    { scope: 'Sub-Team Log', team: 'Fabrication', entry: 'Completed intake bracket prototype and tolerance review.' },
-    { scope: 'Sub-Team Log', team: 'Design', entry: 'Released drivetrain CAD revision 4 for manufacturing handoff.' },
-    { scope: 'Team Log', team: 'All-Hands', entry: 'Finished week sprint review and posted new milestone board.' }
+    { scope: 'Sub-Team Log', team: 'Fabrication', entry: 'Completed intake bracket prototype and tolerance review. Measure twice, yeet once.' },
+    { scope: 'Sub-Team Log', team: 'Design', entry: 'Released drivetrain CAD revision 4 for manufacturing handoff. If it spins, we grin.' },
+    { scope: 'Team Log', team: 'All-Hands', entry: 'Finished week sprint review and posted new milestone board. Built not bought.' }
   ],
   posts: [
-    { title: 'Summer Outreach Schedule Published', body: 'Public outreach calendar is now live with event locations and volunteer slots.' },
-    { title: 'Rookie Orientation Open', body: 'New members can attend orientation nights starting next week.' },
-    { title: 'Mentor Spotlight', body: 'Read this month\'s profile on our electrical systems mentor team.' }
+    { title: 'Summer Outreach Schedule Published', body: 'Public outreach calendar is now live with event locations and volunteer slots. Bring curiosity.' },
+    { title: 'Rookie Orientation Open', body: 'New members can attend orientation nights starting next week. No experience needed, just energy.' },
+    { title: 'Mentor Spotlight', body: 'Read this month\'s profile on our electrical systems mentor team — the legends behind fewer sparks.' }
   ]
 };
 

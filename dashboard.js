@@ -5,15 +5,15 @@ const MEMBER_DATA = {
     { label: 'Open action items', value: '11' }
   ],
   logs: [
-    { scope: 'Control', title: 'CAN diagnostics', body: 'Resolved intermittent device IDs and updated wiring map.' },
-    { scope: 'Strategy', title: 'Scouting schema update', body: 'Added consistency checks for cycle and defense tags.' },
-    { scope: 'Fabrication', title: 'Arm mount iteration', body: 'Completed stress test and approved v3 plate geometry.' },
-    { scope: 'All Team', title: 'Leadership sync', body: 'Published deadlines for outreach prep and pit checklist.' }
+    { scope: 'Control', title: 'CAN diagnostics', body: 'Resolved intermittent device IDs and updated wiring map. Chaos: temporarily defeated.' },
+    { scope: 'Strategy', title: 'Scouting schema update', body: 'Added consistency checks for cycle and defense tags. Data wins matches.' },
+    { scope: 'Fabrication', title: 'Arm mount iteration', body: 'Completed stress test and approved v3 plate geometry. If it bends, we mend.' },
+    { scope: 'All Team', title: 'Leadership sync', body: 'Published deadlines for outreach prep and pit checklist. Built by us, always.' }
   ],
   posts: [
-    { title: 'Reminder: Safety refresh due Friday', body: 'All pit crew and drive team members must finish check-in.' },
-    { title: 'Scrimmage prep packet posted', body: 'Review autonomous priorities and communication callouts.' },
-    { title: 'Sponsor update draft review', body: 'Media and business teams to finalize visuals by Tuesday.' }
+    { title: 'Reminder: Safety refresh due Friday', body: 'All pit crew and drive team members must finish check-in. PPE is always in style.' },
+    { title: 'Scrimmage prep packet posted', body: 'Review autonomous priorities and communication callouts. Drive smooth, think faster.' },
+    { title: 'Sponsor update draft review', body: 'Media and business teams to finalize visuals by Tuesday. Keep it sharp, keep it real.' }
   ]
 };
 
