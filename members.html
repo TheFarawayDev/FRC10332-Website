@@ -8,21 +8,20 @@
   </head>
   <body data-page="public" data-public-view="members">
     <header class="site-topbar">
-      <div class="brand-block">
-        <img src="favicon.svg" alt="FRC 10332" class="brand-icon" />
-        <div>
+      <div class="site-topbar-inner">
+        <div class="brand-block">
+          <img src="favicon.svg" alt="FRC 10332" class="brand-icon" />
           <h1>FRC 10332 Chargebotics</h1>
-          <p>Public Members · Built by Marshall E.</p>
         </div>
+        <nav class="top-nav" aria-label="Primary">
+          <a href="/">Home</a>
+          <a href="calendar">Calendar</a>
+          <a href="members">Members</a>
+          <a href="logs">Logs</a>
+          <a href="posts">Posts</a>
+          <a class="btn" href="auth">Member Sign In</a>
+        </nav>
       </div>
-      <nav class="top-nav" aria-label="Primary">
-        <a href="/">Home</a>
-        <a href="calendar">Calendar</a>
-        <a href="members">Members</a>
-        <a href="logs">Logs</a>
-        <a href="posts">Posts</a>
-        <a class="btn" href="auth">Member Sign In</a>
-      </nav>
     </header>
 
     <main class="site-shell">
@@ -47,23 +46,24 @@
       <div class="site-footer-grid">
         <section class="footer-column">
           <p class="footer-title">FRC 10332 Chargebotics</p>
-          <p class="footer-credit">Built by Marshall E. for FRC Team 10332.</p>
+          <p class="footer-credit">Building the future of robotics, one competition at a time.</p>
         </section>
         <section class="footer-column">
-          <p class="footer-title">Quick Links</p>
+          <p class="footer-title">Navigation</p>
           <div class="footer-links">
             <a href="/">Home</a>
             <a href="calendar">Calendar</a>
             <a href="members">Members</a>
             <a href="logs">Logs</a>
             <a href="posts">Posts</a>
-            <a href="auth">Member Sign In</a>
           </div>
         </section>
         <section class="footer-column">
-          <p class="footer-title">Community Standards</p>
-          <p class="footer-note">Our public pages are moderated to keep discussions respectful and constructive.</p>
-          <p class="footer-note">Member sign-in is only for approved team accounts and mentors.</p>
+          <p class="footer-title">Resources</p>
+          <div class="footer-links">
+            <a href="auth">Member Sign In</a>
+            <a href="https://www.firstinspires.org/robotics/frc" target="_blank" rel="noreferrer">FIRST Robotics</a>
+          </div>
         </section>
         <section class="footer-column">
           <p class="footer-title">Connect</p>
@@ -72,10 +72,11 @@
             <a href="https://www.youtube.com/@FRC10332" target="_blank" rel="noreferrer">YouTube</a>
             <a href="https://github.com/TheFarawayDev/FRC10332-Website" target="_blank" rel="noreferrer">GitHub</a>
           </div>
-          <p class="footer-trademarks">
-            Forge™ and the Chargebotics name and logo are trademarks of FRC Team 10332 Chargebotics.
-          </p>
         </section>
+      </div>
+      <div class="site-footer-bottom">
+        <p>&copy; 2024 FRC Team 10332 Chargebotics. Built by Marshall E.</p>
+        <p class="footer-trademarks">Forge™ and the Chargebotics name and logo are trademarks of FRC Team 10332.</p>
       </div>
     </footer>
 
