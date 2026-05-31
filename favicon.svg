@@ -5,7 +5,7 @@
       <stop offset="0%" style="stop-color:#0a0e17;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#050810;stop-opacity:1" />
     </linearGradient>
-    <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="letterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#0070f3;stop-opacity:1" />
       <stop offset="50%" style="stop-color:#3291ff;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#0761d1;stop-opacity:1" />
@@ -20,39 +20,14 @@
   <rect width="64" height="64" rx="14" fill="url(#bgGrad)"/>
   
   <!-- Ambient glow -->
-  <ellipse cx="32" cy="24" rx="30" ry="24" fill="url(#glowGrad)"/>
+  <ellipse cx="32" cy="32" rx="30" ry="24" fill="url(#glowGrad)"/>
   
-  <!-- Lightning bolt "C" for Chargebotics -->
-  <path d="M 32 12 L 28 28 L 36 28 L 28 48 L 36 32 L 28 32 Z" 
-        fill="url(#boltGrad)" 
+  <!-- Letter F -->
+  <path d="M 20 16 L 44 16 L 44 22 L 28 22 L 28 30 L 40 30 L 40 36 L 28 36 L 28 48 L 20 48 Z" 
+        fill="url(#letterGrad)" 
         stroke="#ffffff" 
         stroke-width="0.5" 
         opacity="0.95"/>
-  
-  <!-- Abstract circuit traces -->
-  <path d="M 14 20 L 18 20 L 18 24 M 46 20 L 50 20 L 50 24" 
-        stroke="rgba(0,112,243,0.3)" 
-        stroke-width="1.5" 
-        fill="none" 
-        stroke-linecap="round"/>
-  
-  <path d="M 14 40 L 18 40 L 18 44 M 46 40 L 50 40 L 50 44" 
-        stroke="rgba(0,112,243,0.3)" 
-        stroke-width="1.5" 
-        fill="none" 
-        stroke-linecap="round"/>
-  
-  <!-- Team number badge -->
-  <rect x="8" y="52" rx="3" width="48" height="9" fill="rgba(0,112,243,0.2)" stroke="#0070f3" stroke-width="1"/>
-  <text
-    x="32" y="58.5"
-    text-anchor="middle"
-    font-family="'SF Pro Display', -apple-system, system-ui, sans-serif"
-    font-size="6"
-    font-weight="700"
-    letter-spacing="0.5"
-    fill="#3291ff"
-  >FRC 10332</text>
   
   <!-- Corner accent dots -->
   <circle cx="12" cy="12" r="1.5" fill="#0070f3" opacity="0.6"/>
