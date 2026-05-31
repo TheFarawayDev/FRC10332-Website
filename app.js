@@ -626,18 +626,79 @@ function renderHomeContent() {
     workflowHost.innerHTML = `
       <article class="workflow-card">
         <span class="workflow-step">01</span>
-        <h4>Assign access</h4>
-        <p>Choose a member role and sub-team so FORGE can set required, optional, and leadership-only learning paths.</p>
+        <h4>Explain the program</h4>
+        <p>Present FRC 10332 values, expectations, and team operations so members and families understand how the program runs.</p>
       </article>
       <article class="workflow-card">
         <span class="workflow-step">02</span>
-        <h4>Deliver instruction</h4>
-        <p>Members progress through embedded videos, SOP notes, and consistent learning blocks inside every module.</p>
+        <h4>Route members to systems</h4>
+        <p>Give students one place to reach FORGE training, profile controls, and the tools used across build, strategy, and outreach.</p>
       </article>
       <article class="workflow-card">
         <span class="workflow-step">03</span>
-        <h4>Verify readiness</h4>
-        <p>Video completion unlocks assessments, quiz scores update progress, and leaders get a clean readiness snapshot.</p>
+        <h4>Track readiness</h4>
+        <p>Use role-based modules, completion checks, and leadership visibility so only prepared members gain advanced shop access.</p>
+      </article>
+    `;
+  }
+
+  const roadmapHost = document.querySelector("[data-home-roadmap]");
+  if (roadmapHost) {
+    roadmapHost.innerHTML = `
+      <article class="workflow-card">
+        <span class="workflow-step">Phase 1</span>
+        <h4>Core curriculum live</h4>
+        <p>Keep mandatory safety and sub-team fundamentals in FORGE with standardized lessons and readiness checks.</p>
+      </article>
+      <article class="workflow-card">
+        <span class="workflow-step">Phase 2</span>
+        <h4>Curriculum expansion</h4>
+        <p>Add advanced modules for leadership, offseason projects, and deeper role tracks across mechanical, software, and media.</p>
+      </article>
+      <article class="workflow-card">
+        <span class="workflow-step">Phase 3</span>
+        <h4>Systems online</h4>
+        <p>Bring member tools online through this website so students can access training, operations resources, and team systems from one hub.</p>
+      </article>
+    `;
+  }
+
+  const memberSystemsHost = document.querySelector("[data-home-member-systems]");
+  if (memberSystemsHost) {
+    memberSystemsHost.innerHTML = `
+      <article class="feature-card">
+        <div class="feature-topline">
+          <span class="feature-dot" style="background:#5f95ff"></span>
+          <span class="feature-code">FORGE</span>
+        </div>
+        <h4>Training Dashboard</h4>
+        <p>Open modules, track completion, and view readiness requirements by role and sub-team.</p>
+        <div class="button-row">
+          <a class="btn primary" href="portal.html">Open Dashboard</a>
+        </div>
+      </article>
+      <article class="feature-card">
+        <div class="feature-topline">
+          <span class="feature-dot" style="background:#78c8a0"></span>
+          <span class="feature-code">MEMBER</span>
+        </div>
+        <h4>Profile and Access</h4>
+        <p>Manage member role settings, exemptions, and training policy controls used by leads and mentors.</p>
+        <div class="button-row">
+          <a class="btn primary" href="account.html">Open Profile</a>
+        </div>
+      </article>
+      <article class="feature-card">
+        <div class="feature-topline">
+          <span class="feature-dot" style="background:#a855f7"></span>
+          <span class="feature-code">ROBOTICS</span>
+        </div>
+        <h4>External Robotics Systems</h4>
+        <p>Quick links for event schedules and technical docs while internal team systems continue moving online.</p>
+        <div class="button-row">
+          <a class="btn" href="https://frc-events.firstinspires.org/" target="_blank" rel="noreferrer">FIRST Events</a>
+          <a class="btn" href="https://docs.wpilib.org/" target="_blank" rel="noreferrer">WPILib Docs</a>
+        </div>
       </article>
     `;
   }
