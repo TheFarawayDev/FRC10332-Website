@@ -1,7 +1,9 @@
 (function initializeFirebaseGroundwork() {
-  const USERS_KEY = 'frc10332.localUsers';
-  const SESSION_KEY = 'frc10332.sessionUser';
   const listeners = [];
+  const localStore = {
+    users: [],
+    session: null
+  };
   const base = {
     ready: false,
     mode: 'local',
@@ -9,45 +11,44 @@
   };
 
   function readUsers() {
-    try {
-      return JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-    } catch {
-      return [];
-    }
+    return localStore.users.slice();
   }
 
   function saveUsers(users) {
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    localStore.users = users.slice();
   }
 
   function readSession() {
-    try {
-      return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
-    } catch {
-      return null;
-    }
+    return localStore.session;
   }
 
   function setSession(user) {
-    if (user) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(SESSION_KEY);
-    }
+    localStore.session = user || null;
     listeners.forEach((listener) => listener(user));
   }
 
-  async function signUpLocal(email, password, displayName) {
+  async function hashSecret(secret) {
+    const normalized = secret.trim();
+    if (window.crypto?.subtle && window.TextEncoder) {
+      const payload = new TextEncoder().encode(normalized);
+      const digest = await window.crypto.subtle.digest('SHA-256', payload);
+      return Array.from(new Uint8Array(digest)).map((item) => item.toString(16).padStart(2, '0')).join('');
+    }
+    return btoa(unescape(encodeURIComponent(normalized)));
+  }
+
+  async function signUpLocal(email, passcode, displayName) {
     const users = readUsers();
     const normalized = email.trim().toLowerCase();
     if (users.find((item) => item.email === normalized)) {
       throw new Error('Account already exists for this email.');
     }
+    const secretDigest = await hashSecret(passcode);
     const user = {
       uid: `local-${Date.now()}`,
       email: normalized,
       displayName: displayName.trim(),
-      password
+      secretDigest
     };
     users.push(user);
     saveUsers(users);
@@ -55,9 +56,10 @@
     return readSession();
   }
 
-  async function signInLocal(email, password) {
+  async function signInLocal(email, passcode) {
     const normalized = email.trim().toLowerCase();
-    const user = readUsers().find((item) => item.email === normalized && item.password === password);
+    const secretDigest = await hashSecret(passcode);
+    const user = readUsers().find((item) => item.email === normalized && item.secretDigest === secretDigest);
     if (!user) {
       throw new Error('Invalid email or password.');
     }

@@ -11,8 +11,20 @@
   }
 
   function getRedirectPath() {
+    const allowed = new Set(['members-dashboard.html', 'portal.html', 'account.html']);
+    const fallback = 'members-dashboard.html';
     const params = new URLSearchParams(window.location.search);
-    return params.get('next') || 'members-dashboard.html';
+    const next = params.get('next');
+    if (!next) return fallback;
+
+    try {
+      const resolved = new URL(next, window.location.origin);
+      if (resolved.origin !== window.location.origin) return fallback;
+      const target = resolved.pathname.split('/').filter(Boolean).pop() || '';
+      return allowed.has(target) ? target : fallback;
+    } catch {
+      return fallback;
+    }
   }
 
   function bindTabs() {
