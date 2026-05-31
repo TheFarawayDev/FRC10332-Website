@@ -17,12 +17,13 @@
         </p>
         <div class="auth-actions">
           <a class="btn" href="index.html">Back to Public Site</a>
+          <a class="btn" href="admin-approvals.html">Admin Approvals</a>
         </div>
       </section>
 
       <section class="auth-card">
         <div class="auth-tabs" role="tablist" aria-label="Login or sign up">
-          <button type="button" class="active" data-auth-tab="login">Login</button>
+          <button type="button" class="active" data-auth-tab="login">Sign In</button>
           <button type="button" data-auth-tab="signup">Sign Up</button>
         </div>
 
@@ -40,6 +41,15 @@
           <label>Display name
             <input type="text" name="displayName" required minlength="2" maxlength="48" />
           </label>
+          <fieldset>
+            <legend>Apply for teams</legend>
+            <label class="team-choice"><input type="checkbox" name="teams" value="Control" /> Control</label>
+            <label class="team-choice"><input type="checkbox" name="teams" value="Design" /> Design</label>
+            <label class="team-choice"><input type="checkbox" name="teams" value="Fabrication" /> Fabrication</label>
+            <label class="team-choice"><input type="checkbox" name="teams" value="Strategy" /> Strategy</label>
+            <label class="team-choice"><input type="checkbox" name="teams" value="Business/Media" /> Business/Media</label>
+            <label class="team-choice"><input type="checkbox" name="teams" value="Safety" /> Safety</label>
+          </fieldset>
           <label>Email
             <input type="email" name="email" required autocomplete="email" />
           </label>

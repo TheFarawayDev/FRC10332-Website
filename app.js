@@ -143,19 +143,7 @@ function assetPrefix() {
   return "";
 }
 
-function cleanVisibleUrl() {
-  const path = window.location.pathname;
-  if (path.endsWith("index.html")) {
-    const clean = path.slice(0, -"index.html".length) || "/";
-    window.history.replaceState({}, "", clean + window.location.search + window.location.hash);
-    return;
-  }
-
-  if (path.endsWith(".html")) {
-    const clean = path.slice(0, -".html".length);
-    window.history.replaceState({}, "", clean + window.location.search + window.location.hash);
-  }
-}
+function cleanVisibleUrl() {}
 
 function resolveAppHref(href) {
   if (href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("#")) {
@@ -179,33 +167,9 @@ function resolveAppHref(href) {
   return `../${href}`;
 }
 
-function wireExtensionlessNavigation() {
-  document.addEventListener("click", (event) => {
-    const link = event.target.closest("a[data-file-href]");
-    if (!link) return;
-    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-      return;
-    }
-    if (link.target && link.target !== "_self") return;
+function wireExtensionlessNavigation() {}
 
-    event.preventDefault();
-    window.location.href = link.dataset.fileHref;
-  });
-}
-
-function normalizeExtensionlessLinks(scope = document) {
-  scope.querySelectorAll("a[href]").forEach((link) => {
-    const href = link.getAttribute("href");
-    if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("#")) {
-      return;
-    }
-
-    if (href.endsWith(".html")) {
-      link.dataset.fileHref = href;
-      link.setAttribute("href", href.slice(0, -5));
-    }
-  });
-}
+function normalizeExtensionlessLinks() {}
 
 function renderCanvasRail() {
   if (document.querySelector(".canvas-rail")) return;
@@ -239,7 +203,6 @@ function renderCanvasRail() {
   `;
 
   document.body.prepend(rail);
-  normalizeExtensionlessLinks(rail);
 }
 
 function injectMobileNavToggle() {

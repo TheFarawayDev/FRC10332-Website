@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FRC 10332 | Public Members</title>
+    <link rel="stylesheet" href="site-v2.css" />
+  </head>
+  <body data-page="public" data-public-view="members">
+    <header class="site-topbar">
+      <div class="brand-block">
+        <img src="favicon.svg" alt="FRC 10332" class="brand-icon" />
+        <div>
+          <h1>FRC 10332 Chargebotics</h1>
+          <p>Public Members · Built by students, fueled by snacks.</p>
+        </div>
+      </div>
+      <nav class="top-nav" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="calendar.html">Calendar</a>
+        <a href="members.html">Members</a>
+        <a href="logs.html">Logs</a>
+        <a href="posts.html">Posts</a>
+        <a class="btn" href="auth.html">Member Login / Sign Up</a>
+      </nav>
+    </header>
+
+    <main class="site-shell">
+      <section class="hero-card">
+        <p class="kicker">PUBLIC SECTION</p>
+        <h2>Public Member Directory</h2>
+        <p>Meet the crew behind the bot, the fixes, and the "it worked on the first try" stories.</p>
+        <form class="google-search" data-public-search-form>
+          <label for="publicSearch" class="sr-only">Search members</label>
+          <input id="publicSearch" name="query" type="search" placeholder="Search member profiles" autocomplete="off" />
+          <button type="submit">Search</button>
+        </form>
+        <p class="search-meta" data-public-search-meta>Showing all public items.</p>
+      </section>
+
+      <section class="panel-section">
+        <div class="panel-grid" data-public-members></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>FRC 10332 Chargebotics · Public Site</p>
+      <a href="auth.html">Member Dashboard Access</a>
+    </footer>
+
+    <script src="public-site.js"></script>
+    <script src="site-nav.js"></script>
+  </body>
+</html>

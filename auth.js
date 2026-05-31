@@ -11,7 +11,7 @@
   }
 
   function getRedirectPath() {
-    const allowed = new Set(['members-dashboard.html', 'portal.html', 'account.html']);
+    const allowed = new Set(['members-dashboard.html', 'portal.html', 'account.html', 'admin-approvals.html']);
     const fallback = 'members-dashboard.html';
     const params = new URLSearchParams(window.location.search);
     const next = params.get('next');
@@ -64,18 +64,97 @@
       event.preventDefault();
       const payload = new FormData(signupForm);
       try {
+        const requestedTeams = payload.getAll('teams').map((item) => String(item || '').trim()).filter(Boolean);
+        if (!requestedTeams.length) {
+          status('Please select at least one team to apply for.', true);
+          return;
+        }
         status('Creating account...');
         await auth.signUp(
           String(payload.get('email') || ''),
           String(payload.get('password') || ''),
-          String(payload.get('displayName') || '')
+          String(payload.get('displayName') || ''),
+          { teams: requestedTeams }
         );
-        status('Account created. Redirecting...');
-        window.location.href = getRedirectPath();
+        signupForm.reset();
+        status('Account created and queued for admin approval. Sign in after approval.');
       } catch (error) {
         status(error.message || 'Unable to sign up.', true);
       }
     });
+  }
+
+  function setAdminStatus(message, isError = false) {
+    const host = document.querySelector('[data-admin-status]');
+    if (!host) return;
+    host.textContent = message;
+    host.classList.toggle('error', isError);
+  }
+
+  function renderPendingMembers() {
+    const auth = getAuth();
+    const host = document.querySelector('[data-admin-pending]');
+    if (!auth || !host || typeof auth.listPendingMembers !== 'function') return;
+
+    const pending = auth.listPendingMembers();
+    host.innerHTML = '';
+    if (!pending.length) {
+      host.innerHTML = '<article class="tile-card"><h4>No pending members</h4><p>Queue is clear.</p></article>';
+      return;
+    }
+
+    pending.forEach((member) => {
+      const card = document.createElement('article');
+      card.className = 'tile-card';
+      card.innerHTML = `
+        <h4>${member.displayName || 'Member'} (${member.email})</h4>
+        <p class="kicker">Request ID: ${member.uid}</p>
+        <p><strong>Requested teams:</strong> ${member.requestedTeams?.join(', ') || 'None selected'}</p>
+      `;
+      const approve = document.createElement('button');
+      approve.type = 'button';
+      approve.textContent = 'Approve Member';
+      approve.addEventListener('click', async () => {
+        try {
+          await auth.approveMember(member.uid);
+          setAdminStatus(`Approved ${member.email}.`);
+          renderPendingMembers();
+        } catch (error) {
+          setAdminStatus(error.message || 'Approval failed.', true);
+        }
+      });
+      card.append(approve);
+      host.append(card);
+    });
+  }
+
+  function guardAdminPage() {
+    const auth = getAuth();
+    if (!auth) return;
+    auth.onAuthChange((user) => {
+      if (!user) {
+        window.location.href = 'auth.html?next=admin-approvals.html';
+        return;
+      }
+      const userHost = document.querySelector('[data-auth-user]');
+      if (userHost) {
+        userHost.textContent = `${user.displayName || 'Member'} · ${user.email || ''}`;
+      }
+      if (!user.isAdmin) {
+        setAdminStatus('Admin access required for this page.', true);
+        return;
+      }
+      setAdminStatus('Admin signed in. Review pending members.');
+      renderPendingMembers();
+    });
+
+    const logoutButton = document.querySelector('[data-auth-logout]');
+    if (logoutButton) {
+      logoutButton.addEventListener('click', async () => {
+        await auth.signOut();
+        window.location.href = 'auth.html';
+      });
+    }
   }
 
   function guardDashboard() {
@@ -86,9 +165,15 @@
         window.location.href = 'auth.html?next=members-dashboard.html';
         return;
       }
+      if (user.isApproved === false) {
+        auth.signOut();
+        window.location.href = 'auth.html';
+        return;
+      }
       const userHost = document.querySelector('[data-auth-user]');
       if (userHost) {
-        userHost.textContent = `${user.displayName || 'Member'} · ${user.email || ''}`;
+        const teams = Array.isArray(user.teams) && user.teams.length ? ` · Teams: ${user.teams.join(', ')}` : '';
+        userHost.textContent = `${user.displayName || 'Member'} · ${user.email || ''}${teams}`;
       }
     });
 
@@ -118,6 +203,8 @@
       status(`Ready (${window.FirebaseSystems?.mode || 'local'} mode).`);
     } else if (page === 'dashboard') {
       guardDashboard();
+    } else if (page === 'admin') {
+      guardAdminPage();
     }
   });
 })();

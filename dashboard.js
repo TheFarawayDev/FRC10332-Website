@@ -11,9 +11,9 @@ const MEMBER_DATA = {
     { scope: 'All Team', title: 'Leadership sync', body: 'Published deadlines for outreach prep and pit checklist. Built by us, always.' }
   ],
   posts: [
-    { title: 'Reminder: Safety refresh due Friday', body: 'All pit crew and drive team members must finish check-in. PPE is always in style.' },
-    { title: 'Scrimmage prep packet posted', body: 'Review autonomous priorities and communication callouts. Drive smooth, think faster.' },
-    { title: 'Sponsor update draft review', body: 'Media and business teams to finalize visuals by Tuesday. Keep it sharp, keep it real.' }
+    { id: 'MBR-POST-001', title: 'Reminder: Safety refresh due Friday', body: 'All pit crew and drive team members must finish check-in. PPE is always in style.' },
+    { id: 'MBR-POST-002', title: 'Scrimmage prep packet posted', body: 'Review autonomous priorities and communication callouts. Drive smooth, think faster.' },
+    { id: 'MBR-POST-003', title: 'Sponsor update draft review', body: 'Media and business teams to finalize visuals by Tuesday. Keep it sharp, keep it real.' }
   ]
 };
 
@@ -43,8 +43,8 @@ function renderDashboard() {
   });
 
   MEMBER_DATA.posts.forEach((item) => {
-    const card = createMemberCard(`${item.title} ${item.body}`);
-    card.innerHTML = `<h4>${item.title}</h4><p>${item.body}</p>`;
+    const card = createMemberCard(`${item.id} ${item.title} ${item.body}`);
+    card.innerHTML = `<p class="kicker">Post ID: ${item.id}</p><h4>${item.title}</h4><p>${item.body}</p>`;
     postsHost.append(card);
   });
 }

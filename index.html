@@ -6,7 +6,7 @@
     <title>FRC 10332 | Chargebotic Public Site</title>
     <link rel="stylesheet" href="site-v2.css" />
   </head>
-  <body data-page="public">
+  <body data-page="public" data-public-view="overview">
     <header class="site-topbar">
       <div class="brand-block">
         <img src="favicon.svg" alt="FRC 10332" class="brand-icon" />
@@ -16,10 +16,11 @@
         </div>
       </div>
       <nav class="top-nav" aria-label="Primary">
-        <a href="#calendar">Calendar</a>
-        <a href="#members">Members</a>
-        <a href="#logs">Logs</a>
-        <a href="#posts">Posts</a>
+        <a href="index.html">Home</a>
+        <a href="calendar.html">Calendar</a>
+        <a href="members.html">Members</a>
+        <a href="logs.html">Logs</a>
+        <a href="posts.html">Posts</a>
         <a class="btn" href="auth.html">Member Login / Sign Up</a>
       </nav>
     </header>
@@ -32,46 +33,33 @@
           Everyone starts here. Members sign in for internal tools, while visitors can browse
           calendar updates, member highlights, logs, and posts. Motto: build hard, laugh harder.
         </p>
-        <form class="google-search" data-public-search-form>
-          <label for="publicSearch" class="sr-only">Search public site</label>
-          <input id="publicSearch" name="query" type="search" placeholder="Search calendar, members, logs, and posts" autocomplete="off" />
-          <button type="submit">Search</button>
-        </form>
-        <p class="search-meta" data-public-search-meta>Showing all public items.</p>
       </section>
 
       <section id="snapshot" class="panel-grid three" data-public-counters></section>
 
-      <section id="calendar" class="panel-section">
+      <section class="panel-section">
         <div class="section-head">
-          <h3>Team Calendar</h3>
-          <p>Competition prep, build sessions, and outreach milestones (yes, with zip ties).</p>
+          <h3>Main Site Navigation</h3>
+          <p>Everything is split into dedicated pages so each section has its own clean space.</p>
         </div>
-        <div class="panel-grid" data-public-calendar></div>
-      </section>
-
-      <section id="members" class="panel-section">
-        <div class="section-head">
-          <h3>Public Member Directory</h3>
-          <p>Meet the crew behind the bot, the fixes, and the \"it worked on the first try\" stories.</p>
+        <div class="link-grid">
+          <a class="tile-card nav-tile" href="calendar.html">
+            <h4>Calendar</h4>
+            <p>Build sessions, outreach milestones, and comp prep.</p>
+          </a>
+          <a class="tile-card nav-tile" href="members.html">
+            <h4>Members</h4>
+            <p>Public member directory and sub-team highlights.</p>
+          </a>
+          <a class="tile-card nav-tile" href="logs.html">
+            <h4>Logs</h4>
+            <p>Sub-team and all-team progress snapshots.</p>
+          </a>
+          <a class="tile-card nav-tile" href="posts.html">
+            <h4>Posts</h4>
+            <p>Public updates with unique post IDs.</p>
+          </a>
         </div>
-        <div class="panel-grid" data-public-members></div>
-      </section>
-
-      <section id="logs" class="panel-section">
-        <div class="section-head">
-          <h3>Sub-Team & Team Logs</h3>
-          <p>Progress highlights across software, fabrication, strategy, and outreach — no sugarcoating.</p>
-        </div>
-        <div class="panel-grid two" data-public-logs></div>
-      </section>
-
-      <section id="posts" class="panel-section">
-        <div class="section-head">
-          <h3>Latest Public Posts</h3>
-          <p>Announcements, stories, and occasional robot jokes from the team.</p>
-        </div>
-        <div class="panel-grid" data-public-posts></div>
       </section>
     </main>
 
@@ -81,5 +69,6 @@
     </footer>
 
     <script src="public-site.js"></script>
+    <script src="site-nav.js"></script>
   </body>
 </html>

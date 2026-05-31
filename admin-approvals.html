@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Approvals | FRC 10332</title>
+    <link rel="stylesheet" href="site-v2.css" />
+  </head>
+  <body data-page="admin">
+    <header class="site-topbar">
+      <div class="brand-block">
+        <img src="favicon.svg" alt="FRC 10332" class="brand-icon" />
+        <div>
+          <h1>FRC 10332 Admin Queue</h1>
+          <p data-auth-user>Admin not signed in</p>
+        </div>
+      </div>
+      <nav class="top-nav">
+        <a href="index.html">Public Site</a>
+        <a href="auth.html">Member Sign In</a>
+        <button class="btn" type="button" data-auth-logout>Sign Out</button>
+      </nav>
+    </header>
+
+    <main class="site-shell">
+      <section class="hero-card">
+        <p class="kicker">ADMIN MEMBER APPROVALS</p>
+        <h2>Review pending applications and approve team access.</h2>
+        <p>New member accounts cannot access the dashboard until an admin approves them.</p>
+        <p class="status" data-admin-status aria-live="polite">Loading approvals...</p>
+      </section>
+
+      <section class="panel-section">
+        <div class="section-head">
+          <h3>Pending Applications</h3>
+          <p>Approve members and confirm the teams they requested.</p>
+        </div>
+        <div class="panel-grid" data-admin-pending></div>
+      </section>
+    </main>
+
+    <script src="firebase-config.js"></script>
+    <script src="firebase-init.js"></script>
+    <script src="auth.js"></script>
+  </body>
+</html>

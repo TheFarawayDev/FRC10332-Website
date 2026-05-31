@@ -1,5 +1,6 @@
 (function initializeFirebaseGroundwork() {
   const listeners = [];
+  const STORE_KEY = 'frc10332-auth-local-v2';
   const localStore = {
     users: [],
     session: null
@@ -10,12 +11,34 @@
     auth: null
   };
 
+  function loadLocalStore() {
+    try {
+      const raw = window.localStorage?.getItem(STORE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return;
+      localStore.users = Array.isArray(parsed.users) ? parsed.users : [];
+      localStore.session = parsed.session || null;
+    } catch (error) {
+      console.warn('Unable to load local auth store.', error);
+    }
+  }
+
+  function persistLocalStore() {
+    try {
+      window.localStorage?.setItem(STORE_KEY, JSON.stringify(localStore));
+    } catch (error) {
+      console.warn('Unable to persist local auth store.', error);
+    }
+  }
+
   function readUsers() {
     return localStore.users.slice();
   }
 
   function saveUsers(users) {
     localStore.users = users.slice();
+    persistLocalStore();
   }
 
   function readSession() {
@@ -24,6 +47,7 @@
 
   function setSession(user) {
     localStore.session = user || null;
+    persistLocalStore();
     listeners.forEach((listener) => listener(user));
   }
 
@@ -37,33 +61,79 @@
     return btoa(unescape(encodeURIComponent(normalized)));
   }
 
-  async function signUpLocal(email, passcode, displayName) {
+  function toSessionUser(user) {
+    if (!user) return null;
+    return {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      isAdmin: Boolean(user.isAdmin),
+      isApproved: Boolean(user.isApproved),
+      teams: Array.isArray(user.teams) ? user.teams.slice() : []
+    };
+  }
+
+  async function ensureAdminUser() {
+    const users = readUsers();
+    if (users.find((item) => item.email === 'admin@frc10332.org')) return;
+    const secretDigest = await hashSecret('admin10332');
+    users.push({
+      uid: 'local-admin-10332',
+      email: 'admin@frc10332.org',
+      displayName: 'Team Admin',
+      secretDigest,
+      isAdmin: true,
+      isApproved: true,
+      teams: ['Leadership'],
+      requestedTeams: ['Leadership'],
+      createdAt: new Date().toISOString(),
+      approvedAt: new Date().toISOString()
+    });
+    saveUsers(users);
+  }
+
+  async function signUpLocal(email, passcode, displayName, options = {}) {
+    await ensureAdminUser();
     const users = readUsers();
     const normalized = email.trim().toLowerCase();
     if (users.find((item) => item.email === normalized)) {
       throw new Error('Account already exists for this email.');
+    }
+    const requestedTeams = Array.isArray(options.teams)
+      ? options.teams.map((item) => String(item || '').trim()).filter(Boolean)
+      : [];
+    if (!requestedTeams.length) {
+      throw new Error('Select at least one team during sign-up.');
     }
     const secretDigest = await hashSecret(passcode);
     const user = {
       uid: `local-${Date.now()}`,
       email: normalized,
       displayName: displayName.trim(),
-      secretDigest
+      secretDigest,
+      isAdmin: false,
+      isApproved: false,
+      teams: [],
+      requestedTeams,
+      createdAt: new Date().toISOString()
     };
     users.push(user);
     saveUsers(users);
-    setSession({ uid: user.uid, email: user.email, displayName: user.displayName });
-    return readSession();
+    return { pendingApproval: true, uid: user.uid };
   }
 
   async function signInLocal(email, passcode) {
+    await ensureAdminUser();
     const normalized = email.trim().toLowerCase();
     const secretDigest = await hashSecret(passcode);
     const user = readUsers().find((item) => item.email === normalized && item.secretDigest === secretDigest);
     if (!user) {
       throw new Error('Invalid email or password.');
     }
-    setSession({ uid: user.uid, email: user.email, displayName: user.displayName });
+    if (!user.isApproved) {
+      throw new Error('This account is pending admin approval.');
+    }
+    setSession(toSessionUser(user));
     return readSession();
   }
 
@@ -74,6 +144,34 @@
   function onAuthChange(cb) {
     listeners.push(cb);
     cb(readSession());
+  }
+
+  function listPendingMembersLocal() {
+    return readUsers()
+      .filter((item) => !item.isApproved && !item.isAdmin)
+      .map((item) => ({
+        uid: item.uid,
+        email: item.email,
+        displayName: item.displayName,
+        requestedTeams: Array.isArray(item.requestedTeams) ? item.requestedTeams.slice() : []
+      }));
+  }
+
+  async function approveMemberLocal(uid) {
+    const users = readUsers();
+    const index = users.findIndex((item) => item.uid === uid);
+    if (index < 0) {
+      throw new Error('Member request not found.');
+    }
+    users[index].isApproved = true;
+    users[index].teams = Array.isArray(users[index].requestedTeams) ? users[index].requestedTeams.slice() : [];
+    users[index].approvedAt = new Date().toISOString();
+    saveUsers(users);
+    const session = readSession();
+    if (session?.uid === uid) {
+      setSession(toSessionUser(users[index]));
+    }
+    return toSessionUser(users[index]);
   }
 
   const cfg = window.__FIREBASE_CONFIG__ || {};
@@ -108,6 +206,12 @@
         },
         onAuthChange(cb) {
           firebaseGlobal.auth().onAuthStateChanged(cb);
+        },
+        listPendingMembers() {
+          return [];
+        },
+        async approveMember() {
+          throw new Error('Member approvals require local fallback mode in this prototype.');
         }
       };
       return;
@@ -116,6 +220,7 @@
     }
   }
 
+  loadLocalStore();
   window.FirebaseSystems = {
     ...base,
     ready: true,
@@ -124,6 +229,8 @@
     signIn: signInLocal,
     signOut: signOutLocal,
     getCurrentUser: readSession,
-    onAuthChange
+    onAuthChange,
+    listPendingMembers: listPendingMembersLocal,
+    approveMember: approveMemberLocal
   };
 })();

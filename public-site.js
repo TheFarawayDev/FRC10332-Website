@@ -16,9 +16,9 @@ const PUBLIC_DATA = {
     { scope: 'Team Log', team: 'All-Hands', entry: 'Finished week sprint review and posted new milestone board. Built not bought.' }
   ],
   posts: [
-    { title: 'Summer Outreach Schedule Published', body: 'Public outreach calendar is now live with event locations and volunteer slots. Bring curiosity.' },
-    { title: 'Rookie Orientation Open', body: 'New members can attend orientation nights starting next week. No experience needed, just energy.' },
-    { title: 'Mentor Spotlight', body: 'Read this month\'s profile on our electrical systems mentor team — the legends behind fewer sparks.' }
+    { id: 'PUB-POST-001', title: 'Summer Outreach Schedule Published', body: 'Public outreach calendar is now live with event locations and volunteer slots. Bring curiosity.' },
+    { id: 'PUB-POST-002', title: 'Rookie Orientation Open', body: 'New members can attend orientation nights starting next week. No experience needed, just energy.' },
+    { id: 'PUB-POST-003', title: 'Mentor Spotlight', body: 'Read this month\'s profile on our electrical systems mentor team — the legends behind fewer sparks.' }
   ]
 };
 
@@ -30,47 +30,57 @@ function createCard(text, className = '') {
 }
 
 function renderPublicSite() {
+  const pageView = document.body.dataset.publicView || 'all';
   const calendarHost = document.querySelector('[data-public-calendar]');
   const membersHost = document.querySelector('[data-public-members]');
   const logsHost = document.querySelector('[data-public-logs]');
   const postsHost = document.querySelector('[data-public-posts]');
   const countersHost = document.querySelector('[data-public-counters]');
-  if (!calendarHost || !membersHost || !logsHost || !postsHost || !countersHost) return;
 
-  countersHost.innerHTML = '';
-  [
-    { label: 'Total members', value: '42' },
-    { label: 'Public member profiles', value: String(PUBLIC_DATA.members.length) },
-    { label: 'Sub-teams active', value: '7' }
-  ].forEach((item) => {
-    const card = createCard(`${item.label} ${item.value}`);
-    card.innerHTML = `<h4>${item.label}</h4><p class="metric">${item.value}</p>`;
-    countersHost.append(card);
-  });
+  if (countersHost && (pageView === 'all' || pageView === 'overview')) {
+    countersHost.innerHTML = '';
+    [
+      { label: 'Total members', value: '42' },
+      { label: 'Public member profiles', value: String(PUBLIC_DATA.members.length) },
+      { label: 'Sub-teams active', value: '7' }
+    ].forEach((item) => {
+      const card = createCard(`${item.label} ${item.value}`);
+      card.innerHTML = `<h4>${item.label}</h4><p class="metric">${item.value}</p>`;
+      countersHost.append(card);
+    });
+  }
 
-  PUBLIC_DATA.events.forEach((item) => {
-    const card = createCard(`${item.date} ${item.title} ${item.detail}`);
-    card.innerHTML = `<p class="kicker">${item.date}</p><h4>${item.title}</h4><p>${item.detail}</p>`;
-    calendarHost.append(card);
-  });
+  if (calendarHost && (pageView === 'all' || pageView === 'calendar')) {
+    PUBLIC_DATA.events.forEach((item) => {
+      const card = createCard(`${item.date} ${item.title} ${item.detail}`);
+      card.innerHTML = `<p class="kicker">${item.date}</p><h4>${item.title}</h4><p>${item.detail}</p>`;
+      calendarHost.append(card);
+    });
+  }
 
-  PUBLIC_DATA.members.forEach((item) => {
-    const card = createCard(`${item.name} ${item.role} ${item.subteam} ${item.bio}`);
-    card.innerHTML = `<h4>${item.name}</h4><p><strong>${item.role}</strong> · ${item.subteam}</p><p>${item.bio}</p>`;
-    membersHost.append(card);
-  });
+  if (membersHost && (pageView === 'all' || pageView === 'members')) {
+    PUBLIC_DATA.members.forEach((item) => {
+      const card = createCard(`${item.name} ${item.role} ${item.subteam} ${item.bio}`);
+      card.innerHTML = `<h4>${item.name}</h4><p><strong>${item.role}</strong> · ${item.subteam}</p><p>${item.bio}</p>`;
+      membersHost.append(card);
+    });
+  }
 
-  PUBLIC_DATA.logs.forEach((item) => {
-    const card = createCard(`${item.scope} ${item.team} ${item.entry}`);
-    card.innerHTML = `<p class="kicker">${item.scope}</p><h4>${item.team}</h4><p>${item.entry}</p>`;
-    logsHost.append(card);
-  });
+  if (logsHost && (pageView === 'all' || pageView === 'logs')) {
+    PUBLIC_DATA.logs.forEach((item) => {
+      const card = createCard(`${item.scope} ${item.team} ${item.entry}`);
+      card.innerHTML = `<p class="kicker">${item.scope}</p><h4>${item.team}</h4><p>${item.entry}</p>`;
+      logsHost.append(card);
+    });
+  }
 
-  PUBLIC_DATA.posts.forEach((item) => {
-    const card = createCard(`${item.title} ${item.body}`);
-    card.innerHTML = `<h4>${item.title}</h4><p>${item.body}</p>`;
-    postsHost.append(card);
-  });
+  if (postsHost && (pageView === 'all' || pageView === 'posts')) {
+    PUBLIC_DATA.posts.forEach((item) => {
+      const card = createCard(`${item.id} ${item.title} ${item.body}`);
+      card.innerHTML = `<p class="kicker">Post ID: ${item.id}</p><h4>${item.title}</h4><p>${item.body}</p>`;
+      postsHost.append(card);
+    });
+  }
 }
 
 function bindPublicSearch() {
