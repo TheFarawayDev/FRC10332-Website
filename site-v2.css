@@ -9,7 +9,9 @@
   --accent-2: #8bd2ff;
   --ok: #57c59b;
   --danger: #ff8f8f;
-  --radius: 16px;
+  --radius: 10px;
+  --radius-soft: 8px;
+  --radius-pill: 12px;
   --shadow: 0 18px 38px rgba(3, 8, 16, 0.38);
   --topo-scale: 1;
   --topo-gap: 36px;
@@ -36,34 +38,60 @@ body {
 body::before {
   content: "";
   position: fixed;
-  inset: -5%;
+  inset: -10%;
   pointer-events: none;
   z-index: -1;
-  transform: translate(var(--topo-shift-x), var(--topo-shift-y)) scale(var(--topo-scale));
-  transform-origin: center;
-  opacity: var(--topo-opacity);
-  background:
-    radial-gradient(circle at 17% 24%, transparent 0 22px, rgba(188, 223, 255, 0.7) 22px calc(22px + var(--topo-line)), transparent calc(22px + var(--topo-line)) 38px, rgba(188, 223, 255, 0.6) 38px calc(38px + var(--topo-line)), transparent calc(38px + var(--topo-line)) 58px, rgba(188, 223, 255, 0.54) 58px calc(58px + var(--topo-line)), transparent calc(58px + var(--topo-line)) 100%),
-    radial-gradient(circle at 82% 72%, transparent 0 18px, rgba(173, 211, 248, 0.64) 18px calc(18px + var(--topo-line)), transparent calc(18px + var(--topo-line)) 34px, rgba(173, 211, 248, 0.56) 34px calc(34px + var(--topo-line)), transparent calc(34px + var(--topo-line)) 54px, rgba(173, 211, 248, 0.5) 54px calc(54px + var(--topo-line)), transparent calc(54px + var(--topo-line)) 100%);
-  background-size: calc(var(--topo-gap) * 4) calc(var(--topo-gap) * 4), calc(var(--topo-gap) * 4.2) calc(var(--topo-gap) * 4.2);
-  filter: blur(0.2px);
+  opacity: 0.065;
+  background-image: url("favicon.svg"), url("favicon.svg");
+  background-repeat: repeat;
+  background-size: 82px 82px, 112px 112px;
+  background-position: 0 0, 48px 56px;
+  animation: faviconDrift 90s linear infinite;
+  filter: saturate(0.7) brightness(1.05);
+}
+
+@keyframes faviconDrift {
+  0% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(-120px, -68px, 0); }
+  100% { transform: translate3d(-240px, -136px, 0); }
 }
 
 a { color: inherit; text-decoration: none; }
 
 .site-topbar {
   position: sticky;
-  top: 0;
+  top: 10px;
   z-index: 30;
-  width: 100%;
-  padding: 12px clamp(14px, 4vw, 42px);
+  width: min(1150px, calc(100% - 26px));
+  margin: 10px auto 0;
+  padding: 10px clamp(12px, 3vw, 28px);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
   backdrop-filter: blur(18px);
-  background: rgba(8, 17, 29, 0.78);
-  border-bottom: 1px solid rgba(139, 210, 255, 0.2);
+  border-radius: var(--radius);
+  border: 1px solid rgba(139, 210, 255, 0.24);
+  background: rgba(8, 17, 29, 0.85);
+  box-shadow: 0 12px 28px rgba(2, 8, 16, 0.34);
+  overflow: hidden;
+}
+
+.site-topbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.08;
+  background-image: url("favicon.svg");
+  background-repeat: repeat;
+  background-size: 48px 48px;
+  animation: navFaviconFlow 40s linear infinite;
+}
+
+@keyframes navFaviconFlow {
+  from { background-position: 0 0; }
+  to { background-position: -120px 0; }
 }
 
 .brand-block {
@@ -76,7 +104,7 @@ a { color: inherit; text-decoration: none; }
 .brand-icon {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid rgba(139, 210, 255, 0.45);
   background: rgba(14, 30, 50, 0.8);
 }
@@ -108,7 +136,7 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   justify-content: center;
   padding: 0 14px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   border: 1px solid rgba(139, 210, 255, 0.34);
   background: rgba(12, 31, 51, 0.72);
   color: var(--text);
@@ -137,9 +165,9 @@ a { color: inherit; text-decoration: none; }
 
 .site-shell {
   width: min(1150px, calc(100% - 26px));
-  margin: 24px auto 40px;
+  margin: 20px auto 44px;
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
 .hero-card,
@@ -269,7 +297,7 @@ a { color: inherit; text-decoration: none; }
   flex: 1;
   min-width: 220px;
   min-height: 48px;
-  border-radius: 12px;
+  border-radius: var(--radius-soft);
   border: 1px solid rgba(139, 210, 255, 0.3);
   background: rgba(7, 17, 30, 0.9);
   color: var(--text);
@@ -289,7 +317,7 @@ a { color: inherit; text-decoration: none; }
 .auth-form button {
   min-height: 46px;
   border: 0;
-  border-radius: 11px;
+  border-radius: var(--radius-soft);
   padding: 0 16px;
   background: linear-gradient(180deg, #92bcff 0%, #6394f1 100%);
   color: #071423;
@@ -303,7 +331,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .site-footer {
-  padding: 6px 0 32px;
+  padding: 10px 0 32px;
 }
 
 .site-footer-grid {
@@ -312,15 +340,23 @@ a { color: inherit; text-decoration: none; }
   display: grid;
   grid-template-columns: 1.2fr 1fr 1fr 1fr;
   gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(154, 196, 236, 0.22);
+  background: linear-gradient(180deg, rgba(10, 24, 40, 0.86), rgba(8, 20, 34, 0.92));
+  box-shadow: 0 10px 28px rgba(2, 8, 16, 0.3);
 }
 
 .footer-column {
-  padding: 16px;
+  padding: 14px;
   display: grid;
   align-content: start;
   gap: 10px;
   position: relative;
   overflow: hidden;
+  border-radius: var(--radius-soft);
+  border: 1px solid rgba(154, 196, 236, 0.18);
+  background: rgba(13, 31, 49, 0.72);
 }
 
 .footer-column::before {
@@ -397,7 +433,7 @@ a { color: inherit; text-decoration: none; }
 
 .auth-tabs button {
   min-height: 40px;
-  border-radius: 10px;
+  border-radius: var(--radius-soft);
   border: 1px solid rgba(139, 210, 255, 0.35);
   background: rgba(13, 30, 48, 0.78);
   color: var(--text);
@@ -434,7 +470,7 @@ a { color: inherit; text-decoration: none; }
 
 .auth-form input {
   min-height: 43px;
-  border-radius: 10px;
+  border-radius: var(--radius-soft);
   border: 1px solid rgba(139, 210, 255, 0.3);
   background: rgba(6, 16, 28, 0.88);
   color: var(--text);
@@ -444,7 +480,7 @@ a { color: inherit; text-decoration: none; }
 .auth-form fieldset {
   margin: 0;
   border: 1px solid rgba(139, 210, 255, 0.33);
-  border-radius: 10px;
+  border-radius: var(--radius-soft);
   padding: 10px;
 }
 
@@ -498,7 +534,7 @@ a { color: inherit; text-decoration: none; }
 .admin-bubble-chip {
   scroll-snap-align: start;
   white-space: nowrap;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 9px 14px;
   border: 1px solid rgba(139, 210, 255, 0.35);
   background: rgba(14, 31, 50, 0.8);
@@ -541,7 +577,7 @@ a { color: inherit; text-decoration: none; }
 .site-modal-close {
   min-height: 34px;
   min-width: 34px;
-  border-radius: 9px;
+  border-radius: var(--radius-soft);
   border: 1px solid rgba(139, 210, 255, 0.32);
   background: rgba(12, 28, 47, 0.82);
   color: var(--text);
@@ -583,6 +619,8 @@ a { color: inherit; text-decoration: none; }
     position: static;
     align-items: flex-start;
     flex-direction: column;
+    margin-top: 8px;
+    width: calc(100% - 20px);
   }
 
   .top-nav {
