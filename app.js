@@ -1079,25 +1079,128 @@ function renderDashboardContent() {
   const expectation = getTrainingExpectation(state);
   const videosWatched = Object.keys(state.readSections || state.watchedVideos || {}).length;
   const quizAttempts = Object.keys(state.completedQuizzes).length;
+  const summary = getOverallProgress(state);
 
   host.innerHTML = `
-    <article class="panel hero dashboard-hero">
+    <article class="panel hero dashboard-hero forge-hero-v2">
       <div class="hero-grid dashboard-hero-grid">
         <div class="hero-copy">
-          <span class="eyebrow">Operational dashboard</span>
-          <h2>FORGE Training Dashboard</h2>
-          <p>Focused Operations for Robotics Growth &amp; Excellence — a polished workspace for onboarding, safety readiness, and sub-team training execution.</p>
+          <span class="eyebrow">✨ Advanced Training Platform</span>
+          <h2>FORGE Training System</h2>
+          <p class="hero-subtitle">Focused Operations for Robotics Growth &amp; Excellence</p>
+          <p>A comprehensive workspace designed for safety readiness, technical skill development, and team operational excellence. Master the fundamentals, advance your capabilities, and prepare for competition success.</p>
           <div class="hero-chip-row">
+            <span class="glass-chip chip-primary">⚡ ${summary.percentage}% Complete</span>
             <span class="glass-chip">${teamData ? `[${teamData.code}] ${teamData.label}` : "All-team view"}</span>
-            <span class="glass-chip">${videosWatched} read completions</span>
-            <span class="glass-chip">${quizAttempts} logged assessments</span>
+            <span class="glass-chip">📚 ${videosWatched} Lessons</span>
+            <span class="glass-chip">✓ ${quizAttempts} Assessments</span>
           </div>
         </div>
         <aside class="hero-side">
-          <div class="preview-card compact">
-            <span class="preview-kicker">Readiness posture</span>
+          <div class="preview-card compact forge-status-card">
+            <span class="preview-kicker">🎯 Training Status</span>
             <h3>${expectation.title}</h3>
             <p>${expectation.body}</p>
+            <div class="status-progress-wrap">
+              <div class="status-progress-bar">
+                <div class="status-progress-fill" style="width: ${summary.percentage}%"></div>
+              </div>
+              <span class="status-progress-text">${summary.completedModules}/${summary.totalModules} Modules</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </article>
+
+    <section class="panel stats-overview-panel">
+      <div class="section-head compact">
+        <h3>📊 Performance Metrics</h3>
+        <p>Track your progress across all training modules and assessments</p>
+      </div>
+      <div class="quick-grid">
+        ${renderMetricTiles(state)}
+      </div>
+    </section>
+
+    ${recommendedModules.length > 0 ? `
+    <section class="panel recommended-modules-panel">
+      <div class="section-head compact">
+        <h3>🎓 Next Steps</h3>
+        <p>Recommended modules to continue your training journey</p>
+      </div>
+      <div class="recommended-grid">
+        ${recommendedModules.map((module) => {
+          const progress = getModuleProgress(module, state);
+          const teamStatus = getModuleTeamStatus(module.key, state);
+          const statusBadge = teamStatus === "required" 
+            ? '<span class="rec-badge required">REQUIRED</span>' 
+            : teamStatus === "optional"
+            ? '<span class="rec-badge optional">OPTIONAL</span>'
+            : '';
+          return `
+            <article class="recommended-card">
+              <div class="rec-header">
+                <span class="rec-icon">${UI_ICONS[module.icon] || UI_ICONS.dashboard}</span>
+                ${statusBadge}
+              </div>
+              <h4>${module.title}</h4>
+              <p>${module.outcome}</p>
+              <div class="rec-meta">
+                <span>⏱️ ${module.estimatedTime || "60 min"}</span>
+                <span>📝 ${getModuleSections(module).length} sections</span>
+              </div>
+              <div class="button-row">
+                <a class="btn primary" href="${module.modulePage}">Start Module</a>
+              </div>
+            </article>
+          `;
+        }).join("")}
+      </div>
+    </section>
+    ` : ''}
+
+    <section class="panel">
+      <div class="section-head">
+        <h3>📚 All Training Modules</h3>
+        <p>Complete curriculum organized by role, sub-team, and skill level. Expand any module to view lessons and begin training.</p>
+      </div>
+      <div class="module-accordion-list">
+        ${sortedModules.map((module, index) => renderModuleAccordion(module, state, index === 0)).join("")}
+      </div>
+    </section>
+
+    <section class="panel forge-footer-panel">
+      <div class="forge-footer-grid">
+        <div class="forge-footer-col">
+          <h4>💡 Training Tips</h4>
+          <ul>
+            <li>Complete modules in the recommended order for optimal learning</li>
+            <li>Read all content thoroughly before attempting quizzes</li>
+            <li>Retake quizzes until you achieve the passing score of ${FORGE_PROGRAM.passingScore}%</li>
+            <li>Track your progress using the metrics dashboard above</li>
+          </ul>
+        </div>
+        <div class="forge-footer-col">
+          <h4>🛡️ Safety First</h4>
+          <ul>
+            <li>Safety modules are mandatory for all members</li>
+            <li>Shop access requires completion of safety training</li>
+            <li>Always wear appropriate PPE in the workspace</li>
+            <li>Report any safety concerns to team leadership</li>
+          </ul>
+        </div>
+        <div class="forge-footer-col">
+          <h4>📞 Need Help?</h4>
+          <ul>
+            <li>Contact your sub-team lead for module questions</li>
+            <li>Technical issues? Reach out to site administrators</li>
+            <li>Review the <a href="../terms">Terms of Service</a></li>
+            <li>Check our <a href="../privacy">Privacy Policy</a></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  `;
           </div>
         </aside>
       </div>
