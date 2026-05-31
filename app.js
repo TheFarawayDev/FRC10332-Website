@@ -672,22 +672,11 @@ function renderHomeContent() {
     memberSystemsHost.innerHTML = `
       <article class="feature-card">
         <div class="feature-topline">
-          <span class="feature-dot" style="background:#5f95ff"></span>
-          <span class="feature-code">FORGE</span>
-        </div>
-        <h4>Forge Training Dashboard</h4>
-        <p>Open modules, track completion, and view readiness requirements by role and sub-team.</p>
-        <div class="button-row">
-          <a class="btn primary" href="portal.html">Open Dashboard</a>
-        </div>
-      </article>
-      <article class="feature-card">
-        <div class="feature-topline">
           <span class="feature-dot" style="background:#78c8a0"></span>
           <span class="feature-code">MEMBER</span>
         </div>
         <h4>Profile and Access</h4>
-        <p>Manage member role settings, exemptions, and training policy controls used by leads and mentors.</p>
+        <p>Manage member role settings, exemptions, and the only main-site route into Forge backend training.</p>
         <div class="button-row">
           <a class="btn primary" href="account.html">Open Profile</a>
         </div>
