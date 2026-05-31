@@ -118,7 +118,7 @@ const UI_ICONS = {
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"/></svg>'
 };
 
-const RAIL_LINKS = [
+const FORGE_RAIL_LINKS = [
   { href: "portal.html", label: "Forge Backend", icon: "dashboard" },
   { href: "modules/business-media.html", label: "Business", icon: "business" },
   { href: "modules/safety.html", label: "Safety", icon: "safety" },
@@ -128,6 +128,11 @@ const RAIL_LINKS = [
   { href: "modules/fabrication.html", label: "Fabrication", icon: "fabrication" },
   { href: "modules/art.html", label: "Art", icon: "art" },
   { href: "account.html", label: "Account", icon: "account" }
+];
+
+const MAIN_SITE_RAIL_LINKS = [
+  { href: "index.html", label: "Chargebotic Home", icon: "dashboard" },
+  { href: "account.html", label: "Member Access", icon: "account" }
 ];
 
 function assetPrefix() {
@@ -211,9 +216,14 @@ function renderCanvasRail() {
 
   const current = window.location.pathname;
   const isRoot = current === "/" || current === "";
+  const onForgeSite =
+    current.includes("/portal")
+    || current.includes("/modules/")
+    || current.includes("/quizzes/");
+  const railLinks = onForgeSite ? FORGE_RAIL_LINKS : MAIN_SITE_RAIL_LINKS;
   rail.innerHTML = `
     <div class="rail-logo"><img src="${assetPrefix()}favicon.svg" alt="FORGE" /></div>
-    ${RAIL_LINKS.map((link) => {
+    ${railLinks.map((link) => {
       const pageKey = link.href.replace(".html", "");
       const active =
         (pageKey === "index" && isRoot) ||
