@@ -13,41 +13,93 @@
     <main class="page-shell">
       <header class="topbar" data-forge-header></header>
 
-      <section class="panel hero">
-        <h2>FORGE Training Hub</h2>
-        <p>
-          A Canvas-style command center for FRC 10332 where each sub-category has required modules,
-          embedded learning videos, and pass/fail quiz checkpoints.
-        </p>
+      <section class="panel hero landing-hero">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <span class="eyebrow">Training Operating System</span>
+            <h2>Train every student with clear readiness checks, guided lessons, and verified sign-off.</h2>
+            <p>
+              FORGE gives FRC 10332 a professional training experience with role-aware module
+              assignments, embedded lesson delivery, video completion gates, and knowledge checks
+              that show who is ready for the shop, pit, and field.
+            </p>
+            <div class="hero-chip-row">
+              <span class="glass-chip">Blue / silver glass UI</span>
+              <span class="glass-chip">Role-based training paths</span>
+              <span class="glass-chip">Video + quiz progression</span>
+              <span class="glass-chip">Operational readiness tracking</span>
+            </div>
+          </div>
+          <aside class="hero-side" data-home-pulse></aside>
+        </div>
         <div class="quick-grid" data-portal-metrics></div>
         <div class="button-row">
-          <a class="btn primary" href="portal.html">Open Navigation Center</a>
+          <a class="btn primary" href="portal.html">Open Training Dashboard</a>
+          <a class="btn" href="account.html">Open Member Profile</a>
         </div>
       </section>
 
       <section class="panel">
-        <h3>Role and Exemption Preview</h3>
-        <p>
-          Existing members are exempt by default. Leads or mentors can enforce retraining by enabling
-          override.
-        </p>
-        <form class="quiz-form" data-role-form>
-          <label>
-            Member Role
-            <select name="memberRole">
-              <option value="rookie">Rookie Member</option>
-              <option value="existing">Existing Member</option>
-              <option value="lead">Lead/Mentor</option>
-            </select>
-          </label>
-          <label>
-            <input type="checkbox" name="mentorOverride" />
-            Lead/Mentor override required (forces all required modules)
-          </label>
-        </form>
-        <div class="notice">
-          <strong>Prototype note:</strong> this is a static front-end mockup. Data is stored locally in
-          your browser for preview and can later connect to real student/member records.
+        <div class="section-head">
+          <div>
+            <h3>How training runs</h3>
+            <p>Show the platform as a real onboarding and compliance workflow, not just a landing page.</p>
+          </div>
+        </div>
+        <div class="workflow-grid" data-home-workflow></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h3>Sub-team training lanes</h3>
+            <p>Each pathway highlights what different students need to complete before they are field-ready.</p>
+          </div>
+        </div>
+        <div class="feature-grid" data-home-tracks></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h3>Role and exemption preview</h3>
+            <p>Existing members are exempt by default, while leads and mentors can enforce retraining when needed.</p>
+          </div>
+        </div>
+        <div class="settings-grid">
+          <form class="role-selector compact-role-selector" data-role-form>
+            <div class="role-card-list compact">
+              <label class="role-card">
+                <input type="radio" name="memberRole" value="rookie" />
+                <span class="role-card-dot" style="background:#7fa6d3"></span>
+                <span class="role-card-text">
+                  <strong>Rookie Member</strong>
+                  <small>Full onboarding and safety path required before shop access.</small>
+                </span>
+              </label>
+              <label class="role-card">
+                <input type="radio" name="memberRole" value="existing" />
+                <span class="role-card-dot" style="background:#78c8a0"></span>
+                <span class="role-card-text">
+                  <strong>Veteran Member</strong>
+                  <small>Exempt by default, with optional refreshers and targeted reassignment.</small>
+                </span>
+              </label>
+              <label class="role-card">
+                <input type="radio" name="memberRole" value="lead" />
+                <span class="role-card-dot" style="background:#d09040"></span>
+                <span class="role-card-text">
+                  <strong>Lead / Mentor</strong>
+                  <small>Administrative visibility, progress oversight, and retraining enforcement.</small>
+                </span>
+              </label>
+            </div>
+            <label class="override-toggle switch-row">
+              <input type="checkbox" name="mentorOverride" />
+              <span>Require the full training track even if the selected role is normally exempt.</span>
+            </label>
+          </form>
+          <aside class="insight-card" data-home-role-summary></aside>
         </div>
       </section>
     </main>
