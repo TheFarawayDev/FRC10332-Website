@@ -119,7 +119,7 @@ const UI_ICONS = {
 };
 
 const RAIL_LINKS = [
-  { href: "portal.html", label: "Dashboard", icon: "dashboard" },
+  { href: "portal.html", label: "Forge Backend", icon: "dashboard" },
   { href: "modules/business-media.html", label: "Business", icon: "business" },
   { href: "modules/safety.html", label: "Safety", icon: "safety" },
   { href: "modules/strategy.html", label: "Strategy", icon: "strategy" },
@@ -463,13 +463,17 @@ function renderCommonHeader() {
   const roleData = FORGE_PROGRAM.roles[state.role] || FORGE_PROGRAM.roles.rookie;
   const roleLabel = roleData.label;
   const teamData = getTeamData(state);
+  const page = window.location.pathname.split("/").pop() || "index.html";
+  const onMainSite = page === "index.html" || page === "";
+  const headerTitle = onMainSite ? "Chargebotic Sites" : FORGE_PROGRAM.appName;
+  const headerSubtitle = onMainSite ? "FRC 10332 Main Website" : FORGE_PROGRAM.cohort;
 
   target.innerHTML = `
     <div class="brand">
       <div class="brand-mark"><img src="${assetPrefix()}favicon.svg" alt="FORGE icon" /></div>
       <div class="brand-copy">
-        <h1>${FORGE_PROGRAM.appName}</h1>
-        <p>${FORGE_PROGRAM.cohort}</p>
+        <h1>${headerTitle}</h1>
+        <p>${headerSubtitle}</p>
       </div>
     </div>
     <div class="badge-row">
@@ -632,7 +636,7 @@ function renderHomeContent() {
       <article class="workflow-card">
         <span class="workflow-step">02</span>
         <h4>Route members to systems</h4>
-        <p>Give students one place to reach FORGE training, profile controls, and the tools used across build, strategy, and outreach.</p>
+        <p>Give students one place to reach Chargebotic Sites info, then move into Forge for backend training.</p>
       </article>
       <article class="workflow-card">
         <span class="workflow-step">03</span>
@@ -648,7 +652,7 @@ function renderHomeContent() {
       <article class="workflow-card">
         <span class="workflow-step">Phase 1</span>
         <h4>Core curriculum live</h4>
-        <p>Keep mandatory safety and sub-team fundamentals in FORGE with standardized lessons and readiness checks.</p>
+        <p>Keep mandatory safety and sub-team fundamentals in Forge with standardized lessons and readiness checks.</p>
       </article>
       <article class="workflow-card">
         <span class="workflow-step">Phase 2</span>
@@ -658,7 +662,7 @@ function renderHomeContent() {
       <article class="workflow-card">
         <span class="workflow-step">Phase 3</span>
         <h4>Systems online</h4>
-        <p>Bring member tools online through this website so students can access training, operations resources, and team systems from one hub.</p>
+        <p>Bring member tools online through Chargebotic Sites while Forge stays dedicated to training workflows.</p>
       </article>
     `;
   }
@@ -671,7 +675,7 @@ function renderHomeContent() {
           <span class="feature-dot" style="background:#5f95ff"></span>
           <span class="feature-code">FORGE</span>
         </div>
-        <h4>Training Dashboard</h4>
+        <h4>Forge Training Dashboard</h4>
         <p>Open modules, track completion, and view readiness requirements by role and sub-team.</p>
         <div class="button-row">
           <a class="btn primary" href="portal.html">Open Dashboard</a>

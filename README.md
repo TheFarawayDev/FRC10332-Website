@@ -1,13 +1,13 @@
-# FORGE Training Prototype (FRC 10332)
+# Chargebotic Sites + Forge Backend Prototype (FRC 10332)
 
-FORGE stands for **Focused Operations for Robotics Growth & Excellence**.
+Chargebotic Sites is the main website where people get team info, updates, and resources.
 
-This repository now contains a full static prototype of a team training platform inspired by Canvas-style navigation, with FRC-specific sub-categories.
+Forge (Focused Operations for Robotics Growth & Excellence) is separate backend training software that members access through Chargebotic Sites.
 
 ## What This Mockup Includes
 
-- A 5-letter training system name: **FORGE**
-- All-in-one navigation center: `portal.html`
+- Main site experience: `index.html` (Chargebotic Sites)
+- Backend training center: `portal.html` (Forge)
 - Sub-category module pages with embedded videos:
 	- Business and Media
 	- Safety
@@ -21,17 +21,17 @@ This repository now contains a full static prototype of a team training platform
 - Exemption rule: existing members are exempt by default unless a lead/mentor override is enabled
 - Local progress persistence using browser `localStorage`
 - Extensionless visible URLs in the browser for a cleaner Canvas-style feel
-- A fake account page with role controls and progress summary
+- A member account/backend view with role controls and progress summary
 - Six dropdown sections per module for testing, each with notes, watch content, and a quiz
 
 ## Project Structure
 
 - `index.html`
-	- Landing page and role/exemption controls
+	- Chargebotic Sites landing page and backend entry points
 - `portal.html`
-	- All-in-one navigation center and progress overview
+	- Forge backend training navigation center and progress overview
 - `account.html`
-	- Fake member account and training status page
+	- Member account and backend access status page
 - `styles.css`
 	- Shared visual system and responsive layout
 - `data.js`
@@ -74,7 +74,7 @@ This repository now contains a full static prototype of a team training platform
 
 Open `index.html` in a browser in the dev container or VS Code preview.
 
-Use the role selector on `index.html` to simulate:
+Use the role selector on `index.html` to simulate backend training behavior:
 
 - Rookie member required flow
 - Existing member exemption
