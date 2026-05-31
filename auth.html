@@ -10,15 +10,15 @@
     <main class="auth-shell">
       <section class="auth-hero">
         <p class="kicker">MEMBER ACCESS</p>
-        <h1>Sign in to launch the members dashboard.</h1>
+        <h1>Secure sign in for members and mentors.</h1>
         <p>
-          Quick access for returning members and clean onboarding for new members in one place.
-          Built by Marshall e.
+          This access area is reserved for approved team accounts. Requests are reviewed before
+          dashboard access is enabled.
         </p>
         <ul class="auth-highlights">
-          <li>Fast sign in and redirect to the right workspace</li>
-          <li>Team selection at signup for approval routing</li>
-          <li>Approval queue keeps member access controlled</li>
+          <li>Sign in redirects each member to the right workspace</li>
+          <li>Sign-up requests are routed by selected teams for review</li>
+          <li>Approval queue keeps account access safe and accountable</li>
         </ul>
         <div class="auth-actions">
           <a class="btn" href="/">Back to Public Site</a>
@@ -33,6 +33,7 @@
 
         <form data-auth-form="login" class="auth-form">
           <p class="auth-form-title">Welcome back</p>
+          <p class="auth-form-note">Use your approved team account credentials.</p>
           <label>Email
             <input type="email" name="email" required autocomplete="email" />
           </label>
@@ -44,6 +45,7 @@
 
         <form data-auth-form="signup" class="auth-form hidden">
           <p class="auth-form-title">Create your member account</p>
+          <p class="auth-form-note">Complete this form to request access. Approval is required before sign in.</p>
           <label>Display name
             <input type="text" name="displayName" required minlength="2" maxlength="48" />
           </label>
@@ -61,6 +63,10 @@
           </label>
           <label>Password
             <input type="password" name="password" required autocomplete="new-password" minlength="6" />
+          </label>
+          <label class="policy-check">
+            <input type="checkbox" name="conduct" required />
+            I will follow team conduct rules and use member access respectfully.
           </label>
           <button type="submit">Create Account</button>
         </form>

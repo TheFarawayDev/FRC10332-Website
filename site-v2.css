@@ -235,16 +235,40 @@ a { color: inherit; }
   width: min(1120px, calc(100% - 28px));
   margin: 0 auto;
   display: grid;
-  gap: 10px;
-  text-align: center;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  text-align: left;
+}
+.footer-column {
+  background: rgba(8, 18, 31, 0.66);
+  border: 1px solid rgba(157, 180, 212, 0.18);
+  border-radius: 12px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+.footer-title {
+  margin: 0;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: 0.02em;
 }
 .footer-credit, .footer-trademarks {
   margin: 0;
 }
+.footer-note {
+  margin: 0;
+  line-height: 1.45;
+}
+.footer-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+}
 .footer-social {
   display: flex;
-  justify-content: center;
-  gap: 14px;
+  justify-content: flex-start;
+  gap: 10px 14px;
   flex-wrap: wrap;
 }
 .site-footer a {
@@ -260,6 +284,11 @@ a { color: inherit; }
   gap: 18px;
 }
 .auth-hero, .auth-card { padding: 22px; }
+.auth-card {
+  background: linear-gradient(180deg, rgba(14, 27, 41, 0.96), rgba(10, 20, 32, 0.98));
+  border-color: rgba(157, 180, 212, 0.32);
+  box-shadow: 0 20px 34px rgba(2, 7, 14, 0.48);
+}
 .auth-actions { margin-top: 18px; }
 .auth-highlights {
   margin: 14px 0 0;
@@ -272,6 +301,11 @@ a { color: inherit; }
   margin: 0 0 2px;
   color: var(--accent-2);
   font-weight: 700;
+}
+.auth-form-note {
+  margin: 0 0 8px;
+  font-size: 0.88rem;
+  color: var(--muted);
 }
 
 .auth-tabs {
@@ -295,7 +329,7 @@ a { color: inherit; }
 
 .auth-form {
   display: grid;
-  gap: 10px;
+  gap: 11px;
 }
 .auth-form label {
   display: grid;
@@ -327,19 +361,35 @@ a { color: inherit; }
 .auth-form input {
   border-radius: 10px;
   border: 1px solid rgba(157, 180, 212, 0.3);
-  background: rgba(7, 15, 27, 0.9);
+  background: rgba(6, 13, 22, 0.96);
   color: var(--text);
-  min-height: 42px;
-  padding: 0 12px;
+  min-height: 44px;
+  padding: 0 13px;
+}
+.auth-form input:focus {
+  outline: none;
+  border-color: rgba(139, 210, 255, 0.55);
+  box-shadow: 0 0 0 2px rgba(110, 165, 255, 0.2);
 }
 .auth-form button {
-  min-height: 44px;
-  border-radius: 10px;
+  min-height: 46px;
+  border-radius: 11px;
   border: 0;
   background: linear-gradient(180deg, #86b6ff, #5b89e6);
   color: #071323;
   font-weight: 700;
   cursor: pointer;
+}
+.policy-check {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 10px !important;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.policy-check input {
+  margin-top: 3px;
+  min-height: auto;
 }
 
 .status {

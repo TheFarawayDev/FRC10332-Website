@@ -87,16 +87,25 @@
       event.preventDefault();
       const payload = new FormData(signupForm);
       try {
+        const displayName = String(payload.get('displayName') || '').trim();
+        if (!/^[\p{L}\p{N} .'-]{2,48}$/u.test(displayName)) {
+          status('Use a valid display name (letters, numbers, spaces, apostrophes, periods, or hyphens).', true);
+          return;
+        }
         const requestedTeams = payload.getAll('teams').map((item) => String(item || '').trim()).filter(Boolean);
         if (!requestedTeams.length) {
           status('Please select at least one team to apply for.', true);
+          return;
+        }
+        if (!payload.get('conduct')) {
+          status('You must agree to the conduct statement to continue.', true);
           return;
         }
         status('Creating account...');
         await auth.signUp(
           String(payload.get('email') || ''),
           String(payload.get('password') || ''),
-          String(payload.get('displayName') || ''),
+          displayName,
           { teams: requestedTeams }
         );
         signupForm.reset();

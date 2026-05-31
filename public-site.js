@@ -5,20 +5,26 @@ const PUBLIC_DATA = {
     { date: 'Jun 10', title: 'Build Session', detail: 'Mechanical + controls integration block, aka bolt-and-pray night.' }
   ],
   members: [
-    { name: 'Alex M.', role: 'Team Captain', subteam: 'Strategy', bio: 'Coordinates season planning and match readiness. Calm brain, loud pit.' },
-    { name: 'Jordan P.', role: 'Controls Lead', subteam: 'Control', bio: 'Owns wiring standards and controls reliability (and keeps CAN from chaos).' },
-    { name: 'Taylor R.', role: 'Media Lead', subteam: 'Business/Media', bio: 'Manages team communications and sponsor coverage. Hype level: full battery.' },
-    { name: 'Casey L.', role: 'Safety Captain', subteam: 'Safety', bio: 'Runs shop safety checklists and reminds us fingers are non-replaceable.' }
+    { name: 'Alex M.', role: 'Team Captain', subteam: 'Strategy', bio: 'Coordinates season planning, match readiness, and mentor alignment across events.' },
+    { name: 'Jordan P.', role: 'Controls Lead', subteam: 'Control', bio: 'Maintains controls reliability standards and leads wiring quality reviews each sprint.' },
+    { name: 'Taylor R.', role: 'Media Lead', subteam: 'Business/Media', bio: 'Directs team communications, sponsor updates, and event storytelling for outreach.' },
+    { name: 'Casey L.', role: 'Safety Captain', subteam: 'Safety', bio: 'Runs safety checklists, tool trainings, and pit process audits before every competition.' },
+    { name: 'Morgan D.', role: 'Drive Coach', subteam: 'Strategy', bio: 'Prepares drive team communication plans and post-match review structure.' },
+    { name: 'Riley S.', role: 'Mechanical Lead', subteam: 'Fabrication', bio: 'Leads fabrication timelines, assembly QA, and subsystem integration checkpoints.' }
   ],
   logs: [
-    { scope: 'Sub-Team Log', team: 'Fabrication', entry: 'Completed intake bracket prototype and tolerance review. Measure twice, yeet once.' },
-    { scope: 'Sub-Team Log', team: 'Design', entry: 'Released drivetrain CAD revision 4 for manufacturing handoff. If it spins, we grin.' },
-    { scope: 'Team Log', team: 'All-Hands', entry: 'Finished week sprint review and posted new milestone board. Built not bought.' }
+    { scope: 'Sub-Team Log', team: 'Fabrication', entry: 'Completed intake bracket prototype, torque checklist, and tolerance review for production approval.' },
+    { scope: 'Sub-Team Log', team: 'Design', entry: 'Released drivetrain CAD revision 4 and documented manufacturing notes for handoff.' },
+    { scope: 'Sub-Team Log', team: 'Control', entry: 'Validated CAN layout updates and completed sensor calibration test pass.' },
+    { scope: 'Sub-Team Log', team: 'Business/Media', entry: 'Published sponsor recap package and queued social highlights from outreach demo.' },
+    { scope: 'Team Log', team: 'All-Hands', entry: 'Closed weekly sprint review with action owners, due dates, and cross-team blockers resolved.' }
   ],
   posts: [
-    { id: 'PUB-POST-001', title: 'Summer Outreach Schedule Published', body: 'Public outreach calendar is now live with event locations and volunteer slots. Bring curiosity.' },
-    { id: 'PUB-POST-002', title: 'Rookie Orientation Open', body: 'New members can attend orientation nights starting next week. No experience needed, just energy.' },
-    { id: 'PUB-POST-003', title: 'Mentor Spotlight', body: 'Read this month\'s profile on our electrical systems mentor team — the legends behind fewer sparks.' }
+    { id: 'PUB-POST-001', title: 'Summer Outreach Schedule Published', body: 'Public outreach calendar is now live with event locations, volunteer windows, and team contacts.' },
+    { id: 'PUB-POST-002', title: 'Rookie Orientation Open', body: 'Orientation nights begin next week with tours, safety briefing, and build workflow overview.' },
+    { id: 'PUB-POST-003', title: 'Mentor Spotlight', body: 'This month features the electrical mentor crew and their reliability training checklist.' },
+    { id: 'PUB-POST-004', title: 'Build Season Readiness Update', body: 'Subsystem planning checkpoints are complete and procurement queue is now published.' },
+    { id: 'PUB-POST-005', title: 'Community Demo Recap', body: 'Thank you to families and supporters who visited our district STEM showcase this weekend.' }
   ]
 };
 
