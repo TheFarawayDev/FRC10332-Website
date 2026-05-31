@@ -21,52 +21,63 @@
         <a href="members">Members</a>
         <a href="logs">Logs</a>
         <a href="posts">Posts</a>
-        <a class="btn" href="auth">Member Login / Sign Up</a>
-        <a class="admin-bubble" href="admin-approvals">Admin</a>
+        <a class="btn" href="auth">Member Sign In</a>
       </nav>
     </header>
 
     <main class="site-shell">
-      <section class="hero-card">
-        <p class="kicker">FIRST VIEW: PUBLIC WEBSITE</p>
-        <h2>Our team-built home for updates, robot chaos, and future teammate hype.</h2>
+      <section class="hero-card home-hero">
+        <p class="kicker">CHARGEBOTICS HOME BASE</p>
+        <h2>Welcome to the team-built home for updates, robot chaos, and future teammate hype.</h2>
         <p>
-          Everyone starts here. Members sign in for internal tools, while visitors can browse
-          calendar updates, member highlights, logs, and posts. Motto: build hard, laugh harder.
+          This is where our season stories, build logs, and team moments live. Visitors can explore
+          public updates, and members can sign in for internal tools when it is grind time.
         </p>
+        <div class="hero-actions">
+          <a class="btn" href="auth">Member Sign In</a>
+        </div>
       </section>
 
       <section id="snapshot" class="panel-grid three" data-public-counters></section>
 
       <section class="panel-section">
         <div class="section-head">
-          <h3>Main Site Navigation</h3>
-          <p>Everything is split into dedicated pages so each section has its own clean space.</p>
+          <h3>Explore the Public Site</h3>
+          <p>Pick a lane and jump in — every section has its own page so everything stays easy to find.</p>
         </div>
         <div class="link-grid">
           <a class="tile-card nav-tile" href="calendar">
             <h4>Calendar</h4>
-            <p>Build sessions, outreach milestones, and comp prep.</p>
+            <p>Build sessions, outreach milestones, and comp prep windows.</p>
           </a>
           <a class="tile-card nav-tile" href="members">
             <h4>Members</h4>
-            <p>Public member directory and sub-team highlights.</p>
+            <p>Public member directory and sub-team highlights from the crew.</p>
           </a>
           <a class="tile-card nav-tile" href="logs">
             <h4>Logs</h4>
-            <p>Sub-team and all-team progress snapshots.</p>
+            <p>Sub-team and all-team progress snapshots, wins, and lessons learned.</p>
           </a>
           <a class="tile-card nav-tile" href="posts">
             <h4>Posts</h4>
-            <p>Public updates with unique post IDs.</p>
+            <p>Public updates and announcements from the team media desk.</p>
           </a>
         </div>
       </section>
     </main>
 
     <footer class="site-footer">
-      <p>FRC 10332 Chargebotics · Built by Marshall e.</p>
-      <a href="auth">Member Dashboard Access</a>
+      <div class="site-footer-grid">
+        <p class="footer-credit">Built by Marshall e. for FRC 10332 Chargebotics.</p>
+        <div class="footer-social" aria-label="Social links">
+          <a href="https://instagram.com/frc10332" target="_blank" rel="noreferrer">Instagram</a>
+          <a href="https://www.youtube.com/@FRC10332" target="_blank" rel="noreferrer">YouTube</a>
+          <a href="https://github.com/TheFarawayDev/FRC10332-Website" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+        <p class="footer-trademarks">
+          Forge™ and the Chargebotics name and logo are trademarks of FRC Team 10332 Chargebotics.
+        </p>
+      </div>
     </footer>
 
     <script src="public-site.js"></script>

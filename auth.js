@@ -198,6 +198,10 @@
         const teams = Array.isArray(user.teams) && user.teams.length ? ` · Teams: ${user.teams.join(', ')}` : '';
         userHost.textContent = `${user.displayName || 'Member'} · ${user.email || ''}${teams}`;
       }
+      const adminLink = document.querySelector('[data-admin-link]');
+      if (adminLink) {
+        adminLink.classList.toggle('hidden', !user.isAdmin);
+      }
     });
 
     const logoutButton = document.querySelector('[data-auth-logout]');
