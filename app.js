@@ -1397,7 +1397,7 @@ function renderMemoryGame(section, gameState) {
   `;
 }
 
-function launchFullscreenQuiz(section, module, quizKey, resultHost) {
+function launchFullscreenQuiz(section, quizKey, resultHost) {
   const root = getOrCreateModalRoot();
   const passingScore = FORGE_PROGRAM.passingScore;
   const answers = new Array(section.quiz.length).fill(null);
@@ -1589,7 +1589,7 @@ function wireInlineQuizForms(root = document) {
       if (!section) return;
       const host = button.closest("[data-inline-quiz]");
       const resultHost = host?.querySelector("[data-quiz-result]") || null;
-      launchFullscreenQuiz(section, module, quizKey, resultHost);
+      launchFullscreenQuiz(section, quizKey, resultHost);
     });
   });
 }
