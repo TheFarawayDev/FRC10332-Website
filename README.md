@@ -1,6 +1,6 @@
 # FRC 10332 Chargebotics Website + Forge
 
-Built by Marshall e.  
+Built by Marshall E.  
 Public website + member dashboard + Forge training backend for FRC 10332.
 
 ## What’s in this repository
