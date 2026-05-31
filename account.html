@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Member Access | Chargebotic Sites</title>
     <link rel="stylesheet" href="site-v2.css" />
+    <script>
+      // Prevent external debugging tools from breaking the page
+      window.addEventListener('error', function(e) {
+        if (e.message && e.message.includes('eruda')) {
+          e.preventDefault();
+          return true;
+        }
+      });
+    </script>
   </head>
   <body>
     <main class="page-shell">
