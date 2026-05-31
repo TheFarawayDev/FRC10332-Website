@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FORGE | Site Maintenance</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="topbar" data-forge-header></header>
+      <section class="content-area">
+        <article class="panel hero">
+          <h2>Site Maintenance Module</h2>
+          <p>Learn the repeatable workflow to maintain Chargebotic Sites and Forge safely.</p>
+          <p>Use the read-this sections, run the countdown unlocks, and complete both checkoffs.</p>
+        </article>
+        <article class="panel">
+          <h3>Required Checkoffs</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Quiz</th><th>File</th><th>Status</th></tr></thead>
+              <tbody data-module-checklist></tbody>
+            </table>
+          </div>
+          <div class="notice"><strong>Rule:</strong> complete this module before publishing structural website updates.</div>
+        </article>
+      </section>
+    </main>
+    <script src="../data.js"></script>
+    <script src="../app.js"></script>
+    <script>document.addEventListener("DOMContentLoaded", () => renderModuleChecklist("site-maintenance"));</script>
+  </body>
+  </html>

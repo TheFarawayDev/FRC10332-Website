@@ -13,11 +13,14 @@ function extractVideoId(url) {
 }
 
 function getVideoWatched(sectionKey) {
-  return Boolean(readState().watchedVideos?.[sectionKey]);
+  const state = readState();
+  return Boolean(state.readSections?.[sectionKey] || state.watchedVideos?.[sectionKey]);
 }
 
 function markVideoWatched(sectionKey) {
   const state = readState();
+  state.readSections = state.readSections || {};
+  state.readSections[sectionKey] = true;
   state.watchedVideos = state.watchedVideos || {};
   state.watchedVideos[sectionKey] = true;
   saveState(state);
@@ -28,7 +31,7 @@ function unlockQuizGate(sectionKey) {
   const badge = document.querySelector(`[data-vbadge="${sectionKey}"]`);
   if (badge) {
     badge.className = "video-watch-badge watched just-unlocked";
-    badge.innerHTML = "&#x2713;&ensp;Video complete &mdash; quiz unlocked";
+    badge.innerHTML = "&#x2713;&ensp;Read complete &mdash; quiz unlocked";
     badge.addEventListener("animationend", () => badge.classList.remove("just-unlocked"), { once: true });
   }
   const gate = document.querySelector(`[data-quiz-gate="${sectionKey}"]`);
@@ -49,7 +52,7 @@ function unlockQuizGate(sectionKey) {
   const summaryVideoBadge = document.querySelector(`[data-subitem-vbadge="${sectionKey}"]`);
   if (summaryVideoBadge) {
     summaryVideoBadge.className = "subitem-badge watched";
-    summaryVideoBadge.innerHTML = "&#x2713;&nbsp;Watched";
+    summaryVideoBadge.innerHTML = "&#x2713;&nbsp;Read";
   }
 }
 
@@ -84,17 +87,44 @@ function initYouTubePlayers() {
 
 function renderVideoPanel(section, module) {
   const key = getSectionStorageKey(module, section);
-  const vid = extractVideoId(section.video);
   const watched = getVideoWatched(key);
-  const elemId = "yt-" + key.replace(/[^a-z0-9]/gi, "-");
+  const referenceUrl = section.frcReference || "https://www.firstinspires.org/robotics/frc";
   return `
-    <div class="video-player-wrap" data-player-key="${key}" data-video-id="${vid}">
-      <div id="${elemId}" class="yt-target"></div>
-      <div class="video-watch-badge ${watched ? "watched" : ""}" data-vbadge="${key}">
-        ${watched ? "&#x2713;&ensp;Video complete &mdash; quiz unlocked" : "&#x25B6;&ensp;Watch to completion to unlock the quiz"}
+    <div class="video-player-wrap read-player-wrap" data-read-key="${key}">
+      <div class="read-this-panel">
+        <p><strong>Official FRC reference:</strong> <a href="${referenceUrl}" target="_blank" rel="noopener noreferrer">Open FRC resource</a></p>
+        <p><strong>Team-made explanation:</strong> Read the notes in the section below, then run the countdown to unlock the checkoff.</p>
       </div>
+      <div class="video-watch-badge ${watched ? "watched" : ""}" data-vbadge="${key}">
+        ${watched ? "&#x2713;&ensp;Read complete &mdash; quiz unlocked" : "&#x23F1;&ensp;Complete the read timer to unlock the quiz"}
+      </div>
+      ${watched ? "" : `<button class="btn primary" type="button" data-read-timer="${key}" data-read-seconds="12">Start Read Countdown (12s)</button>`}
     </div>
   `;
+}
+
+function wireReadCountdownTimers(root = document) {
+  root.querySelectorAll("[data-read-timer]").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => {
+      const key = button.dataset.readTimer;
+      if (!key) return;
+      let seconds = Number(button.dataset.readSeconds || 12);
+      button.disabled = true;
+      button.textContent = `Reading... ${seconds}s`;
+      const interval = window.setInterval(() => {
+        seconds -= 1;
+        if (seconds <= 0) {
+          window.clearInterval(interval);
+          markVideoWatched(key);
+          button.textContent = "Read complete";
+          return;
+        }
+        button.textContent = `Reading... ${seconds}s`;
+      }, 1000);
+    });
+  });
 }
 
 const UI_ICONS = {
@@ -127,6 +157,7 @@ const FORGE_RAIL_LINKS = [
   { href: "modules/control.html", label: "Control", icon: "control" },
   { href: "modules/fabrication.html", label: "Fabrication", icon: "fabrication" },
   { href: "modules/art.html", label: "Art", icon: "art" },
+  { href: "modules/site-maintenance.html", label: "Site Maintenance", icon: "design" },
   { href: "account.html", label: "Account", icon: "account" }
 ];
 
@@ -143,7 +174,14 @@ function assetPrefix() {
   return "";
 }
 
-function cleanVisibleUrl() {}
+function cleanVisibleUrl() {
+  const { pathname, search, hash } = window.location;
+  if (!pathname.endsWith(".html")) return;
+  const cleaned = pathname.endsWith("/index.html")
+    ? pathname.slice(0, -10) || "/"
+    : pathname.slice(0, -".html".length);
+  window.history.replaceState({}, "", `${cleaned || "/"}${search}${hash}`);
+}
 
 function resolveAppHref(href) {
   if (href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("#")) {
@@ -167,9 +205,30 @@ function resolveAppHref(href) {
   return `../${href}`;
 }
 
-function wireExtensionlessNavigation() {}
+function wireExtensionlessNavigation() {
+  document.querySelectorAll("a[href]").forEach((link) => {
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("http") || href.startsWith("#") || href.startsWith("mailto:")) return;
+    if (href.endsWith(".html")) {
+      const clean = href === "index.html" ? "/" : href.replace(".html", "");
+      link.setAttribute("href", clean);
+      link.dataset.runtimeHref = href;
+    }
+    link.addEventListener("click", (event) => {
+      const target = event.currentTarget;
+      if (!(target instanceof HTMLAnchorElement)) return;
+      const runtime = target.dataset.runtimeHref;
+      if (!runtime) return;
+      event.preventDefault();
+      window.location.href = resolveAppHref(runtime);
+    });
+  });
+}
 
-function normalizeExtensionlessLinks() {}
+function normalizeExtensionlessLinks() {
+  if (!window.location.pathname.endsWith(".html")) return;
+  cleanVisibleUrl();
+}
 
 function renderCanvasRail() {
   if (document.querySelector(".canvas-rail")) return;
@@ -229,6 +288,7 @@ function decorateSideNav() {
     ["Control", "control"],
     ["Fabrication", "fabrication"],
     ["Art", "art"],
+    ["Site Maintenance", "design"],
     ["Account", "account"],
     ["Role", "account"]
   ];
@@ -261,13 +321,15 @@ function readState() {
       team: null,
       overrideRequired: false,
       completedQuizzes: {},
-      watchedVideos: {}
+      watchedVideos: {},
+      readSections: {}
     };
   }
 
   try {
     const parsed = JSON.parse(raw);
     if (!parsed.watchedVideos) parsed.watchedVideos = {};
+    if (!parsed.readSections) parsed.readSections = { ...(parsed.watchedVideos || {}) };
     if (parsed.team === undefined) parsed.team = null;
     return parsed;
   } catch (error) {
@@ -276,7 +338,8 @@ function readState() {
       team: null,
       overrideRequired: false,
       completedQuizzes: {},
-      watchedVideos: {}
+      watchedVideos: {},
+      readSections: {}
     };
   }
 }
@@ -563,7 +626,7 @@ function renderHomeContent() {
   const roleData = FORGE_PROGRAM.roles[state.role] || FORGE_PROGRAM.roles.rookie;
   const teamData = getTeamData(state);
   const summary = getOverallProgress(state);
-  const videosWatched = Object.keys(state.watchedVideos || {}).length;
+  const videosWatched = Object.keys(state.readSections || state.watchedVideos || {}).length;
   const quizAttempts = Object.keys(state.completedQuizzes).length;
   const recommendedModules = getRecommendedModules(state, 3);
   const expectation = getTrainingExpectation(state);
@@ -582,7 +645,7 @@ function renderHomeContent() {
           </div>
           <div class="preview-metric">
             <strong>${videosWatched}</strong>
-            <span>Videos watched</span>
+            <span>Reads completed</span>
           </div>
           <div class="preview-metric">
             <strong>${quizAttempts}</strong>
@@ -721,7 +784,7 @@ function getModuleFromPath() {
 function renderMetricTiles(state) {
   const summary = getOverallProgress(state);
   const checksLogged = Object.keys(state.completedQuizzes).length;
-  const videosWatched = Object.keys(state.watchedVideos || {}).length;
+  const videosWatched = Object.keys(state.readSections || state.watchedVideos || {}).length;
 
   return `
     <article class="stat">
@@ -738,7 +801,7 @@ function renderMetricTiles(state) {
     </article>
     <article class="stat">
       <span class="value" data-count="${videosWatched}">${videosWatched}</span>
-      <span>Videos watched</span>
+      <span>Reads completed</span>
     </article>
   `;
 }
@@ -796,7 +859,7 @@ function renderCanvasItemRow(section, module, index, state) {
     ? renderQuizForm(section, module)
     : `<div class="quiz-lock-overlay">
          <span class="quiz-lock-icon">${LOCK_ICON}</span>
-         <p>Watch the training video to completion to unlock this assessment.</p>
+         <p>Read the section materials and complete the read countdown to unlock this assessment.</p>
        </div>`;
 
   return `
@@ -816,8 +879,8 @@ function renderCanvasItemRow(section, module, index, state) {
           <details class="section-subitem video-subitem">
             <summary class="subitem-summary">
               <span class="subitem-icon video">${VIDEO_PLAY_ICON}</span>
-              <span class="subitem-title">Training Video</span>
-              <span class="subitem-badge ${watched ? "watched" : ""}" data-subitem-vbadge="${quizKey}">${watched ? "&#x2713;&nbsp;Watched" : "Required"}</span>
+              <span class="subitem-title">Read This</span>
+              <span class="subitem-badge ${watched ? "watched" : ""}" data-subitem-vbadge="${quizKey}">${watched ? "&#x2713;&nbsp;Read" : "Required"}</span>
             </summary>
             <div class="subitem-body">
               ${renderVideoPanel(section, module)}
@@ -920,7 +983,7 @@ function renderDashboardContent() {
   const sortedModules = getSortedModulesForState(state);
   const recommendedModules = getRecommendedModules(state, 3);
   const expectation = getTrainingExpectation(state);
-  const videosWatched = Object.keys(state.watchedVideos || {}).length;
+  const videosWatched = Object.keys(state.readSections || state.watchedVideos || {}).length;
   const quizAttempts = Object.keys(state.completedQuizzes).length;
 
   host.innerHTML = `
@@ -932,7 +995,7 @@ function renderDashboardContent() {
           <p>Focused Operations for Robotics Growth &amp; Excellence — a polished workspace for onboarding, safety readiness, and sub-team training execution.</p>
           <div class="hero-chip-row">
             <span class="glass-chip">${teamData ? `[${teamData.code}] ${teamData.label}` : "All-team view"}</span>
-            <span class="glass-chip">${videosWatched} video completions</span>
+            <span class="glass-chip">${videosWatched} read completions</span>
             <span class="glass-chip">${quizAttempts} logged assessments</span>
           </div>
         </div>
@@ -955,8 +1018,8 @@ function renderDashboardContent() {
       </article>
       <article class="ops-card">
         <span class="preview-kicker">Verification model</span>
-        <strong>Video gated assessments</strong>
-        <p>Members complete lesson videos before taking knowledge checks, keeping readiness evidence tied to each section.</p>
+        <strong>Read gated assessments</strong>
+        <p>Members read official FRC references plus team notes before taking knowledge checks, keeping readiness evidence tied to each section.</p>
       </article>
       <article class="ops-card">
         <span class="preview-kicker">Platform state</span>
@@ -1296,7 +1359,6 @@ function wireQuizForm(quizFile, answers) {
 document.addEventListener("DOMContentLoaded", () => {
   cleanVisibleUrl();
   ensureFavicon();
-  loadYouTubeAPI();
   wireExtensionlessNavigation();
   renderCanvasRail();
   renderCommonHeader();
@@ -1321,11 +1383,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   wireInlineQuizForms();
+  wireReadCountdownTimers();
   normalizeExtensionlessLinks();
-  // Init YouTube players in case API already loaded before DOM render
-  initYouTubePlayers();
-  // Re-init when any module accordion is opened
-  document.addEventListener("toggle", () => initYouTubePlayers(), true);
 
   // Run post-render animations (counters, intersection observer)
   runPostRenderAnimations();

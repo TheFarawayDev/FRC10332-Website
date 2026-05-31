@@ -16,8 +16,8 @@
         </div>
       </div>
       <nav class="top-nav">
-        <a href="index.html">Public Site</a>
-        <a href="auth.html">Member Sign In</a>
+        <a href="/">Public Site</a>
+        <a href="auth">Member Sign In</a>
         <button class="btn" type="button" data-auth-logout>Sign Out</button>
       </nav>
     </header>
@@ -30,7 +30,20 @@
         <p class="status" data-admin-status aria-live="polite">Loading approvals...</p>
       </section>
 
-      <section class="panel-section">
+      <section class="panel-section admin-bubble-panel">
+        <div class="section-head">
+          <h3>Admin Bubble Slide</h3>
+          <p>Swipe across quick actions and jump directly to the queue zone you need.</p>
+        </div>
+        <div class="admin-bubble-strip">
+          <a class="admin-bubble-chip" href="#queue">Pending Queue</a>
+          <a class="admin-bubble-chip" href="#queue">Approve Next</a>
+          <a class="admin-bubble-chip" href="members-dashboard">Member Dashboard</a>
+          <a class="admin-bubble-chip" href="portal">Forge Backend</a>
+        </div>
+      </section>
+
+      <section class="panel-section" id="queue">
         <div class="section-head">
           <h3>Pending Applications</h3>
           <p>Approve members and confirm the teams they requested.</p>

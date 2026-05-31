@@ -24,6 +24,14 @@ function createMemberCard(text) {
   return card;
 }
 
+function addModalMeta(card, title, body) {
+  card.classList.add('modal-ready');
+  card.tabIndex = 0;
+  card.setAttribute('role', 'button');
+  card.dataset.modalTitle = title;
+  card.dataset.modalBody = body;
+}
+
 function renderDashboard() {
   const countersHost = document.querySelector('[data-member-counters]');
   const logsHost = document.querySelector('[data-member-logs]');
@@ -39,12 +47,14 @@ function renderDashboard() {
   MEMBER_DATA.logs.forEach((item) => {
     const card = createMemberCard(`${item.scope} ${item.title} ${item.body}`);
     card.innerHTML = `<p class="kicker">${item.scope}</p><h4>${item.title}</h4><p>${item.body}</p>`;
+    addModalMeta(card, `${item.scope} · ${item.title}`, item.body);
     logsHost.append(card);
   });
 
   MEMBER_DATA.posts.forEach((item) => {
     const card = createMemberCard(`${item.id} ${item.title} ${item.body}`);
     card.innerHTML = `<p class="kicker">Post ID: ${item.id}</p><h4>${item.title}</h4><p>${item.body}</p>`;
+    addModalMeta(card, `${item.title} (${item.id})`, item.body);
     postsHost.append(card);
   });
 }
@@ -77,7 +87,52 @@ function bindMemberSearch() {
   input.addEventListener('input', runSearch);
 }
 
+function bindDashboardModals() {
+  const host = document.createElement('div');
+  host.className = 'site-modal';
+  host.hidden = true;
+  host.innerHTML = `
+    <div class="site-modal-card" role="dialog" aria-modal="true" aria-labelledby="memberModalTitle">
+      <div class="site-modal-head">
+        <h4 id="memberModalTitle"></h4>
+        <button class="site-modal-close" type="button" data-modal-close aria-label="Close">✕</button>
+      </div>
+      <div class="site-modal-body" data-modal-body></div>
+    </div>
+  `;
+  document.body.append(host);
+  const titleHost = host.querySelector('#memberModalTitle');
+  const bodyHost = host.querySelector('[data-modal-body]');
+  const close = () => { host.hidden = true; };
+
+  host.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.matches('[data-modal-close]') || target === host) close();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !host.hidden) close();
+  });
+
+  document.querySelectorAll('.tile-card.modal-ready').forEach((card) => {
+    const open = () => {
+      if (!titleHost || !bodyHost) return;
+      titleHost.textContent = card.dataset.modalTitle || '';
+      bodyHost.textContent = card.dataset.modalBody || '';
+      host.hidden = false;
+    };
+    card.addEventListener('click', open);
+    card.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        open();
+      }
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   renderDashboard();
   bindMemberSearch();
+  bindDashboardModals();
 });

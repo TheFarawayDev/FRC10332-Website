@@ -1,116 +1,98 @@
-# Chargebotic Sites + Forge Backend Prototype (FRC 10332)
+# FRC 10332 Chargebotics Website + Forge
 
-Chargebotic Sites is the public-facing main website for team visibility.
+Built by Marshall e.  
+Public website + member dashboard + Forge training backend for FRC 10332.
 
-Forge (Focused Operations for Robotics Growth & Excellence) remains the separate backend training software that members access after member sign-in.
+## What’s in this repository
 
-## What This Mockup Includes
+- **Public site pages**
+  - `/index.html` (home)
+  - `/calendar.html`
+  - `/members.html`
+  - `/logs.html`
+  - `/posts.html`
+- **Auth and member system**
+  - `/auth.html` (sign in / sign up)
+  - `/admin-approvals.html` (admin queue)
+  - `/members-dashboard.html` (member dashboard)
+- **Forge backend**
+  - `/portal.html`
+  - `/modules/*.html`
+  - `/quizzes/*.html`
+- **Core scripts**
+  - `/public-site.js` public rendering + modal detail views
+  - `/dashboard.js` member dashboard rendering + modal detail views
+  - `/auth.js` auth flow, redirect guards, admin approvals
+  - `/app.js` Forge UI, read-countdown unlocks, quiz flow
+  - `/data.js` Forge program/module/quiz content
 
-- Public main site hub: `index.html`
-  - Dedicated section pages for:
-    - Team calendar (`calendar.html`)
-    - Public member directory (`members.html`)
-    - Team/sub-team logs (`logs.html`)
-    - Public posts (`posts.html`)
-- Member auth entry page: `auth.html`
-  - Sign In + Sign Up UI
-  - Team selection in sign-up application
-  - Admin approvals entry link
-  - Firebase-ready groundwork with local fallback mode
-- Admin approvals page: `admin-approvals.html`
-  - Review and approve pending member applications
-  - Access restricted to admin accounts
-- Members dashboard: `members-dashboard.html`
-  - Auth-gated member view
-  - Internal logs/posts snapshot
-  - Google-style dashboard search
-- Forge backend center: `portal.html`
-- Existing Forge module pages and standalone quizzes
+## Key updates included
 
-## Project Structure
+- Extensionless URL behavior (`/members`, `/logs`, `/posts`, etc.) while keeping static `.html` runtime files.
+- Improved top navigation styling plus admin bubble quick access.
+- Sign-in screen content and layout polish.
+- Modal detail views for member/log/post cards.
+- Forge switched from “watch video to unlock” messaging to **Read This + countdown unlock** behavior.
+- New **Site Maintenance** training module:
+  - `/modules/site-maintenance.html`
+  - module key: `site-maintenance` in `data.js`
 
-- `index.html`
-  - Public homepage experience
-- `auth.html`
-  - Member Sign In/Sign Up
-- `admin-approvals.html`
-  - Admin approval queue for pending members
-- `members-dashboard.html`
-  - Auth-gated members dashboard
-- `calendar.html`, `members.html`, `logs.html`, `posts.html`
-  - Public section-specific pages
-- `public-site.js`
-  - Public content rendering + search behavior + unique public post IDs
-- `auth.js`
-  - Auth wiring, dashboard/admin guards, approvals workflow, logout
-- `dashboard.js`
-  - Member dashboard rendering + search behavior + unique member post IDs
-- `firebase-config.js`
-  - Firebase config placeholder (no secrets)
-- `firebase-init.js`
-  - Firebase initialization scaffold with local auth fallback, pending approval gating, and admin approvals
-- `site-nav.js`
-  - Active-state highlighting for top navigation links
-- `site-v2.css`
-  - Public/auth/dashboard visual system
-- `portal.html`, `modules/`, `quizzes/`, `data.js`, `app.js`, `styles.css`
-  - Existing Forge training system
+## Local run
 
-## Module Pages
+This is a static HTML/CSS/JS project (no package manager scripts).
 
-- `modules/business-media.html`
-- `modules/safety.html`
-- `modules/strategy.html`
-- `modules/design.html`
-- `modules/control.html`
-- `modules/fabrication.html`
-- `modules/art.html`
+Run with any static server, or open `index.html` directly in browser.
 
-## Quiz Files
+## Authentication behavior
 
-- `quizzes/business-branding.html`
-- `quizzes/business-outreach.html`
-- `quizzes/safety-ppe.html`
-- `quizzes/safety-shop-zones.html`
-- `quizzes/strategy-scouting.html`
-- `quizzes/strategy-match-planning.html`
-- `quizzes/design-cad-standards.html`
-- `quizzes/design-dfm.html`
-- `quizzes/control-wiring-basics.html`
-- `quizzes/control-code-practices.html`
-- `quizzes/fabrication-measurement.html`
-- `quizzes/fabrication-machine-ops.html`
-- `quizzes/art-brand-visuals.html`
-- `quizzes/art-pit-presentation.html`
+- `firebase-config.js` holds Firebase placeholder config values.
+- `firebase-init.js` provides Firebase wiring + local fallback auth mode.
+- `auth.js` handles:
+  - sign in
+  - sign up with requested team selection
+  - admin approval gate
+  - dashboard/admin route guards
 
-## Running It
-
-Open `index.html` in a browser in the dev container or VS Code preview.
-
-Member access flow:
-
-- Open `auth.html`
-- Sign up with requested teams (account enters pending state)
-- Admin approves the member in `admin-approvals.html`
-- Approved members can sign in and are redirected to `members-dashboard.html`
-- From the dashboard, members can continue into Forge (`portal.html`)
-
-Local fallback admin credentials:
+### Local fallback admin credentials
 
 - Email: `admin@frc10332.org`
 - Password: `admin10332`
 
-## Firebase Groundwork
+## Maintenance training (for web team)
 
-- `firebase-config.js` is a placeholder scaffold and intentionally contains empty values.
-- To enable real Firebase auth:
-  1. Add your Firebase web config values in `firebase-config.js`
-  2. Load Firebase SDK scripts before `firebase-init.js`
-- If Firebase is not configured, the app uses local `localStorage` fallback auth for development.
+Use the **Site Maintenance** module in Forge for onboarding:
 
-## Next Build Phase Ideas
+1. Open `/portal.html`
+2. Enter **Site Maintenance**
+3. Complete both read sections and checkoff quizzes
 
-- Add user authentication and real member roster sync
-- Add mentor dashboard for overrides and assignment deadlines
-- Replace static quiz answer keys with API-backed quiz authoring
-- Add certificate export and competition readiness checks
+### Required maintenance workflow
+
+1. Scope edits to only required files.
+2. Verify page behavior in browser after each small change.
+3. Re-check auth flow after any auth/nav edit:
+   - sign in
+   - sign up
+   - admin approvals
+4. Re-check public/member content cards and modal behavior.
+5. Confirm extensionless URL appearance still works.
+6. Update this README when architecture or workflow changes.
+
+## File ownership quick map
+
+- **Public UX/UI**: `site-v2.css`, public page HTML, `public-site.js`
+- **Member dashboard UX**: `members-dashboard.html`, `dashboard.js`
+- **Auth/admin flow**: `auth.html`, `admin-approvals.html`, `auth.js`, `firebase-init.js`
+- **Forge learning system**: `portal.html`, `modules/*`, `quizzes/*`, `app.js`, `data.js`
+
+## Deployment notes
+
+- This project currently assumes static file hosting.
+- If hosting supports extensionless rewrites, URLs and direct loads can both be extensionless.
+- Without rewrites, navigation still resolves using runtime `.html` links managed in script.
+
+## Safety and security notes
+
+- Do not commit secrets or private keys.
+- Keep Firebase credentials out of source when possible.
+- Validate any auth-related change in both configured Firebase mode and local fallback mode.

@@ -1,6 +1,29 @@
 (function setupAuthFlows() {
+  function cleanVisibleUrl() {
+    const { pathname, search, hash } = window.location;
+    if (!pathname.endsWith('.html')) return;
+    const cleanPath = pathname.endsWith('/index.html')
+      ? pathname.slice(0, -'index.html'.length) || '/'
+      : pathname.slice(0, -'.html'.length);
+    window.history.replaceState({}, '', `${cleanPath || '/'}${search}${hash}`);
+  }
+
   function getAuth() {
     return window.FirebaseSystems;
+  }
+
+  function wireExtensionlessLinks() {
+    document.querySelectorAll('a[href]').forEach((link) => {
+      const href = link.getAttribute('href');
+      if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:')) return;
+      if (href.endsWith('.html')) return;
+
+      const runtimeHref = href === '/' ? 'index.html' : `${href}.html`;
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        window.location.href = runtimeHref;
+      });
+    });
   }
 
   function status(message, isError = false) {
@@ -195,6 +218,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    cleanVisibleUrl();
+    wireExtensionlessLinks();
     const page = document.body.dataset.page;
     if (page === 'auth') {
       redirectIfAuthenticated();

@@ -10,14 +10,19 @@
     <main class="auth-shell">
       <section class="auth-hero">
         <p class="kicker">MEMBER ACCESS</p>
-        <h1>Sign in to open the members dashboard.</h1>
+        <h1>Sign in to launch the members dashboard.</h1>
         <p>
-          Firebase-ready auth groundwork is included. Configure credentials to enable live auth,
-          or use local fallback mode for development. Team line: log in, gear up, build cool stuff.
+          Quick access for returning members, clean onboarding for new members, and admin tools in one place.
+          Built by Marshall e.
         </p>
+        <ul class="auth-highlights">
+          <li>Fast sign in and redirect to the right workspace</li>
+          <li>Team selection at signup for approval routing</li>
+          <li>Admin review queue for controlled access</li>
+        </ul>
         <div class="auth-actions">
-          <a class="btn" href="index.html">Back to Public Site</a>
-          <a class="btn" href="admin-approvals.html">Admin Approvals</a>
+          <a class="btn" href="/">Back to Public Site</a>
+          <a class="btn admin-bubble" href="admin-approvals">Admin Approvals</a>
         </div>
       </section>
 
@@ -28,6 +33,7 @@
         </div>
 
         <form data-auth-form="login" class="auth-form">
+          <p class="auth-form-title">Welcome back</p>
           <label>Email
             <input type="email" name="email" required autocomplete="email" />
           </label>
@@ -38,6 +44,7 @@
         </form>
 
         <form data-auth-form="signup" class="auth-form hidden">
+          <p class="auth-form-title">Create your member account</p>
           <label>Display name
             <input type="text" name="displayName" required minlength="2" maxlength="48" />
           </label>

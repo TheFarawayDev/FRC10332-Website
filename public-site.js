@@ -29,6 +29,14 @@ function createCard(text, className = '') {
   return card;
 }
 
+function markCardAsModal(card, title, detail) {
+  card.classList.add('modal-ready');
+  card.tabIndex = 0;
+  card.setAttribute('role', 'button');
+  card.dataset.modalTitle = title;
+  card.dataset.modalBody = detail;
+}
+
 function renderPublicSite() {
   const pageView = document.body.dataset.publicView || 'all';
   const calendarHost = document.querySelector('[data-public-calendar]');
@@ -62,6 +70,7 @@ function renderPublicSite() {
     PUBLIC_DATA.members.forEach((item) => {
       const card = createCard(`${item.name} ${item.role} ${item.subteam} ${item.bio}`);
       card.innerHTML = `<h4>${item.name}</h4><p><strong>${item.role}</strong> · ${item.subteam}</p><p>${item.bio}</p>`;
+      markCardAsModal(card, `${item.name} · ${item.role}`, `${item.subteam}\n\n${item.bio}`);
       membersHost.append(card);
     });
   }
@@ -70,6 +79,7 @@ function renderPublicSite() {
     PUBLIC_DATA.logs.forEach((item) => {
       const card = createCard(`${item.scope} ${item.team} ${item.entry}`);
       card.innerHTML = `<p class="kicker">${item.scope}</p><h4>${item.team}</h4><p>${item.entry}</p>`;
+      markCardAsModal(card, `${item.scope} · ${item.team}`, item.entry);
       logsHost.append(card);
     });
   }
@@ -78,6 +88,7 @@ function renderPublicSite() {
     PUBLIC_DATA.posts.forEach((item) => {
       const card = createCard(`${item.id} ${item.title} ${item.body}`);
       card.innerHTML = `<p class="kicker">Post ID: ${item.id}</p><h4>${item.title}</h4><p>${item.body}</p>`;
+      markCardAsModal(card, `${item.title} (${item.id})`, item.body);
       postsHost.append(card);
     });
   }
@@ -111,7 +122,58 @@ function bindPublicSearch() {
   input.addEventListener('input', runSearch);
 }
 
+function bindPublicModalCards() {
+  const host = document.createElement('div');
+  host.className = 'site-modal';
+  host.hidden = true;
+  host.innerHTML = `
+    <div class="site-modal-card" role="dialog" aria-modal="true" aria-labelledby="siteModalTitle">
+      <div class="site-modal-head">
+        <h4 id="siteModalTitle"></h4>
+        <button class="site-modal-close" type="button" data-modal-close aria-label="Close">✕</button>
+      </div>
+      <div class="site-modal-body" data-modal-body></div>
+    </div>
+  `;
+  document.body.append(host);
+
+  const titleHost = host.querySelector('#siteModalTitle');
+  const bodyHost = host.querySelector('[data-modal-body]');
+  const close = () => {
+    host.hidden = true;
+    document.body.classList.remove('modal-open');
+  };
+
+  host.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.matches('[data-modal-close]') || target === host) close();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !host.hidden) close();
+  });
+
+  document.querySelectorAll('.tile-card.modal-ready').forEach((card) => {
+    const open = () => {
+      if (!titleHost || !bodyHost) return;
+      titleHost.textContent = card.dataset.modalTitle || 'Detail';
+      bodyHost.textContent = card.dataset.modalBody || '';
+      host.hidden = false;
+      document.body.classList.add('modal-open');
+    };
+    card.addEventListener('click', open);
+    card.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        open();
+      }
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   renderPublicSite();
   bindPublicSearch();
+  bindPublicModalCards();
 });
