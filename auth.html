@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Member Access | FRC 10332</title>
+    <link rel="stylesheet" href="site-v2.css" />
+  </head>
+  <body data-page="auth">
+    <main class="auth-shell">
+      <section class="auth-hero">
+        <p class="kicker">MEMBER ACCESS</p>
+        <h1>Sign in to open the members dashboard.</h1>
+        <p>
+          Firebase-ready auth groundwork is included. Configure credentials to enable live auth,
+          or use local fallback mode for development.
+        </p>
+        <div class="auth-actions">
+          <a class="btn" href="index.html">Back to Public Site</a>
+        </div>
+      </section>
+
+      <section class="auth-card">
+        <div class="auth-tabs" role="tablist" aria-label="Login or sign up">
+          <button type="button" class="active" data-auth-tab="login">Login</button>
+          <button type="button" data-auth-tab="signup">Sign Up</button>
+        </div>
+
+        <form data-auth-form="login" class="auth-form">
+          <label>Email
+            <input type="email" name="email" required autocomplete="email" />
+          </label>
+          <label>Password
+            <input type="password" name="password" required autocomplete="current-password" minlength="6" />
+          </label>
+          <button type="submit">Sign In</button>
+        </form>
+
+        <form data-auth-form="signup" class="auth-form hidden">
+          <label>Display name
+            <input type="text" name="displayName" required minlength="2" maxlength="48" />
+          </label>
+          <label>Email
+            <input type="email" name="email" required autocomplete="email" />
+          </label>
+          <label>Password
+            <input type="password" name="password" required autocomplete="new-password" minlength="6" />
+          </label>
+          <button type="submit">Create Account</button>
+        </form>
+
+        <p class="status" data-auth-status aria-live="polite">Ready.</p>
+      </section>
+    </main>
+
+    <script src="firebase-config.js"></script>
+    <script src="firebase-init.js"></script>
+    <script src="auth.js"></script>
+  </body>
+</html>

@@ -3,131 +3,83 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chargebotic Sites | FRC 10332</title>
-    <link
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="styles.css" />
+    <title>FRC 10332 | Chargebotic Public Site</title>
+    <link rel="stylesheet" href="site-v2.css" />
   </head>
-  <body>
-    <main class="page-shell">
-      <header class="topbar" data-forge-header></header>
+  <body data-page="public">
+    <header class="site-topbar">
+      <div class="brand-block">
+        <img src="favicon.svg" alt="FRC 10332" class="brand-icon" />
+        <div>
+          <h1>FRC 10332 Chargebotics</h1>
+          <p>Public Team Hub</p>
+        </div>
+      </div>
+      <nav class="top-nav" aria-label="Primary">
+        <a href="#calendar">Calendar</a>
+        <a href="#members">Members</a>
+        <a href="#logs">Logs</a>
+        <a href="#posts">Posts</a>
+        <a class="btn" href="auth.html">Member Login / Sign Up</a>
+      </nav>
+    </header>
 
-      <section class="panel hero landing-hero">
-        <div class="hero-grid">
-          <div class="hero-copy">
-            <span class="eyebrow">FRC 10332 Main Website</span>
-            <h2>Chargebotic Sites is the main website, with Forge available as backend training software.</h2>
-            <p>
-              This site is the public-facing home for FRC 10332 and the entry point for members.
-              It explains how our program works, where training fits in, and how students access
-              the tools they need behind the scenes.
-            </p>
-            <div class="hero-chip-row">
-              <span class="glass-chip">Main team website</span>
-              <span class="glass-chip">Role-based curriculum delivery</span>
-              <span class="glass-chip">Roadmap for systems going online</span>
-              <span class="glass-chip">Member-gated backend training</span>
-            </div>
-          </div>
-          <aside class="hero-side" data-home-pulse></aside>
-        </div>
-        <div class="quick-grid" data-portal-metrics></div>
-        <div class="button-row">
-          <a class="btn primary" href="account.html">Open Member Access</a>
-        </div>
+    <main class="site-shell">
+      <section class="hero-card">
+        <p class="kicker">FIRST VIEW: PUBLIC WEBSITE</p>
+        <h2>Professional public home for updates, team activity, and recruiting visibility.</h2>
+        <p>
+          Everyone starts here. Members sign in to access internal dashboard tools, while
+          visitors can browse calendar updates, team member highlights, logs, and public posts.
+        </p>
+        <form class="google-search" data-public-search-form>
+          <label for="publicSearch" class="sr-only">Search public site</label>
+          <input id="publicSearch" name="query" type="search" placeholder="Search calendar, members, logs, and posts" autocomplete="off" />
+          <button type="submit">Search</button>
+        </form>
+        <p class="search-meta" data-public-search-meta>Showing all public items.</p>
       </section>
 
-      <section class="panel">
+      <section id="snapshot" class="panel-grid three" data-public-counters></section>
+
+      <section id="calendar" class="panel-section">
         <div class="section-head">
-          <div>
-            <h3>How this website supports the team</h3>
-            <p>Use one hub for program communication, onboarding, and operational systems.</p>
-          </div>
+          <h3>Team Calendar</h3>
+          <p>Competition prep, build sessions, and outreach milestones.</p>
         </div>
-        <div class="workflow-grid" data-home-workflow></div>
+        <div class="panel-grid" data-public-calendar></div>
       </section>
 
-      <section class="panel">
+      <section id="members" class="panel-section">
         <div class="section-head">
-          <div>
-            <h3>Roadmap: curriculum and systems online</h3>
-            <p>What we are rolling out next while keeping Forge as dedicated backend training software.</p>
-          </div>
+          <h3>Public Member Directory</h3>
+          <p>Team-facing bios and visible sub-team assignments.</p>
         </div>
-        <div class="workflow-grid" data-home-roadmap></div>
+        <div class="panel-grid" data-public-members></div>
       </section>
 
-      <section class="panel">
+      <section id="logs" class="panel-section">
         <div class="section-head">
-          <div>
-            <h3>Member behind-the-scenes access</h3>
-            <p>Member Access is the only entry point from Chargebotic Sites into Forge backend training.</p>
-          </div>
+          <h3>Sub-Team & Team Logs</h3>
+          <p>Public progress highlights across software, fabrication, strategy, and outreach.</p>
         </div>
-        <div class="feature-grid" data-home-member-systems></div>
+        <div class="panel-grid two" data-public-logs></div>
       </section>
 
-      <section class="panel">
+      <section id="posts" class="panel-section">
         <div class="section-head">
-          <div>
-            <h3>Sub-team curriculum lanes</h3>
-            <p>Each pathway shows what students complete before they are ready for shop, pit, and field work.</p>
-          </div>
+          <h3>Latest Public Posts</h3>
+          <p>Recent announcements and stories shared by the team.</p>
         </div>
-        <div class="feature-grid" data-home-tracks></div>
-      </section>
-
-      <section class="panel">
-        <div class="section-head">
-          <div>
-            <h3>Training policy preview</h3>
-            <p>Existing members are exempt by default, while leads and mentors can enforce retraining when needed.</p>
-          </div>
-        </div>
-        <div class="settings-grid">
-          <form class="role-selector compact-role-selector" data-role-form>
-            <div class="role-card-list compact">
-              <label class="role-card">
-                <input type="radio" name="memberRole" value="rookie" />
-                <span class="role-card-dot" style="background:#7fa6d3"></span>
-                <span class="role-card-text">
-                  <strong>Rookie Member</strong>
-                  <small>Full onboarding and safety path required before shop access.</small>
-                </span>
-              </label>
-              <label class="role-card">
-                <input type="radio" name="memberRole" value="existing" />
-                <span class="role-card-dot" style="background:#78c8a0"></span>
-                <span class="role-card-text">
-                  <strong>Veteran Member</strong>
-                  <small>Exempt by default, with optional refreshers and targeted reassignment.</small>
-                </span>
-              </label>
-              <label class="role-card">
-                <input type="radio" name="memberRole" value="lead" />
-                <span class="role-card-dot" style="background:#d09040"></span>
-                <span class="role-card-text">
-                  <strong>Lead / Mentor</strong>
-                  <small>Administrative visibility, progress oversight, and retraining enforcement.</small>
-                </span>
-              </label>
-            </div>
-            <label class="override-toggle switch-row">
-              <input type="checkbox" name="mentorOverride" />
-              <span class="switch-control" aria-hidden="true"></span>
-              <span class="switch-copy">
-                <strong>Mentor override</strong>
-                <small>Require the full training track even if the selected role is normally exempt.</small>
-              </span>
-            </label>
-          </form>
-          <aside class="insight-card" data-home-role-summary></aside>
-        </div>
+        <div class="panel-grid" data-public-posts></div>
       </section>
     </main>
 
-    <script src="data.js"></script>
-    <script src="app.js"></script>
+    <footer class="site-footer">
+      <p>FRC 10332 Chargebotics · Public Site</p>
+      <a href="auth.html">Member Dashboard Access</a>
+    </footer>
+
+    <script src="public-site.js"></script>
   </body>
 </html>

@@ -1,47 +1,49 @@
 # Chargebotic Sites + Forge Backend Prototype (FRC 10332)
 
-Chargebotic Sites is the main website where people get team info, updates, and resources.
+Chargebotic Sites is the public-facing main website for team visibility.
 
-Forge (Focused Operations for Robotics Growth & Excellence) is separate backend training software that members access through Chargebotic Sites.
+Forge (Focused Operations for Robotics Growth & Excellence) remains the separate backend training software that members access after member sign-in.
 
 ## What This Mockup Includes
 
-- Main site experience: `index.html` (Chargebotic Sites)
-- Backend training center: `portal.html` (Forge)
-- Sub-category module pages with embedded videos:
-	- Business and Media
-	- Safety
-	- Strategy
-	- Design
-	- Control
-	- Fabrication
-	- Art
-- Separate quiz file per quiz (14 files total)
-- Completion rule: every quiz in a sub-category must be passed
-- Exemption rule: existing members are exempt by default unless a lead/mentor override is enabled
-- Local progress persistence using browser `localStorage`
-- Extensionless visible URLs in the browser for a cleaner Canvas-style feel
-- A member account/backend view with role controls and progress summary
-- Six dropdown sections per module for testing, each with notes, watch content, and a quiz
+- Public-first main site: `index.html`
+  - Team calendar
+  - Public member directory
+  - Team/sub-team logs
+  - New posts
+  - Google-style public search bar
+- Member auth entry page: `auth.html`
+  - Login + Sign Up UI
+  - Firebase-ready groundwork with local fallback mode
+- Members dashboard: `members-dashboard.html`
+  - Auth-gated member view
+  - Internal logs/posts snapshot
+  - Google-style dashboard search
+- Forge backend center: `portal.html`
+- Existing Forge module pages and standalone quizzes
 
 ## Project Structure
 
 - `index.html`
-	- Chargebotic Sites landing page and backend entry points
-- `portal.html`
-	- Forge backend training navigation center and progress overview
-- `account.html`
-	- Member account and backend access status page
-- `styles.css`
-	- Shared visual system and responsive layout
-- `data.js`
-	- Program/module configuration and quiz mapping
-- `app.js`
-	- Shared app logic, progress tracking, exemption handling, quiz grading hooks
-- `modules/`
-	- One module page per sub-category
-- `quizzes/`
-	- One standalone file per quiz
+  - Public homepage experience
+- `auth.html`
+  - Member Login/Sign Up
+- `members-dashboard.html`
+  - Auth-gated members dashboard
+- `public-site.js`
+  - Public content rendering + search behavior
+- `auth.js`
+  - Login/signup wiring, dashboard guard, logout
+- `dashboard.js`
+  - Member dashboard rendering + search behavior
+- `firebase-config.js`
+  - Firebase config placeholder (no secrets)
+- `firebase-init.js`
+  - Firebase initialization scaffold with local auth fallback
+- `site-v2.css`
+  - Public/auth/dashboard visual system
+- `portal.html`, `modules/`, `quizzes/`, `data.js`, `app.js`, `styles.css`
+  - Existing Forge training system
 
 ## Module Pages
 
@@ -74,11 +76,20 @@ Forge (Focused Operations for Robotics Growth & Excellence) is separate backend 
 
 Open `index.html` in a browser in the dev container or VS Code preview.
 
-Use the role selector on `index.html` to simulate backend training behavior:
+Member access flow:
 
-- Rookie member required flow
-- Existing member exemption
-- Mentor/lead override that forces completion
+- Open `auth.html`
+- Sign up or log in
+- You will be redirected to `members-dashboard.html`
+- From the dashboard, members can continue into Forge (`portal.html`)
+
+## Firebase Groundwork
+
+- `firebase-config.js` is a placeholder scaffold and intentionally contains empty values.
+- To enable real Firebase auth:
+  1. Add your Firebase web config values in `firebase-config.js`
+  2. Load Firebase SDK scripts before `firebase-init.js`
+- If Firebase is not configured, the app uses local `localStorage` fallback auth for development.
 
 ## Next Build Phase Ideas
 
