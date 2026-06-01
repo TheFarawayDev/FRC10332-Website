@@ -1845,36 +1845,53 @@ function renderModuleSections(moduleKey) {
     })
     .join("");
     
-  // Wire up the View Article buttons
-  sections.forEach((section) => {
-    const sectionKey = `${moduleKey}:${section.id}`;
-    const viewButton = document.querySelector(`[data-view-article="${sectionKey}"]`);
-    
-    if (viewButton) {
-      viewButton.addEventListener("click", () => {
-        openReadingModal(section, module);
-      });
-    }
-    
-    // Wire up quiz launch buttons
-    const quizButton = document.querySelector(`[data-launch-quiz="${sectionKey}"]`);
-    const resultHost = document.querySelector(`[data-inline-result="${sectionKey}"]`);
-    
-    if (quizButton && section.quiz) {
-      quizButton.addEventListener("click", () => {
-        launchFullscreenQuiz(section, sectionKey, resultHost);
-      });
-    }
-    
-    // Wire up game buttons
-    const gameButton = document.querySelector(`[data-play-game="${sectionKey}"]`);
-    
-    if (gameButton && section.quiz) {
-      gameButton.addEventListener("click", () => {
-        launchMemoryGame(section, sectionKey);
-      });
-    }
-  });
+  // Wire up the View Article buttons - use setTimeout to ensure DOM is ready
+  setTimeout(() => {
+    sections.forEach((section) => {
+      const sectionKey = `${moduleKey}:${section.id}`;
+      const viewButton = document.querySelector(`[data-view-article="${sectionKey}"]`);
+      
+      if (viewButton) {
+        // Remove any existing listeners to avoid duplicates
+        const newButton = viewButton.cloneNode(true);
+        viewButton.parentNode.replaceChild(newButton, viewButton);
+        
+        newButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          openReadingModal(section, module);
+        });
+      }
+      
+      // Wire up quiz launch buttons
+      const quizButton = document.querySelector(`[data-launch-quiz="${sectionKey}"]`);
+      const resultHost = document.querySelector(`[data-inline-result="${sectionKey}"]`);
+      
+      if (quizButton && section.quiz) {
+        const newQuizButton = quizButton.cloneNode(true);
+        quizButton.parentNode.replaceChild(newQuizButton, quizButton);
+        
+        newQuizButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          if (!newQuizButton.disabled) {
+            launchFullscreenQuiz(section, sectionKey, resultHost);
+          }
+        });
+      }
+      
+      // Wire up game buttons
+      const gameButton = document.querySelector(`[data-play-game="${sectionKey}"]`);
+      
+      if (gameButton && section.quiz) {
+        const newGameButton = gameButton.cloneNode(true);
+        gameButton.parentNode.replaceChild(newGameButton, gameButton);
+        
+        newGameButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          launchMemoryGame(section, sectionKey);
+        });
+      }
+    });
+  }, 0);
 }
 
 function wireQuizForm(quizFile, answers) {
