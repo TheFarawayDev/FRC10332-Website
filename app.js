@@ -382,21 +382,42 @@ function renderCanvasRail() {
   document.body.prepend(rail);
 }
 
-function injectMobileNavToggle() {
-  // Mobile nav toggle removed - using standard topbar navigation
-  return;
-  
-  const topbar = document.querySelector(".topbar");
-  if (!topbar || topbar.querySelector(".mobile-nav-toggle")) return;
+function injectTabletNav() {
+  const shell = document.querySelector(".page-shell");
+  if (!shell || shell.querySelector(".tablet-nav")) return;
 
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "mobile-nav-toggle btn alt";
-  button.textContent = "Menu";
-  button.addEventListener("click", () => {
-    document.body.classList.toggle("rail-open");
-  });
-  topbar.prepend(button);
+  const current = window.location.pathname;
+  const isRoot = current === "/" || current === "";
+
+  const nav = document.createElement("nav");
+  nav.className = "tablet-nav";
+  nav.setAttribute("aria-label", "Navigation");
+  nav.innerHTML = `<div class="tablet-nav-inner">
+    ${RAIL_LINKS.map((link) => {
+      const pageKey = link.href.replace(".html", "");
+      const active =
+        (pageKey === "index" && isRoot) ||
+        current.includes(`/${pageKey}`) ||
+        current.endsWith(link.href);
+      return `<a class="tablet-nav-link${active ? " active" : ""}" href="${resolveAppHref(link.href)}" aria-label="${link.label}">
+        ${UI_ICONS[link.icon]}
+        <span>${link.label}</span>
+      </a>`;
+    }).join("")}
+  </div>`;
+
+  // Insert right after the topbar header
+  const topbar = shell.querySelector(".topbar");
+  if (topbar && topbar.nextSibling) {
+    shell.insertBefore(nav, topbar.nextSibling);
+  } else {
+    shell.appendChild(nav);
+  }
+  normalizeExtensionlessLinks(nav);
+}
+
+function injectMobileNavToggle() {
+  // Legacy toggle removed — tablet nav replaces this on all non-desktop widths
 }
 
 function decorateSideNav() {
@@ -1090,7 +1111,7 @@ function renderModuleAccordion(module, state, defaultOpen = false) {
             <span class="${fillClass}" style="width:${pct}%"></span>
           </span>
           <span class="cmr-score">${progress.passedCount}/${progress.totalCount}</span>
-          <span class="cmr-check ${progress.complete ? "done" : ""}" aria-label="${progress.complete ? "Complete" : "In Progress"}">${progress.complete ? "✓" : ""}</span>
+          <span class="cmr-check ${progress.complete ? "done" : ""}" aria-label="${progress.complete ? "Complete" : "In Progress"}">${progress.complete ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="10" height="10"><polyline points="20 6 9 17 4 12"/></svg>' : ""}</span>
         </span>
       </summary>
       <div class="canvas-module-items">
@@ -1242,6 +1263,8 @@ function renderModuleContent() {
 
   const module = getModuleFromPath();
   const state = readState();
+  const progress = getModuleProgress(module, state);
+  const sections = getModuleSections(module);
 
   host.innerHTML = `
     <article class="panel hero module-hero">
@@ -1250,8 +1273,8 @@ function renderModuleContent() {
         <p>${module.outcome}</p>
       </div>
       <div class="quick-grid">
-        <article class="stat"><span class="value">${getModuleProgress(module, state).passedCount}/${getModuleProgress(module, state).totalCount}</span><span>Sections complete</span></article>
-        <article class="stat"><span class="value">6</span><span>Sections available</span></article>
+        <article class="stat"><span class="value">${progress.passedCount}/${progress.totalCount}</span><span>Sections complete</span></article>
+        <article class="stat"><span class="value">${sections.length}</span><span>Sections available</span></article>
         <article class="stat"><span class="value">${isExempt(state) ? "Exempt" : "Required"}</span><span>Current rule</span></article>
       </div>
     </article>
@@ -1942,6 +1965,7 @@ document.addEventListener("DOMContentLoaded", () => {
   wireExtensionlessNavigation();
   renderCanvasRail();
   renderCommonHeader();
+  injectTabletNav();
   injectMobileNavToggle();
   decorateSideNav();
   renderRoleControls();

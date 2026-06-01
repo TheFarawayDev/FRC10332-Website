@@ -1171,6 +1171,23 @@ details[open] > summary .cmr-arrow {
   border: none;
 }
 
+/* Static iframe wrapper for quiz pages (no YouTube API) */
+.yt-target-static {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--line-strong);
+}
+
+.yt-target-static iframe {
+  position: absolute;
+  inset: 0; width: 100%; height: 100%;
+  border: none;
+}
+
 .video-watch-badge {
   display: flex;
   align-items: center;
@@ -1879,7 +1896,64 @@ body.modal-open {
   display: none;
 }
 
-@media (max-width: 780px) {
+/* ════════════════════════════════════════════════════════════════════
+   TABLET / iPAD NAVIGATION BAR
+   ════════════════════════════════════════════════════════════════════ */
+
+.tablet-nav {
+  display: none;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  background: rgba(10,14,30,0.7);
+  backdrop-filter: blur(20px) saturate(150%);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.tablet-nav-inner {
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tablet-nav-inner::-webkit-scrollbar { display: none; }
+
+.tablet-nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 16px;
+  border-right: 1px solid var(--line);
+  color: var(--silver-300);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 64px;
+  transition: background 0.14s, color 0.14s;
+}
+
+.tablet-nav-link:last-child { border-right: none; }
+
+.tablet-nav-link svg {
+  width: 18px; height: 18px;
+  fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+
+.tablet-nav-link:hover,
+.tablet-nav-link.active {
+  background: var(--accent-dim);
+  color: var(--accent-lit);
+}
+
+@media (max-width: 899px) {
   .page-shell {
     margin-left: 0;
     padding: 10px 12px 40px;
@@ -1887,16 +1961,15 @@ body.modal-open {
   }
 
   .canvas-rail {
-    transform: translateX(-100%);
-    transition: transform 0.26s cubic-bezier(0.16,1,0.3,1);
-  }
-
-  body.rail-open .canvas-rail {
-    transform: translateX(0);
+    display: none;
   }
 
   .mobile-nav-toggle {
-    display: inline-flex;
+    display: none;
+  }
+
+  .tablet-nav {
+    display: block;
   }
 
   .topbar {
