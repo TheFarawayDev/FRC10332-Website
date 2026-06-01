@@ -244,23 +244,23 @@ function wireReadCountdownTimers(root = document) {
 
 const UI_ICONS = {
   dashboard:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 3h8v8H3z"/></svg>',
+    '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>',
   business:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v14H3zM8 7V5h8v2M3 11h18"/></svg>',
+    '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
   safety:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v6c0 5-3.4 7.9-8 9-4.6-1.1-8-4-8-9V7l8-4zM9 12l2 2 4-4"/></svg>',
+    '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
   strategy:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l7-7M14 6l4-4 4 4-4 4zM13 7l4 4M4 10l4-4 4 4-4 4z"/></svg>',
+    '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
   design:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5 4 13-13-5-5L3 17zM14 5l5 5"/></svg>',
+    '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
   control:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3v6M16 3v6M5 9h14v12H5zM9 13h6M9 17h6"/></svg>',
+    '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
   fabrication:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19h18M7 15l5-11 5 11"/></svg>',
+    '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
   art:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 0-4h-1a2 2 0 0 1 0-4h5a4 4 0 0 0 0-8h-5z"/></svg>',
+    '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
   account:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"/></svg>'
+    '<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
 };
 
 const FORGE_RAIL_LINKS = [
@@ -383,16 +383,16 @@ function renderCanvasRail() {
 }
 
 const FORGE_BOTTOM_NAV = [
-  { href: "portal.html",                      label: "Dashboard",  key: "portal"           },
-  { href: "modules/safety.html",              label: "Safety",     key: "safety"           },
-  { href: "modules/business-media.html",      label: "Business",   key: "business-media"   },
-  { href: "modules/control.html",             label: "Control",    key: "control"          },
-  { href: "modules/design.html",              label: "Design",     key: "design"           },
-  { href: "modules/fabrication.html",         label: "Fabrication",key: "fabrication"      },
-  { href: "modules/art.html",                 label: "Art",        key: "art"              },
-  { href: "modules/strategy.html",            label: "Strategy",   key: "strategy"         },
-  { href: "modules/site-maintenance.html",    label: "Maintenance",key: "site-maintenance" },
-  { href: "account.html",                     label: "Account",    key: "account"          },
+  { href: "portal.html",                      label: "Dashboard",  key: "portal",          icon: "dashboard"    },
+  { href: "modules/safety.html",              label: "Safety",     key: "safety",          icon: "safety"       },
+  { href: "modules/business-media.html",      label: "Business",   key: "business-media",  icon: "business"     },
+  { href: "modules/control.html",             label: "Control",    key: "control",         icon: "control"      },
+  { href: "modules/design.html",              label: "Design",     key: "design",          icon: "design"       },
+  { href: "modules/fabrication.html",         label: "Fabrication",key: "fabrication",     icon: "fabrication"  },
+  { href: "modules/art.html",                 label: "Art",        key: "art",             icon: "art"          },
+  { href: "modules/strategy.html",            label: "Strategy",   key: "strategy",        icon: "strategy"     },
+  { href: "modules/site-maintenance.html",    label: "Maintenance",key: "site-maintenance",icon: "design"       },
+  { href: "account.html",                     label: "Account",    key: "account",         icon: "account"      },
 ];
 
 function injectTabletNav() {
@@ -402,10 +402,10 @@ function injectTabletNav() {
   const current = window.location.pathname;
   const prefix = assetPrefix();
 
-  const items = FORGE_BOTTOM_NAV.map(({ href, label, key }) => {
+  const items = FORGE_BOTTOM_NAV.map(({ href, label, key, icon }) => {
     const active = current.includes(`/${key}`);
     return `<a href="${resolveAppHref(href)}" class="bottom-nav-item${active ? " active" : ""}">
-      <img src="${prefix}favicon.svg" alt="" class="nav-icon" />
+      ${UI_ICONS[icon] || UI_ICONS.dashboard}
       <span class="nav-label">${label}</span>
     </a>`;
   }).join("");
@@ -1883,18 +1883,18 @@ function renderModuleSections(moduleKey) {
             
             <div class="button-row">
               <button type="button" class="btn" data-view-article="${sectionKey}">
-                <img src="${assetPrefix()}favicon.svg" alt="" width="14" height="14" style="vertical-align:middle;border-radius:2px;margin-right:4px">View Article
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="vertical-align:middle;margin-right:5px" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View Article
               </button>
               
               ${section.quiz && section.quiz.length > 0 ? `
               <button type="button" class="btn primary" data-launch-quiz="${sectionKey}" ${isRead ? '' : 'disabled'}>
-                ${isRead ? `<img src="${assetPrefix()}favicon.svg" alt="" width="14" height="14" style="vertical-align:middle;border-radius:2px;margin-right:4px">Take Quiz` : 'Read Article First'}
+                ${isRead ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="vertical-align:middle;margin-right:5px" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Take Quiz` : '🔒 Read Article First'}
               </button>
               ` : ''}
               
               ${section.quiz && section.quiz.length > 0 && result?.passed ? `
               <button type="button" class="btn success" data-play-game="${sectionKey}">
-                <img src="${assetPrefix()}favicon.svg" alt="" width="14" height="14" style="vertical-align:middle;border-radius:2px;margin-right:4px">Memory Game
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="vertical-align:middle;margin-right:5px" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>Memory Game
               </button>
               ` : ''}
             </div>
