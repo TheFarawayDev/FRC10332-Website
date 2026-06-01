@@ -349,6 +349,80 @@ body::after {
   line-height: 1.5;
 }
 
+/* ── Table Wrapper ───────────────────────────────────────────────── */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.table-wrap thead {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.table-wrap th,
+.table-wrap td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.table-wrap th {
+  font-weight: 700;
+  color: var(--ink-0);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table-wrap td {
+  color: var(--silver-200);
+}
+
+.table-wrap tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table-wrap tbody tr:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.table-wrap a {
+  color: var(--accent-lit);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.table-wrap a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* ── Notice Box ────────────────────────────────────────────────── */
+.notice {
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(79,127,255,0.35);
+  background: rgba(79,127,255,0.08);
+  color: var(--silver-100);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  margin-top: 16px;
+}
+
+.notice strong {
+  color: var(--accent-lit);
+  font-weight: 700;
+}
+
 /* ════════════════════════════════════════════════════════════════════
    QUICK GRID — STAT TILES
    ════════════════════════════════════════════════════════════════════ */
