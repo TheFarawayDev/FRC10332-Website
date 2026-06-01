@@ -1174,7 +1174,7 @@ function renderDashboardContent() {
 
     <section class="panel stats-overview-panel">
       <div class="section-head compact">
-        <h3>📊 Performance Metrics</h3>
+        <h3>Performance Metrics</h3>
         <p>Track your progress across all training modules and assessments</p>
       </div>
       <div class="quick-grid">
@@ -1185,7 +1185,7 @@ function renderDashboardContent() {
     ${recommendedModules.length > 0 ? `
     <section class="panel recommended-modules-panel">
       <div class="section-head compact">
-        <h3>🎓 Next Steps</h3>
+        <h3>Next Steps</h3>
         <p>Recommended modules to continue your training journey</p>
       </div>
       <div class="recommended-grid">
@@ -1206,8 +1206,8 @@ function renderDashboardContent() {
               <h4>${module.title}</h4>
               <p>${module.outcome}</p>
               <div class="rec-meta">
-                <span>⏱️ ${module.estimatedTime || "60 min"}</span>
-                <span>📝 ${getModuleSections(module).length} sections</span>
+                <span><img src="${assetPrefix()}favicon.svg" alt="" width="13" height="13" style="vertical-align:middle;border-radius:2px;opacity:0.7;margin-right:3px">${module.estimatedTime || "60 min"}</span>
+                <span><img src="${assetPrefix()}favicon.svg" alt="" width="13" height="13" style="vertical-align:middle;border-radius:2px;opacity:0.7;margin-right:3px">${getModuleSections(module).length} sections</span>
               </div>
               <div class="button-row">
                 <a class="btn primary" href="${module.modulePage}">Start Module</a>
@@ -1221,7 +1221,7 @@ function renderDashboardContent() {
 
     <section class="panel">
       <div class="section-head">
-        <h3>📚 All Training Modules</h3>
+        <h3>All Training Modules</h3>
         <p>Complete curriculum organized by role, sub-team, and skill level. Expand any module to view lessons and begin training.</p>
       </div>
       <div class="module-accordion-list">
@@ -1232,7 +1232,7 @@ function renderDashboardContent() {
     <section class="panel forge-footer-panel">
       <div class="forge-footer-grid">
         <div class="forge-footer-col">
-          <h4>💡 Training Tips</h4>
+          <h4>Training Tips</h4>
           <ul>
             <li>Complete modules in the recommended order for optimal learning</li>
             <li>Read all content thoroughly before attempting quizzes</li>
@@ -1241,7 +1241,7 @@ function renderDashboardContent() {
           </ul>
         </div>
         <div class="forge-footer-col">
-          <h4>🛡️ Safety First</h4>
+          <h4>Safety First</h4>
           <ul>
             <li>Safety modules are mandatory for all members</li>
             <li>Shop access requires completion of safety training</li>
@@ -1250,7 +1250,7 @@ function renderDashboardContent() {
           </ul>
         </div>
         <div class="forge-footer-col">
-          <h4>📞 Need Help?</h4>
+          <h4>Need Help?</h4>
           <ul>
             <li>Contact your sub-team lead for module questions</li>
             <li>Technical issues? Reach out to site administrators</li>
@@ -1512,7 +1512,7 @@ function launchMemoryGame(section, sectionKey) {
       .join("");
 
     const status = gameState.matches === gameState.totalPairs
-      ? "🎉 Memory game complete! Nice recall."
+      ? "Memory game complete! Nice recall."
       : `Matches: ${gameState.matches}/${gameState.totalPairs}`;
 
     root.innerHTML = `
@@ -1530,7 +1530,7 @@ function launchMemoryGame(section, sectionKey) {
               <div class="memory-game-grid">${cards}</div>
               <div class="quiz-meta">${status}</div>
               <div class="button-row">
-                <button type="button" class="btn" data-memory-reset>🔄 Shuffle Game</button>
+                <button type="button" class="btn" data-memory-reset>Shuffle Game</button>
               </div>
             </div>
           </div>
@@ -1740,7 +1740,7 @@ function launchFullscreenQuiz(section, quizKey, resultHost) {
     // Update quiz button state
     const quizButton = document.querySelector(`[data-launch-quiz="${quizKey}"]`);
     if (quizButton && passed) {
-      quizButton.textContent = '✓ Quiz Passed';
+      quizButton.textContent = 'Quiz Passed';
       quizButton.classList.add('success');
     }
   };
@@ -1857,25 +1857,25 @@ function renderModuleSections(moduleKey) {
             
             <div class="button-row">
               <button type="button" class="btn" data-view-article="${sectionKey}">
-                📖 View Article
+                <img src="${assetPrefix()}favicon.svg" alt="" width="14" height="14" style="vertical-align:middle;border-radius:2px;margin-right:4px">View Article
               </button>
               
               ${section.quiz && section.quiz.length > 0 ? `
               <button type="button" class="btn primary" data-launch-quiz="${sectionKey}" ${isRead ? '' : 'disabled'}>
-                ${isRead ? '🎯 Take Quiz' : '🔒 Read Article First'}
+                ${isRead ? `<img src="${assetPrefix()}favicon.svg" alt="" width="14" height="14" style="vertical-align:middle;border-radius:2px;margin-right:4px">Take Quiz` : 'Read Article First'}
               </button>
               ` : ''}
               
               ${section.quiz && section.quiz.length > 0 && result?.passed ? `
               <button type="button" class="btn success" data-play-game="${sectionKey}">
-                🎮 Memory Game
+                <img src="${assetPrefix()}favicon.svg" alt="" width="14" height="14" style="vertical-align:middle;border-radius:2px;margin-right:4px">Memory Game
               </button>
               ` : ''}
             </div>
             
             ${result ? `
             <div class="section-status ${result.passed ? 'passed' : 'retry'}">
-              ${result.passed ? `✓ Passed with ${result.score}%` : `Retry needed (${result.score}%)`}
+              ${result.passed ? `Passed ${result.score}%` : `Retry needed (${result.score}%)`}
             </div>
             ` : ''}
             
