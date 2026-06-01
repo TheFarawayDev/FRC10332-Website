@@ -3028,6 +3028,9 @@ body[data-page="forge"] .section-head h3 {
 .bottom-nav-item .nav-icon {
   font-size: 20px;
   line-height: 1;
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 .bottom-nav-item .nav-label {
@@ -3036,11 +3039,17 @@ body[data-page="forge"] .section-head h3 {
 }
 
 /* Adjust body padding for bottom nav */
-body[data-page="public"] {
+body[data-page="public"],
+body[data-page="forge"] {
   padding-bottom: calc(64px + env(safe-area-inset-bottom));
 }
 
 /* Hide old top nav on public pages */
 body[data-page="public"] .top-nav {
   display: none;
+}
+
+/* Adjust footer padding for bottom nav on Forge pages */
+body[data-page="forge"] .site-footer {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
 }
