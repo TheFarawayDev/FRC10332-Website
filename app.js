@@ -536,6 +536,10 @@ const FORGE_BOTTOM_NAV = [
   { href: "modules/safety.html",              label: "Safety",     key: "safety",          icon: "safety"       },
   { href: "modules/business-media.html",      label: "Business",   key: "business-media",  icon: "business"     },
   { href: "modules/control.html",             label: "Control",    key: "control",         icon: "control"      },
+  { href: "modules/design.html",              label: "Design",     key: "design",          icon: "design"       },
+  { href: "modules/fabrication.html",         label: "Fabrication",key: "fabrication",     icon: "fabrication"  },
+  { href: "modules/art.html",                 label: "Art",        key: "art",             icon: "art"          },
+  { href: "modules/strategy.html",            label: "Strategy",   key: "strategy",        icon: "strategy"     },
   { href: "account.html",                     label: "Account",    key: "account",         icon: "account"      },
 ];
 
@@ -1316,32 +1320,53 @@ function renderDashboardContent() {
   const videosWatched = Object.keys(state.readSections || state.watchedVideos || {}).length;
   const quizAttempts = Object.keys(state.completedQuizzes).length;
   const summary = getOverallProgress(state);
+  const roleData = FORGE_PROGRAM.roles[state.role] || FORGE_PROGRAM.roles.rookie;
+  const nextModule = sortedModules.find(m => !getModuleProgress(m, state).complete);
 
   host.innerHTML = `
     <article class="panel hero dashboard-hero forge-hero-v2">
       <div class="hero-grid dashboard-hero-grid">
         <div class="hero-copy">
-          <span class="eyebrow">Advanced Training Platform</span>
-          <h2>FORGE Training System</h2>
+          <span class="eyebrow">FORGE Training Platform</span>
+          <h2>Training Hub</h2>
           <p class="hero-subtitle">Focused Operations for Robotics Growth &amp; Excellence</p>
-          <p>A comprehensive workspace designed for safety readiness, technical skill development, and team operational excellence. Master the fundamentals, advance your capabilities, and prepare for competition success.</p>
+          <p>Master safety, technical skills, and team operations. Complete assigned modules and pass assessments to advance your training status.</p>
           <div class="hero-chip-row">
-            <span class="glass-chip chip-primary">${summary.percentage}% Complete</span>
-            <span class="glass-chip">${teamData ? `[${teamData.code}] ${teamData.label}` : "All-team view"}</span>
-            <span class="glass-chip">${videosWatched} Lessons</span>
-            <span class="glass-chip">${quizAttempts} Assessments</span>
+            ${teamData
+              ? `<span class="glass-chip" style="background:${teamData.color}18;color:${teamData.color};border-color:${teamData.color}30">[${teamData.code}] ${teamData.label}</span>`
+              : `<span class="glass-chip">All Modules</span>`}
+            <span class="glass-chip">${summary.completedModules}/${summary.totalModules} Complete</span>
+            ${quizAttempts > 0 ? `<span class="glass-chip">${quizAttempts} Assessments</span>` : ""}
+          </div>
+          <div class="button-row" style="margin-top:8px">
+            <a class="btn primary" href="${nextModule ? nextModule.modulePage : `${assetPrefix()}modules/safety`}">Continue Training</a>
+            <a class="btn alt" href="${assetPrefix()}account">My Account</a>
           </div>
         </div>
         <aside class="hero-side">
           <div class="preview-card compact forge-status-card">
             <span class="preview-kicker">Training Status</span>
-            <h3>${expectation.title}</h3>
-            <p>${expectation.body}</p>
+            <div style="display:flex;align-items:center;gap:20px;margin-bottom:14px">
+              <div class="mbr-dash-progress-ring">
+                <svg viewBox="0 0 64 64" width="72" height="72" aria-hidden="true">
+                  <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/>
+                  <circle cx="32" cy="32" r="26" fill="none" stroke="${roleData.color || 'var(--accent)'}" stroke-width="6"
+                    stroke-dasharray="${2 * Math.PI * 26}" stroke-dashoffset="${2 * Math.PI * 26 * (1 - summary.percentage / 100)}"
+                    stroke-linecap="round" transform="rotate(-90 32 32)"/>
+                </svg>
+                <span class="ring-label">${summary.percentage}%</span>
+              </div>
+              <div>
+                <strong style="display:block;font-size:0.95rem;color:var(--text)">${expectation.title}</strong>
+                <span style="font-size:0.8rem;color:var(--muted)">${summary.completedModules} of ${summary.totalModules} modules</span>
+              </div>
+            </div>
+            <p style="margin:0 0 12px;font-size:0.825rem;color:var(--muted);line-height:1.5">${expectation.body}</p>
             <div class="status-progress-wrap">
               <div class="status-progress-bar">
                 <div class="status-progress-fill" style="width: ${summary.percentage}%"></div>
               </div>
-              <span class="status-progress-text">${summary.completedModules}/${summary.totalModules} Modules</span>
+              <span class="status-progress-text">${videosWatched} reads · ${quizAttempts} assessments</span>
             </div>
           </div>
         </aside>
@@ -1351,7 +1376,7 @@ function renderDashboardContent() {
     <section class="panel stats-overview-panel">
       <div class="section-head compact">
         <h3>Performance Metrics</h3>
-        <p>Track your progress across all training modules and assessments</p>
+        <p>Your progress across all training modules and assessments</p>
       </div>
       <div class="quick-grid">
         ${renderMetricTiles(state)}
@@ -1368,8 +1393,8 @@ function renderDashboardContent() {
         ${recommendedModules.map((module) => {
           const progress = getModuleProgress(module, state);
           const teamStatus = getModuleTeamStatus(module.key, state);
-          const statusBadge = teamStatus === "required" 
-            ? '<span class="rec-badge required">REQUIRED</span>' 
+          const statusBadge = teamStatus === "required"
+            ? '<span class="rec-badge required">REQUIRED</span>'
             : teamStatus === "optional"
             ? '<span class="rec-badge optional">OPTIONAL</span>'
             : '';
@@ -1382,8 +1407,15 @@ function renderDashboardContent() {
               <h4>${module.title}</h4>
               <p>${module.outcome}</p>
               <div class="rec-meta">
-                <span><img src="${assetPrefix()}favicon.svg" alt="" width="13" height="13" style="vertical-align:middle;border-radius:2px;opacity:0.7;margin-right:3px">${module.estimatedTime || "60 min"}</span>
-                <span><img src="${assetPrefix()}favicon.svg" alt="" width="13" height="13" style="vertical-align:middle;border-radius:2px;opacity:0.7;margin-right:3px">${getModuleSections(module).length} sections</span>
+                <span style="display:flex;align-items:center;gap:4px">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><circle cx="12" cy="12" r="10" opacity="0.4"/><polyline points="12 6 12 12 16 14"/></svg>
+                  ${module.estimatedTime || "60 min"}
+                </span>
+                <span style="display:flex;align-items:center;gap:4px">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" opacity="0.4"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1" opacity="0.4"/></svg>
+                  ${getModuleSections(module).length} sections
+                </span>
+                ${progress.passedCount > 0 ? `<span style="color:var(--accent)">${progress.passedCount}/${progress.totalCount} done</span>` : ""}
               </div>
               <div class="button-row">
                 <a class="btn primary" href="${module.modulePage}">Start Module</a>
@@ -1405,35 +1437,52 @@ function renderDashboardContent() {
       </div>
     </section>
 
-    <section class="panel forge-footer-panel">
-      <div class="forge-footer-grid">
-        <div class="forge-footer-col">
-          <h4>Training Tips</h4>
-          <ul>
-            <li>Complete modules in the recommended order for optimal learning</li>
-            <li>Read all content thoroughly before attempting quizzes</li>
-            <li>Retake quizzes until you achieve the passing score of ${FORGE_PROGRAM.passingScore}%</li>
-            <li>Track your progress using the metrics dashboard above</li>
-          </ul>
-        </div>
-        <div class="forge-footer-col">
-          <h4>Safety First</h4>
-          <ul>
-            <li>Safety modules are mandatory for all members</li>
-            <li>Shop access requires completion of safety training</li>
-            <li>Always wear appropriate PPE in the workspace</li>
-            <li>Report any safety concerns to team leadership</li>
-          </ul>
-        </div>
-        <div class="forge-footer-col">
-          <h4>Need Help?</h4>
-          <ul>
-            <li>Contact your sub-team lead for module questions</li>
-            <li>Technical issues? Reach out to site administrators</li>
-            <li>Review the <a href="../terms">Terms of Service</a></li>
-            <li>Check our <a href="../privacy">Privacy Policy</a></li>
-          </ul>
-        </div>
+    <section class="panel">
+      <div class="section-head compact">
+        <h3>Quick Access</h3>
+        <p>Jump directly to any training area</p>
+      </div>
+      <div class="mbr-quick-grid">
+        <a class="mbr-quick-card mbr-quick-primary" href="${assetPrefix()}account">
+          <div class="mbr-quick-icon" aria-hidden="true">${UI_ICONS.account}</div>
+          <div class="mbr-quick-body"><strong>Member Account</strong><span>Profile, progress &amp; settings</span></div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
+        <a class="mbr-quick-card" href="${assetPrefix()}modules/safety">
+          <div class="mbr-quick-icon" aria-hidden="true">${UI_ICONS.safety}</div>
+          <div class="mbr-quick-body"><strong>Safety</strong><span>Required for all members · PPE &amp; shop zones</span></div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
+        <a class="mbr-quick-card" href="${assetPrefix()}modules/control">
+          <div class="mbr-quick-icon" aria-hidden="true">${UI_ICONS.control}</div>
+          <div class="mbr-quick-body"><strong>Control</strong><span>Wiring, code practices &amp; CAN bus</span></div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
+        <a class="mbr-quick-card" href="${assetPrefix()}modules/design">
+          <div class="mbr-quick-icon" aria-hidden="true">${UI_ICONS.design}</div>
+          <div class="mbr-quick-body"><strong>Design</strong><span>CAD standards &amp; DFM practices</span></div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
+        <a class="mbr-quick-card" href="${assetPrefix()}modules/fabrication">
+          <div class="mbr-quick-icon" aria-hidden="true">${UI_ICONS.fabrication}</div>
+          <div class="mbr-quick-body"><strong>Fabrication</strong><span>Machine ops &amp; measurement</span></div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
+        <a class="mbr-quick-card" href="${assetPrefix()}modules/strategy">
+          <div class="mbr-quick-icon" aria-hidden="true">${UI_ICONS.strategy}</div>
+          <div class="mbr-quick-body"><strong>Strategy</strong><span>Match planning &amp; scouting</span></div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
+        <a class="mbr-quick-card" href="${assetPrefix()}modules/business-media">
+          <div class="mbr-quick-icon" aria-hidden="true">${UI_ICONS.business}</div>
+          <div class="mbr-quick-body"><strong>Business &amp; Media</strong><span>Branding, outreach &amp; communications</span></div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
+        <a class="mbr-quick-card" href="${assetPrefix()}modules/art">
+          <div class="mbr-quick-icon" aria-hidden="true">${UI_ICONS.art}</div>
+          <div class="mbr-quick-body"><strong>Art &amp; Brand Visuals</strong><span>Identity, pit presentation</span></div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
       </div>
     </section>
   `;

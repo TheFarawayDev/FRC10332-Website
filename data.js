@@ -1,4 +1,4 @@
-const FORGE_PROGRAM = {
+var FORGE_PROGRAM = {
   appName: "FORGE",
   fullName: "Focused Operations for Robotics Growth & Excellence",
   cohort: "FRC 10332 — 2026 Season",
