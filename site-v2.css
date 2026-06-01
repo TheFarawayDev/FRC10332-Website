@@ -98,7 +98,9 @@ svg path {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  height: 64px;
+  height: auto;
+  min-height: 64px;
+  flex-wrap: wrap;
 }
 
 .brand-block {
@@ -107,6 +109,7 @@ svg path {
   gap: 12px;
   min-width: 0;
   flex-shrink: 0;
+  order: 1;
 }
 
 .brand-icon {
@@ -138,10 +141,12 @@ svg path {
 .top-nav {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  flex-wrap: nowrap;
+  justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 4px;
-  flex: 1;
+  flex: 1 1 100%;
+  order: 3;
+  width: 100%;
 }
 
 .top-nav a,
@@ -202,6 +207,8 @@ svg path {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  order: 2;
+  margin-left: auto;
 }
 
 .header-back-link:hover {
@@ -327,41 +334,66 @@ svg path {
 }
 
 .tile-card {
-  padding: 24px;
+  padding: 28px;
   display: grid;
   gap: 12px;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.tile-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tile-card:hover::before {
+  opacity: 1;
 }
 
 .tile-card h4 {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--text);
+  transition: color 0.2s ease;
+}
+
+.tile-card:hover h4 {
+  color: var(--accent);
 }
 
 .tile-card p {
   font-size: 14px;
+  line-height: 1.6;
 }
 
 .metric {
   margin: 0;
   color: var(--accent);
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
   letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 .nav-tile {
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-tile:hover,
 .tile-card.modal-ready:hover {
-  transform: translateY(-4px);
-  border-color: var(--border-hover);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  transform: translateY(-6px);
+  border-color: var(--accent);
+  box-shadow: 0 20px 40px rgba(0, 112, 243, 0.2);
 }
 
 .tile-card.modal-ready {
@@ -927,11 +959,7 @@ body.modal-open {
 @media (max-width: 760px) {
   .site-topbar-inner {
     padding: 0 16px;
-    height: auto;
     min-height: 64px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
     padding-top: 12px;
     padding-bottom: 12px;
   }
@@ -1382,47 +1410,58 @@ input[type="radio"]:focus {
 [data-forge-header] .badge-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
 }
 
 [data-forge-header] .badge {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
+  padding: 8px 16px;
   border-radius: var(--radius-pill);
   border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+[data-forge-header] .badge:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 [data-forge-header] .role-badge {
   border-color: var(--accent);
-  background: rgba(0, 112, 243, 0.1);
-  color: var(--accent-2);
-}
-
-[data-forge-header] .team-badge {
-  border-color: var(--accent);
   background: rgba(0, 112, 243, 0.15);
   color: var(--accent-2);
   font-weight: 700;
-  border-left: 3px solid;
+}
+
+[data-forge-header] .team-badge {
+  border-color: var(--role-color, var(--accent));
+  border-left: 4px solid var(--role-color, var(--accent));
+  background: linear-gradient(90deg, rgba(0, 112, 243, 0.1), var(--surface-2));
+  color: var(--text);
+  font-weight: 700;
+  padding-left: 12px;
 }
 
 [data-forge-header] .pass-mark-badge {
-  border-color: rgba(147, 51, 234, 0.3);
-  background: rgba(147, 51, 234, 0.08);
-  color: #a855f7;
+  border-color: rgba(120, 200, 160, 0.4);
+  background: rgba(120, 200, 160, 0.1);
+  color: #78c8a0;
 }
 
 [data-forge-header] .exempt-badge {
-  border-color: rgba(16, 185, 129, 0.3);
-  background: rgba(16, 185, 129, 0.1);
-  color: #34d399;
+  border-color: rgba(192, 160, 96, 0.4);
+  background: rgba(192, 160, 96, 0.1);
+  color: #c0a060;
 }
 
 /* Forge navigation links */
@@ -2299,35 +2338,53 @@ body[data-page="forge"] .section-head h3 {
   gap: 24px;
   padding: clamp(32px, 6vw, 48px);
   margin-bottom: 32px;
-  background: var(--surface-2);
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
   border-radius: var(--radius);
   border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.account-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(0, 112, 243, 0.15), transparent 70%);
+  pointer-events: none;
 }
 
 .account-badge {
-  width: 80px;
-  height: 80px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 700;
   color: white;
   flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(0, 112, 243, 0.4);
+  position: relative;
+  z-index: 1;
 }
 
 .account-hero h2 {
   margin: 0 0 8px 0;
-  font-size: 1.5rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
   color: var(--text);
+  letter-spacing: -0.02em;
 }
 
 .account-hero p {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: var(--muted);
 }
 
@@ -2339,33 +2396,46 @@ body[data-page="forge"] .section-head h3 {
 }
 
 .account-card {
-  padding: 24px;
+  padding: 32px;
   border-radius: var(--radius);
-  background: var(--surface-2);
+  background: var(--surface);
   border: 1px solid var(--border);
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
 }
 
 .account-card:hover {
-  border-color: var(--border-hover);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
 }
 
 .account-card h3 {
-  margin: 0 0 20px 0;
+  margin: 0 0 24px 0;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--text);
-  border-bottom: 2px solid var(--border);
-  padding-bottom: 12px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-card h3::before {
+  content: "";
+  width: 4px;
+  height: 24px;
+  background: var(--accent);
+  border-radius: 2px;
 }
 
 .account-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
 }
 
 .account-row:last-child {
@@ -2375,11 +2445,15 @@ body[data-page="forge"] .section-head h3 {
 .account-row span {
   color: var(--muted);
   font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .account-row strong {
   color: var(--text);
   font-weight: 600;
+  font-size: 1rem;
 }
 
 .team-card-list {
