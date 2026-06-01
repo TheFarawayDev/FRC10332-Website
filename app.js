@@ -1591,6 +1591,19 @@ function launchFullscreenQuiz(section, quizKey, resultHost) {
         : `Scored ${score}% - retry anytime.`;
     }
     bindMemoryGame();
+    
+    // Refresh module checklist after quiz completion
+    const moduleKey = quizKey.split(':')[0];
+    if (moduleKey && typeof renderModuleChecklist === 'function') {
+      renderModuleChecklist(moduleKey);
+    }
+    
+    // Update quiz button state
+    const quizButton = document.querySelector(`[data-launch-quiz="${quizKey}"]`);
+    if (quizButton && passed) {
+      quizButton.textContent = '✓ Quiz Passed';
+      quizButton.classList.add('success');
+    }
   };
 
   const bindQuizInteractions = () => {
@@ -1687,89 +1700,65 @@ function renderModuleSections(moduleKey) {
     .map((section, index) => {
       const sectionKey = `${moduleKey}:${section.id}`;
       const result = state.completedQuizzes[sectionKey];
-      const isWatched = state.watchedVideos?.[sectionKey] || state.readSections?.[sectionKey] || false;
+      const isRead = state.readSections?.[sectionKey] || false;
       
       return `
-        <section class="panel-section module-section" id="${section.id}">
-          <div class="section-head">
+        <details class="panel-section module-section-dropdown" id="${section.id}" ${index === 0 ? 'open' : ''}>
+          <summary class="section-head dropdown-summary">
             <h3>${index + 1}. ${section.title}</h3>
-          </div>
+            <span class="dropdown-icon">▼</span>
+          </summary>
           
-          ${section.notes ? `
-          <div class="module-notes">
-            ${section.notes}
+          <div class="section-content">
+            ${section.notes ? `
+            <div class="module-notes">
+              <p>${section.notes.substring(0, 200)}${section.notes.length > 200 ? '...' : ''}</p>
+            </div>
+            ` : ''}
+            
+            <div class="button-row">
+              <button type="button" class="btn" data-view-article="${sectionKey}">
+                📖 View Article
+              </button>
+              
+              ${section.quiz && section.quiz.length > 0 ? `
+              <button type="button" class="btn primary" data-launch-quiz="${sectionKey}" ${isRead ? '' : 'disabled'}>
+                ${isRead ? '🎯 Take Quiz' : '🔒 Read Article First'}
+              </button>
+              ` : ''}
+            </div>
+            
+            ${result ? `
+            <div class="section-status ${result.passed ? 'passed' : 'retry'}">
+              ${result.passed ? `✓ Passed with ${result.score}%` : `Retry needed (${result.score}%)`}
+            </div>
+            ` : ''}
+            
+            <div class="quiz-result-inline" data-inline-result="${sectionKey}"></div>
           </div>
-          ` : ''}
-          
-          ${section.video ? `
-          <div class="module-video">
-            <iframe src="${section.video}" title="${section.title} video" allowfullscreen style="width:100%;aspect-ratio:16/9;border:none;border-radius:var(--radius-soft);"></iframe>
-          </div>
-          ` : ''}
-          
-          ${section.quiz && section.quiz.length > 0 ? `
-          <div class="module-quiz">
-            <h4>Quiz: ${section.title}</h4>
-            <form class="quiz-form" data-section-quiz="${sectionKey}">
-              ${section.quiz.map((q, qIdx) => `
-                <div class="quiz-question">
-                  <p><strong>Question ${qIdx + 1}:</strong> ${q.q}</p>
-                  ${q.options.map((opt, optIdx) => `
-                    <label class="quiz-option">
-                      <input type="radio" name="q${qIdx}" value="${optIdx}" required />
-                      <span>${opt}</span>
-                    </label>
-                  `).join('')}
-                </div>
-              `).join('')}
-              <button type="submit" class="btn">Submit Quiz</button>
-              <div class="quiz-result" data-quiz-result="${sectionKey}"></div>
-            </form>
-          </div>
-          ` : ''}
-          
-          ${result ? `
-          <div class="section-status ${result.passed ? 'passed' : 'retry'}">
-            ${result.passed ? `✓ Passed with ${result.score}%` : `Retry needed (${result.score}%)`}
-          </div>
-          ` : ''}
-        </section>
+        </details>
       `;
     })
     .join("");
     
-  // Wire up the quiz forms
+  // Wire up the View Article buttons
   sections.forEach((section) => {
     const sectionKey = `${moduleKey}:${section.id}`;
-    const form = document.querySelector(`[data-section-quiz="${sectionKey}"]`);
-    const resultHost = document.querySelector(`[data-quiz-result="${sectionKey}"]`);
+    const viewButton = document.querySelector(`[data-view-article="${sectionKey}"]`);
     
-    if (form && resultHost && section.quiz) {
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        
-        let correct = 0;
-        const total = section.quiz.length;
-        
-        section.quiz.forEach((q, idx) => {
-          const selected = form.querySelector(`input[name='q${idx}']:checked`);
-          if (selected && parseInt(selected.value) === q.answer) {
-            correct += 1;
-          }
-        });
-        
-        const score = Math.round((correct / total) * 100);
-        const passed = score >= FORGE_PROGRAM.passingScore;
-        
-        markQuizResult(sectionKey, passed, score);
-        
-        resultHost.className = `quiz-result ${passed ? 'pass' : 'fail'}`;
-        resultHost.textContent = passed
-          ? `Passed with ${score}% - this section now counts toward your module completion.`
-          : `Scored ${score}% - needs ${FORGE_PROGRAM.passingScore}% to pass. Review the content and try again.`;
-          
-        // Refresh the checklist
-        renderModuleChecklist(moduleKey);
+    if (viewButton) {
+      viewButton.addEventListener("click", () => {
+        launchReadingSession(module, section);
+      });
+    }
+    
+    // Wire up quiz launch buttons
+    const quizButton = document.querySelector(`[data-launch-quiz="${sectionKey}"]`);
+    const resultHost = document.querySelector(`[data-inline-result="${sectionKey}"]`);
+    
+    if (quizButton && section.quiz) {
+      quizButton.addEventListener("click", () => {
+        launchFullscreenQuiz(section, sectionKey, resultHost);
       });
     }
   });
