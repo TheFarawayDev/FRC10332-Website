@@ -346,6 +346,9 @@ function normalizeExtensionlessLinks() {
 }
 
 function renderCanvasRail() {
+  // Canvas rail navigation removed - Forge now uses main site topbar navigation
+  return;
+  
   if (document.querySelector(".canvas-rail")) return;
 
   const rail = document.createElement("nav");
@@ -380,6 +383,9 @@ function renderCanvasRail() {
 }
 
 function injectMobileNavToggle() {
+  // Mobile nav toggle removed - using standard topbar navigation
+  return;
+  
   const topbar = document.querySelector(".topbar");
   if (!topbar || topbar.querySelector(".mobile-nav-toggle")) return;
 
@@ -614,26 +620,39 @@ function renderCommonHeader() {
   const roleData = FORGE_PROGRAM.roles[state.role] || FORGE_PROGRAM.roles.rookie;
   const roleLabel = roleData.label;
   const teamData = getTeamData(state);
-  const page = window.location.pathname.split("/").pop() || "index.html";
-  const onMainSite = page === "index.html" || page === "";
-  const headerTitle = onMainSite ? "Chargebotic Sites" : FORGE_PROGRAM.appName;
-  const headerSubtitle = onMainSite ? "FRC 10332 Main Website" : FORGE_PROGRAM.cohort;
 
   target.innerHTML = `
-    <div class="brand">
-      <div class="brand-mark"><img src="${assetPrefix()}favicon.svg" alt="FORGE icon" /></div>
-      <div class="brand-copy">
-        <h1>${headerTitle}</h1>
-        <p>${headerSubtitle}</p>
+    <div class="hero-card" style="padding: 24px;">
+      <div class="badge-row">
+        <span class="badge role-badge" style="--role-color: ${roleData.color}">${roleLabel}</span>
+        ${teamData ? `<span class="badge team-badge" style="--role-color:${teamData.color};border-left-color:${teamData.color}">[${teamData.code}] ${teamData.label}</span>` : ""}
+        <span class="badge">Pass Mark: ${FORGE_PROGRAM.passingScore}%</span>
+        ${isExempt(state) ? '<span class="badge exempt-badge">Training Exempt</span>' : ''}
       </div>
     </div>
-    <div class="badge-row">
-      <span class="badge role-badge" style="--role-color: ${roleData.color}">${roleLabel}</span>
-      ${teamData ? `<span class="badge team-badge" style="--role-color:${teamData.color};border-left-color:${teamData.color}">[${teamData.code}] ${teamData.label}</span>` : ""}
-      <span class="badge">Pass Mark: ${FORGE_PROGRAM.passingScore}%</span>
-      ${isExempt(state) ? '<span class="badge exempt-badge">Training Exempt</span>' : ''}
-    </div>
   `;
+  
+  // Update Forge navigation active states
+  updateForgeNavActiveStates();
+}
+
+function updateForgeNavActiveStates() {
+  const forgeNav = document.querySelector("[data-forge-nav]");
+  if (!forgeNav) return;
+  
+  const currentPath = window.location.pathname;
+  const links = forgeNav.querySelectorAll("a");
+  
+  links.forEach(link => {
+    const href = link.getAttribute("href");
+    link.classList.remove("active");
+    
+    if (currentPath.includes("portal") && href.includes("portal")) {
+      link.classList.add("active");
+    } else if (currentPath.includes("account") && href.includes("account")) {
+      link.classList.add("active");
+    }
+  });
 }
 
 function renderRoleControls() {
