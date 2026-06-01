@@ -622,11 +622,14 @@ function renderCommonHeader() {
   const teamData = getTeamData(state);
 
   target.innerHTML = `
-    <div class="hero-card" style="padding: 24px;">
+    <div class="hero-card forge-profile-card" style="padding: 24px;">
+      <div class="profile-header-text">
+        <h3 class="profile-role-title">${roleLabel}</h3>
+        ${teamData ? `<p class="profile-team-subtitle">${teamData.label} Team</p>` : '<p class="profile-team-subtitle">No Sub-Team Assigned</p>'}
+      </div>
       <div class="badge-row">
-        <span class="badge role-badge" style="--role-color: ${roleData.color}">${roleLabel}</span>
-        ${teamData ? `<span class="badge team-badge" style="--role-color:${teamData.color};border-left-color:${teamData.color}">[${teamData.code}] ${teamData.label}</span>` : ""}
-        <span class="badge">Pass Mark: ${FORGE_PROGRAM.passingScore}%</span>
+        ${teamData ? `<span class="badge team-badge" style="--role-color:${teamData.color};border-left-color:${teamData.color}">[${teamData.code}]</span>` : ""}
+        <span class="badge pass-mark-badge">Pass Mark: ${FORGE_PROGRAM.passingScore}%</span>
         ${isExempt(state) ? '<span class="badge exempt-badge">Training Exempt</span>' : ''}
       </div>
     </div>
