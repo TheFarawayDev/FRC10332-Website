@@ -658,17 +658,22 @@ function renderCommonHeader() {
   const roleData = FORGE_PROGRAM.roles[state.role] || FORGE_PROGRAM.roles.rookie;
   const roleLabel = roleData.label;
   const teamData = getTeamData(state);
+  const summary = getOverallProgress(state);
 
   target.innerHTML = `
     <div class="hero-card forge-profile-card" style="padding: 24px;">
-      <div class="profile-header-text">
-        <h3 class="profile-role-title">${roleLabel}</h3>
-        ${teamData ? `<p class="profile-team-subtitle">${teamData.label} Team</p>` : '<p class="profile-team-subtitle">No Sub-Team Assigned</p>'}
+      <div class="profile-header-row">
+        <div class="profile-initials-badge" style="background:${(roleData.color || '#0070f3')}18;color:${roleData.color || '#0070f3'};border:2px solid ${(roleData.color || '#0070f3')}30">${FORGE_PROGRAM.demo.initials}</div>
+        <div class="profile-header-text">
+          <h3 class="profile-role-title">${roleLabel}</h3>
+          ${teamData ? `<p class="profile-team-subtitle">${teamData.label} Team</p>` : '<p class="profile-team-subtitle">No Sub-Team Assigned</p>'}
+        </div>
       </div>
-      <div class="badge-row">
+      <div class="badge-row" style="margin-top:12px">
         ${teamData ? `<span class="badge team-badge" style="--role-color:${teamData.color};border-left-color:${teamData.color}">[${teamData.code}]</span>` : ""}
         <span class="badge pass-mark-badge">Pass Mark: ${FORGE_PROGRAM.passingScore}%</span>
         ${isExempt(state) ? '<span class="badge exempt-badge">Training Exempt</span>' : ''}
+        <span class="badge" style="margin-left:auto;background:rgba(0,112,243,0.1);color:var(--accent);border:1px solid rgba(0,112,243,0.2)">${summary.percentage}% complete</span>
       </div>
     </div>
   `;
@@ -960,23 +965,44 @@ function renderMetricTiles(state) {
   const summary = getOverallProgress(state);
   const checksLogged = Object.keys(state.completedQuizzes).length;
   const videosWatched = Object.keys(state.readSections || state.watchedVideos || {}).length;
+  const totalSections = FORGE_PROGRAM.modules.reduce((sum, m) => sum + getModuleSections(m).length, 0);
+  const completionBar = summary.percentage;
+  const modulesBar = summary.totalModules ? Math.round((summary.completedModules / summary.totalModules) * 100) : 0;
+  const checksBar = totalSections ? Math.min(Math.round((checksLogged / totalSections) * 100), 100) : 0;
+  const readsBar = totalSections ? Math.min(Math.round((videosWatched / totalSections) * 100), 100) : 0;
 
   return `
-    <article class="stat">
+    <article class="stat enhanced-stat">
+      <div class="stat-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
       <span class="value" data-count="${summary.percentage}" data-suffix="%">${summary.percentage}%</span>
       <span>Program completion</span>
+      <div class="stat-mini-bar"><div style="width:${completionBar}%"></div></div>
     </article>
-    <article class="stat">
+    <article class="stat enhanced-stat">
+      <div class="stat-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      </div>
       <span class="value">${summary.completedModules}/${summary.totalModules}</span>
       <span>Modules complete</span>
+      <div class="stat-mini-bar"><div style="width:${modulesBar}%"></div></div>
     </article>
-    <article class="stat">
+    <article class="stat enhanced-stat">
+      <div class="stat-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
       <span class="value" data-count="${checksLogged}">${checksLogged}</span>
       <span>Checks logged</span>
+      <div class="stat-mini-bar"><div style="width:${checksBar}%"></div></div>
     </article>
-    <article class="stat">
+    <article class="stat enhanced-stat">
+      <div class="stat-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      </div>
       <span class="value" data-count="${videosWatched}">${videosWatched}</span>
       <span>Reads completed</span>
+      <div class="stat-mini-bar"><div style="width:${readsBar}%"></div></div>
     </article>
   `;
 }

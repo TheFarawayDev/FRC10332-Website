@@ -92,8 +92,28 @@
     saveUsers(users);
   }
 
+  async function ensureTestUser() {
+    const users = readUsers();
+    if (users.find((item) => item.email === 'test@test.com')) return;
+    const secretDigest = await hashSecret('test123');
+    users.push({
+      uid: 'local-test-user',
+      email: 'test@test.com',
+      displayName: 'Test User',
+      secretDigest,
+      isAdmin: false,
+      isApproved: true,
+      teams: ['Control', 'Design', 'Fabrication', 'Strategy', 'Business/Media', 'Safety'],
+      requestedTeams: ['Control'],
+      createdAt: new Date().toISOString(),
+      approvedAt: new Date().toISOString()
+    });
+    saveUsers(users);
+  }
+
   async function signUpLocal(email, passcode, displayName, options = {}) {
     await ensureAdminUser();
+    await ensureTestUser();
     const users = readUsers();
     const normalized = email.trim().toLowerCase();
     if (users.find((item) => item.email === normalized)) {
@@ -124,6 +144,7 @@
 
   async function signInLocal(email, passcode) {
     await ensureAdminUser();
+    await ensureTestUser();
     const normalized = email.trim().toLowerCase();
     const secretDigest = await hashSecret(passcode);
     const user = readUsers().find((item) => item.email === normalized && item.secretDigest === secretDigest);
