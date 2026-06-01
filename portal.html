@@ -3,16 +3,92 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Forge Backend | Chargebotic Sites</title>
-    <link rel="stylesheet" href="styles.css" />
+    <title>FORGE | Chargebotic Sites</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="site-v2.css" />
+    <script>
+      // Prevent external debugging tools from breaking the page
+      window.addEventListener('error', function(e) {
+        if (e.message && e.message.includes('eruda')) {
+          e.preventDefault();
+          return true;
+        }
+      });
+    </script>
   </head>
-  <body>
-    <main class="page-shell">
-      <header class="topbar" data-forge-header></header>
+  <body data-page="forge" data-forge-view="portal">
+    <header class="site-topbar">
+      <div class="site-topbar-inner">
+        <div class="brand-block">
+          <img src="favicon.svg" alt="FORGE" class="brand-icon" />
+          <h1>FORGE</h1>
+          <a href="/" class="header-back-link">← Main Site</a>
+        </div>
+        <nav class="top-nav" aria-label="Primary" data-forge-nav>
+          <a href="portal">Dashboard</a>
+          <a href="modules/safety">Safety</a>
+          <a href="modules/business-media">Business & Media</a>
+          <a href="modules/control">Control</a>
+          <a href="modules/design">Design</a>
+          <a href="modules/fabrication">Fabrication</a>
+          <a href="modules/art">Art</a>
+          <a href="modules/strategy">Strategy</a>
+          <a href="modules/site-maintenance">Site Maintenance</a>
+          <a href="account">Account</a>
+        </nav>
+      </div>
+    </header>
 
-      <section class="content-area" data-dashboard-content></section>
+    <main class="site-shell">
+      <section data-forge-header></section>
+      <section data-dashboard-content="true"></section>
     </main>
 
+    <nav class="bottom-nav" aria-label="Primary">
+      <a href="portal" class="bottom-nav-item">
+        <img src="favicon.svg" alt="" class="nav-icon" />
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="modules/safety" class="bottom-nav-item">
+        <img src="favicon.svg" alt="" class="nav-icon" />
+        <span class="nav-label">Safety</span>
+      </a>
+      <a href="modules/business-media" class="bottom-nav-item">
+        <img src="favicon.svg" alt="" class="nav-icon" />
+        <span class="nav-label">Business</span>
+      </a>
+      <a href="modules/control" class="bottom-nav-item">
+        <img src="favicon.svg" alt="" class="nav-icon" />
+        <span class="nav-label">Control</span>
+      </a>
+      <a href="account" class="bottom-nav-item">
+        <img src="favicon.svg" alt="" class="nav-icon" />
+        <span class="nav-label">Account</span>
+      </a>
+    </nav>
+
+    <footer class="site-footer">
+      <div class="site-footer-grid">
+        <section class="footer-column">
+          <p class="footer-title">FORGE Training System</p>
+          <p class="footer-credit">Powered by FRC 10332 Chargebotics</p>
+        </section>
+        <section class="footer-column">
+          <p class="footer-title">Navigation</p>
+          <div class="footer-links">
+            <a href="portal">Dashboard</a>
+            <a href="account">Account</a>
+            <a href="/">Back to Main Site</a>
+          </div>
+        </section>
+      </div>
+      <div class="site-footer-bottom">
+        <p>&copy; 2024 FRC Team 10332 Chargebotics. Built by Marshall E.</p>
+        <p class="footer-trademarks">Forge™ and the Chargebotics name and logo are trademarks of FRC Team 10332.</p>
+      </div>
+    </footer>
+
+    <script src="topography-bg.js"></script>
     <script src="data.js"></script>
     <script src="app.js"></script>
   </body>

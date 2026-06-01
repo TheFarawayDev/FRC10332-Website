@@ -4,34 +4,107 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FORGE | Strategy</title>
-    <link
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="../styles.css" />
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+    <link rel="stylesheet" href="../site-v2.css" />
   </head>
-  <body>
-    <main class="page-shell">
-      <header class="topbar" data-forge-header></header>
-      <section class="content-area">
-          <article class="panel hero">
-            <h2>Strategy Module</h2>
-            <p>Focus: scouting models, alliance role planning, and match adaptation.</p>
-            <iframe src="https://www.youtube.com/embed/2B9hM4QqF14" title="Strategy video" allowfullscreen></iframe>
-          </article>
-          <article class="panel">
-            <h3>Required Quiz Files</h3>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Quiz</th><th>File</th><th>Status</th></tr></thead>
-                <tbody data-module-checklist></tbody>
-              </table>
-            </div>
-            <div class="notice"><strong>Rule:</strong> strategy completion requires both scouting and match-planning quizzes passed.</div>
-          </article>
-    </section>
+  <body data-page="forge" data-forge-view="module-strategy">
+    <header class="site-topbar">
+      <div class="site-topbar-inner">
+        <div class="brand-block">
+          <img src="../favicon.svg" alt="FORGE" class="brand-icon" />
+          <h1>Strategy Module</h1>
+          <a href="/" class="header-back-link">← Main Site</a>
+        </div>
+        <nav class="top-nav" aria-label="Primary" data-forge-nav>
+          <a href="../portal">Dashboard</a>
+          <a href="safety">Safety</a>
+          <a href="business-media">Business & Media</a>
+          <a href="control">Control</a>
+          <a href="design">Design</a>
+          <a href="fabrication">Fabrication</a>
+          <a href="art">Art</a>
+          <a href="strategy">Strategy</a>
+          <a href="site-maintenance">Site Maintenance</a>
+          <a href="../account">Account</a>
+
+        </nav>
+      </div>
+    </header>
+
+    <main class="site-shell">
+      <section data-forge-header></section>
+      
+      <section class="panel-section">
+        <div class="hero-card">
+          <h2>Strategy Module</h2>
+          <p>Focus: scouting models, alliance role planning, and match adaptation.</p>
+        </div>
+      </section>
+
+      <div data-module-sections></div>
+
+      <section class="panel-section">
+        <div class="section-head">
+          <h3>Section Progress</h3>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Section</th><th>Title</th><th>Status</th></tr></thead>
+            <tbody data-module-checklist></tbody>
+          </table>
+        </div>
+        <div class="notice"><strong>Rule:</strong> strategy completion requires both scouting and match-planning quizzes passed.</div>
+      </section>
     </main>
+
+    <nav class="bottom-nav" aria-label="Primary">
+      <a href="../portal" class="bottom-nav-item">
+        <img src="../favicon.svg" alt="" class="nav-icon" />
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="safety" class="bottom-nav-item">
+        <img src="../favicon.svg" alt="" class="nav-icon" />
+        <span class="nav-label">Safety</span>
+      </a>
+      <a href="business-media" class="bottom-nav-item">
+        <img src="../favicon.svg" alt="" class="nav-icon" />
+        <span class="nav-label">Business</span>
+      </a>
+      <a href="control" class="bottom-nav-item">
+        <img src="../favicon.svg" alt="" class="nav-icon" />
+        <span class="nav-label">Control</span>
+      </a>
+      <a href="../account" class="bottom-nav-item">
+        <img src="../favicon.svg" alt="" class="nav-icon" />
+        <span class="nav-label">Account</span>
+      </a>
+    </nav>
+
+    <footer class="site-footer">
+      <div class="site-footer-grid">
+        <section class="footer-column">
+          <p class="footer-title">FORGE Training System</p>
+          <p class="footer-credit">Powered by FRC 10332 Chargebotics</p>
+        </section>
+        <section class="footer-column">
+          <p class="footer-title">Navigation</p>
+          <div class="footer-links">
+            <a href="../portal">Dashboard</a>
+            <a href="../account">Account</a>
+
+            <a href="/">Back to Main Site</a>
+          </div>
+        </section>
+      </div>
+      <div class="site-footer-bottom">
+        <p>&copy; 2024 FRC Team 10332 Chargebotics. Built by Marshall E.</p>
+        <p class="footer-trademarks">Forge™ and the Chargebotics name and logo are trademarks of FRC Team 10332.</p>
+      </div>
+    </footer>
+
+    <script src="../topography-bg.js"></script>
     <script src="../data.js"></script>
     <script src="../app.js"></script>
-    <script>document.addEventListener("DOMContentLoaded", () => renderModuleChecklist("strategy"));</script>
+    <script>document.addEventListener("DOMContentLoaded", () => { renderModuleSections("strategy"); renderModuleChecklist("strategy"); });</script>
   </body>
 </html>

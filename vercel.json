@@ -1,0 +1,36 @@
+{
+  "rewrites": [
+    { "source": "/auth", "destination": "/auth.html" },
+    { "source": "/portal", "destination": "/portal.html" },
+    { "source": "/account", "destination": "/account.html" },
+    { "source": "/calendar", "destination": "/calendar.html" },
+    { "source": "/members", "destination": "/members.html" },
+    { "source": "/logs", "destination": "/logs.html" },
+    { "source": "/posts", "destination": "/posts.html" },
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/terms", "destination": "/terms.html" },
+    { "source": "/admin-approvals", "destination": "/admin-approvals.html" },
+    { "source": "/members-dashboard", "destination": "/members-dashboard.html" },
+    { "source": "/modules/(.*)", "destination": "/modules/$1.html" },
+    { "source": "/quizzes/(.*)", "destination": "/quizzes/$1.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
+}

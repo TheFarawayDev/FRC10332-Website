@@ -346,6 +346,9 @@ function normalizeExtensionlessLinks() {
 }
 
 function renderCanvasRail() {
+  // Canvas rail navigation removed - Forge now uses main site topbar navigation
+  return;
+  
   if (document.querySelector(".canvas-rail")) return;
 
   const rail = document.createElement("nav");
@@ -380,6 +383,9 @@ function renderCanvasRail() {
 }
 
 function injectMobileNavToggle() {
+  // Mobile nav toggle removed - using standard topbar navigation
+  return;
+  
   const topbar = document.querySelector(".topbar");
   if (!topbar || topbar.querySelector(".mobile-nav-toggle")) return;
 
@@ -582,9 +588,20 @@ function getSortedModulesForState(state) {
 }
 
 function getRecommendedModules(state, limit = 3) {
-  return getSortedModulesForState(state)
-    .filter((module) => !getModuleProgress(module, state).complete)
-    .slice(0, limit);
+  const sorted = getSortedModulesForState(state);
+  const incomplete = sorted.filter((module) => !getModuleProgress(module, state).complete);
+  
+  // First, get all incomplete required modules
+  const incompleteRequired = incomplete.filter((module) => getModuleTeamStatus(module.key, state) === "required");
+  
+  // If there are incomplete required modules, only show those
+  if (incompleteRequired.length > 0) {
+    return incompleteRequired.slice(0, limit);
+  }
+  
+  // If all required modules are complete, show optional modules
+  const incompleteOptional = incomplete.filter((module) => getModuleTeamStatus(module.key, state) === "optional");
+  return incompleteOptional.slice(0, limit);
 }
 
 function getTrainingExpectation(state) {
@@ -614,26 +631,42 @@ function renderCommonHeader() {
   const roleData = FORGE_PROGRAM.roles[state.role] || FORGE_PROGRAM.roles.rookie;
   const roleLabel = roleData.label;
   const teamData = getTeamData(state);
-  const page = window.location.pathname.split("/").pop() || "index.html";
-  const onMainSite = page === "index.html" || page === "";
-  const headerTitle = onMainSite ? "Chargebotic Sites" : FORGE_PROGRAM.appName;
-  const headerSubtitle = onMainSite ? "FRC 10332 Main Website" : FORGE_PROGRAM.cohort;
 
   target.innerHTML = `
-    <div class="brand">
-      <div class="brand-mark"><img src="${assetPrefix()}favicon.svg" alt="FORGE icon" /></div>
-      <div class="brand-copy">
-        <h1>${headerTitle}</h1>
-        <p>${headerSubtitle}</p>
+    <div class="hero-card forge-profile-card" style="padding: 24px;">
+      <div class="profile-header-text">
+        <h3 class="profile-role-title">${roleLabel}</h3>
+        ${teamData ? `<p class="profile-team-subtitle">${teamData.label} Team</p>` : '<p class="profile-team-subtitle">No Sub-Team Assigned</p>'}
+      </div>
+      <div class="badge-row">
+        ${teamData ? `<span class="badge team-badge" style="--role-color:${teamData.color};border-left-color:${teamData.color}">[${teamData.code}]</span>` : ""}
+        <span class="badge pass-mark-badge">Pass Mark: ${FORGE_PROGRAM.passingScore}%</span>
+        ${isExempt(state) ? '<span class="badge exempt-badge">Training Exempt</span>' : ''}
       </div>
     </div>
-    <div class="badge-row">
-      <span class="badge role-badge" style="--role-color: ${roleData.color}">${roleLabel}</span>
-      ${teamData ? `<span class="badge team-badge" style="--role-color:${teamData.color};border-left-color:${teamData.color}">[${teamData.code}] ${teamData.label}</span>` : ""}
-      <span class="badge">Pass Mark: ${FORGE_PROGRAM.passingScore}%</span>
-      ${isExempt(state) ? '<span class="badge exempt-badge">Training Exempt</span>' : ''}
-    </div>
   `;
+  
+  // Update Forge navigation active states
+  updateForgeNavActiveStates();
+}
+
+function updateForgeNavActiveStates() {
+  const forgeNav = document.querySelector("[data-forge-nav]");
+  if (!forgeNav) return;
+  
+  const currentPath = window.location.pathname;
+  const links = forgeNav.querySelectorAll("a");
+  
+  links.forEach(link => {
+    const href = link.getAttribute("href");
+    link.classList.remove("active");
+    
+    if (currentPath.includes("portal") && href.includes("portal")) {
+      link.classList.add("active");
+    } else if (currentPath.includes("account") && href.includes("account")) {
+      link.classList.add("active");
+    }
+  });
 }
 
 function renderRoleControls() {
@@ -1079,98 +1112,127 @@ function renderDashboardContent() {
   const expectation = getTrainingExpectation(state);
   const videosWatched = Object.keys(state.readSections || state.watchedVideos || {}).length;
   const quizAttempts = Object.keys(state.completedQuizzes).length;
+  const summary = getOverallProgress(state);
 
   host.innerHTML = `
-    <article class="panel hero dashboard-hero">
+    <article class="panel hero dashboard-hero forge-hero-v2">
       <div class="hero-grid dashboard-hero-grid">
         <div class="hero-copy">
-          <span class="eyebrow">Operational dashboard</span>
-          <h2>FORGE Training Dashboard</h2>
-          <p>Focused Operations for Robotics Growth &amp; Excellence — a polished workspace for onboarding, safety readiness, and sub-team training execution.</p>
+          <span class="eyebrow">Advanced Training Platform</span>
+          <h2>FORGE Training System</h2>
+          <p class="hero-subtitle">Focused Operations for Robotics Growth &amp; Excellence</p>
+          <p>A comprehensive workspace designed for safety readiness, technical skill development, and team operational excellence. Master the fundamentals, advance your capabilities, and prepare for competition success.</p>
           <div class="hero-chip-row">
+            <span class="glass-chip chip-primary">${summary.percentage}% Complete</span>
             <span class="glass-chip">${teamData ? `[${teamData.code}] ${teamData.label}` : "All-team view"}</span>
-            <span class="glass-chip">${videosWatched} read completions</span>
-            <span class="glass-chip">${quizAttempts} logged assessments</span>
+            <span class="glass-chip">${videosWatched} Lessons</span>
+            <span class="glass-chip">${quizAttempts} Assessments</span>
           </div>
         </div>
         <aside class="hero-side">
-          <div class="preview-card compact">
-            <span class="preview-kicker">Readiness posture</span>
+          <div class="preview-card compact forge-status-card">
+            <span class="preview-kicker">Training Status</span>
             <h3>${expectation.title}</h3>
             <p>${expectation.body}</p>
+            <div class="status-progress-wrap">
+              <div class="status-progress-bar">
+                <div class="status-progress-fill" style="width: ${summary.percentage}%"></div>
+              </div>
+              <span class="status-progress-text">${summary.completedModules}/${summary.totalModules} Modules</span>
+            </div>
           </div>
         </aside>
       </div>
-      <div class="quick-grid">${renderMetricTiles(state)}</div>
     </article>
 
-    <section class="ops-strip">
-      <article class="ops-card">
-        <span class="preview-kicker">Assigned track</span>
-        <strong>${teamData ? teamData.label : "No sub-team assigned"}</strong>
-        <p>${teamData ? teamData.description : "Use the account page to assign a sub-team and prioritize required modules."}</p>
-      </article>
-      <article class="ops-card">
-        <span class="preview-kicker">Verification model</span>
-        <strong>Read gated assessments</strong>
-        <p>Members read official FRC references plus team notes before taking knowledge checks, keeping readiness evidence tied to each section.</p>
-      </article>
-      <article class="ops-card">
-        <span class="preview-kicker">Platform state</span>
-        <strong>Prototype ready for demos</strong>
-        <p>Local storage powers previews today and can later connect to roster sync, real sign-offs, and reporting.</p>
-      </article>
+    <section class="panel stats-overview-panel">
+      <div class="section-head compact">
+        <h3>📊 Performance Metrics</h3>
+        <p>Track your progress across all training modules and assessments</p>
+      </div>
+      <div class="quick-grid">
+        ${renderMetricTiles(state)}
+      </div>
     </section>
 
-    <div class="dashboard-shell">
-      <article class="panel canvas-module-list dashboard-main">
-        <div class="section-head">
-          <div>
-            <h3>Training modules</h3>
-            <p>${teamData ? `Showing ${teamData.required.length} required + ${teamData.optional.length} optional for <strong>${teamData.label}</strong>` : "All modules — assign a sub-team on your account page to prioritize the queue."}</p>
-          </div>
-        </div>
-        <div class="module-accordion-list">
-          ${sortedModules.map((module) => renderModuleAccordion(module, state)).join("")}
-        </div>
-      </article>
+    ${recommendedModules.length > 0 ? `
+    <section class="panel recommended-modules-panel">
+      <div class="section-head compact">
+        <h3>🎓 Next Steps</h3>
+        <p>Recommended modules to continue your training journey</p>
+      </div>
+      <div class="recommended-grid">
+        ${recommendedModules.map((module) => {
+          const progress = getModuleProgress(module, state);
+          const teamStatus = getModuleTeamStatus(module.key, state);
+          const statusBadge = teamStatus === "required" 
+            ? '<span class="rec-badge required">REQUIRED</span>' 
+            : teamStatus === "optional"
+            ? '<span class="rec-badge optional">OPTIONAL</span>'
+            : '';
+          return `
+            <article class="recommended-card">
+              <div class="rec-header">
+                <span class="rec-icon">${UI_ICONS[module.icon] || UI_ICONS.dashboard}</span>
+                ${statusBadge}
+              </div>
+              <h4>${module.title}</h4>
+              <p>${module.outcome}</p>
+              <div class="rec-meta">
+                <span>⏱️ ${module.estimatedTime || "60 min"}</span>
+                <span>📝 ${getModuleSections(module).length} sections</span>
+              </div>
+              <div class="button-row">
+                <a class="btn primary" href="${module.modulePage}">Start Module</a>
+              </div>
+            </article>
+          `;
+        }).join("")}
+      </div>
+    </section>
+    ` : ''}
 
-      <aside class="dashboard-side">
-        <article class="panel list-card">
-          <div class="section-head">
-            <div>
-              <h3>Recommended next steps</h3>
-              <p>Priority modules for the active member.</p>
-            </div>
-          </div>
-          <ul class="preview-list">
-            ${recommendedModules.length
-              ? recommendedModules.map((module) => `
-                <li>
-                  <span>${module.title}<small>${module.owner}</small></span>
-                  <strong>${module.estimatedTime || "Queued"}</strong>
-                </li>
-              `).join("")
-              : '<li><span>No remaining incomplete modules</span><strong>Ready</strong></li>'}
-          </ul>
-        </article>
+    <section class="panel">
+      <div class="section-head">
+        <h3>📚 All Training Modules</h3>
+        <p>Complete curriculum organized by role, sub-team, and skill level. Expand any module to view lessons and begin training.</p>
+      </div>
+      <div class="module-accordion-list">
+        ${sortedModules.map((module, index) => renderModuleAccordion(module, state, index === 0)).join("")}
+      </div>
+    </section>
 
-        <article class="panel list-card">
-          <div class="section-head">
-            <div>
-              <h3>Platform capabilities</h3>
-              <p>How the interface behaves like a real training product.</p>
-            </div>
-          </div>
-          <ul class="capability-list">
-            <li>Role and team-based requirement mapping</li>
-            <li>Embedded lesson delivery with SOP notes</li>
-            <li>Readiness verification through checkoffs</li>
-            <li>Member and leadership progress visibility</li>
+    <section class="panel forge-footer-panel">
+      <div class="forge-footer-grid">
+        <div class="forge-footer-col">
+          <h4>💡 Training Tips</h4>
+          <ul>
+            <li>Complete modules in the recommended order for optimal learning</li>
+            <li>Read all content thoroughly before attempting quizzes</li>
+            <li>Retake quizzes until you achieve the passing score of ${FORGE_PROGRAM.passingScore}%</li>
+            <li>Track your progress using the metrics dashboard above</li>
           </ul>
-        </article>
-      </aside>
-    </div>
+        </div>
+        <div class="forge-footer-col">
+          <h4>🛡️ Safety First</h4>
+          <ul>
+            <li>Safety modules are mandatory for all members</li>
+            <li>Shop access requires completion of safety training</li>
+            <li>Always wear appropriate PPE in the workspace</li>
+            <li>Report any safety concerns to team leadership</li>
+          </ul>
+        </div>
+        <div class="forge-footer-col">
+          <h4>📞 Need Help?</h4>
+          <ul>
+            <li>Contact your sub-team lead for module questions</li>
+            <li>Technical issues? Reach out to site administrators</li>
+            <li>Review the <a href="../terms">Terms of Service</a></li>
+            <li>Check our <a href="../privacy">Privacy Policy</a></li>
+          </ul>
+        </div>
+      </div>
+    </section>
   `;
 }
 
@@ -1193,12 +1255,13 @@ function renderModuleContent() {
         <article class="stat"><span class="value">${isExempt(state) ? "Exempt" : "Required"}</span><span>Current rule</span></article>
       </div>
     </article>
-    <article class="panel canvas-module-list">
-      <div class="module-accordion-list single-module">
-        ${renderModuleAccordion(module, state, true)}
-      </div>
-    </article>
+    <div class="module-accordion-list single-module">
+      ${renderModuleAccordion(module, state, true)}
+    </div>
   `;
+  
+  // Wire the reading session buttons after rendering
+  wireReadCountdownTimers();
 }
 
 function renderAccountContent() {
@@ -1278,7 +1341,7 @@ function renderAccountContent() {
         <span class="badge role-badge" style="--role-color:${(FORGE_PROGRAM.roles[state.role]||{}).color}">${(FORGE_PROGRAM.roles[state.role]||{label:"—"}).label}</span>
       </div>
     </article>
-    <article class="panel account-grid">
+    <div class="account-grid">
       <section class="account-card">
         <h3>Profile</h3>
         <div class="account-row"><span>Email</span><strong>${demo.email}</strong></div>
@@ -1318,7 +1381,7 @@ function renderAccountContent() {
         </div>
       </section>
       ${teamCard}
-    </article>
+    </div>
     ${adminPanel}
   `;
 
@@ -1395,6 +1458,101 @@ function renderMemoryGame(section, gameState) {
       <button type="button" class="btn" data-memory-reset>Shuffle Game</button>
     </div>
   `;
+}
+
+function launchMemoryGame(section, sectionKey) {
+  const root = getOrCreateModalRoot();
+  let gameState = {
+    deck: shuffleList(createMemoryDeck(section)),
+    openCards: [],
+    matchedCards: new Set(),
+    matches: 0,
+    totalPairs: section.quiz.length
+  };
+
+  const drawGame = () => {
+    const cards = gameState.deck
+      .map((card, index) => {
+        const open = gameState.openCards.includes(index) || gameState.matchedCards.has(index);
+        return `
+          <button type="button" class="memory-card ${open ? "open" : ""}" data-memory-card="${index}">
+            <span>${open ? card.label : "?"}</span>
+          </button>
+        `;
+      })
+      .join("");
+
+    const status = gameState.matches === gameState.totalPairs
+      ? "🎉 Memory game complete! Nice recall."
+      : `Matches: ${gameState.matches}/${gameState.totalPairs}`;
+
+    root.innerHTML = `
+      <div class="forge-modal-overlay quiz-fullscreen-modal" role="dialog" aria-modal="true" aria-label="Memory game">
+        <div class="forge-modal-card quiz-fullscreen-card">
+          <header class="forge-modal-head">
+            <div>
+              <h3>${section.title} — Memory Match</h3>
+              <p>Match each question card with its correct answer card.</p>
+            </div>
+            <button type="button" class="btn" data-close-modal>Close</button>
+          </header>
+          <div class="quiz-fullscreen-body">
+            <div class="memory-game-wrap">
+              <div class="memory-game-grid">${cards}</div>
+              <div class="quiz-meta">${status}</div>
+              <div class="button-row">
+                <button type="button" class="btn" data-memory-reset>🔄 Shuffle Game</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    bindGameInteractions();
+  };
+
+  const bindGameInteractions = () => {
+    root.querySelector("[data-close-modal]")?.addEventListener("click", () => {
+      closeModal();
+    });
+
+    root.querySelectorAll("[data-memory-card]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const index = Number(button.dataset.memoryCard);
+        if (gameState.openCards.includes(index) || gameState.matchedCards.has(index)) return;
+        if (gameState.openCards.length === 2) return;
+        gameState.openCards.push(index);
+        drawGame();
+        if (gameState.openCards.length < 2) return;
+        const [first, second] = gameState.openCards;
+        const firstCard = gameState.deck[first];
+        const secondCard = gameState.deck[second];
+        if (firstCard.id === secondCard.id && firstCard.type !== secondCard.type) {
+          gameState.matchedCards.add(first);
+          gameState.matchedCards.add(second);
+          gameState.matches += 1;
+        }
+        gameState.openCards = [];
+        window.setTimeout(() => {
+          drawGame();
+        }, 350);
+      });
+    });
+
+    root.querySelector("[data-memory-reset]")?.addEventListener("click", () => {
+      gameState = {
+        deck: shuffleList(createMemoryDeck(section)),
+        openCards: [],
+        matchedCards: new Set(),
+        matches: 0,
+        totalPairs: section.quiz.length
+      };
+      drawGame();
+    });
+  };
+
+  document.body.classList.add("modal-open");
+  drawGame();
 }
 
 function launchFullscreenQuiz(section, quizKey, resultHost) {
@@ -1543,6 +1701,19 @@ function launchFullscreenQuiz(section, quizKey, resultHost) {
         : `Scored ${score}% - retry anytime.`;
     }
     bindMemoryGame();
+    
+    // Refresh module checklist after quiz completion
+    const moduleKey = quizKey.split(':')[0];
+    if (moduleKey && typeof renderModuleChecklist === 'function') {
+      renderModuleChecklist(moduleKey);
+    }
+    
+    // Update quiz button state
+    const quizButton = document.querySelector(`[data-launch-quiz="${quizKey}"]`);
+    if (quizButton && passed) {
+      quizButton.textContent = '✓ Quiz Passed';
+      quizButton.classList.add('success');
+    }
   };
 
   const bindQuizInteractions = () => {
@@ -1602,9 +1773,12 @@ function renderModuleChecklist(moduleKey) {
   const module = FORGE_PROGRAM.modules.find((m) => m.key === moduleKey);
   if (!module) return;
 
-  host.innerHTML = module.quizzes
-    .map((quizPath, index) => {
-      const result = state.completedQuizzes[quizPath];
+  const sections = module.sections || [];
+  
+  host.innerHTML = sections
+    .map((section, index) => {
+      const sectionKey = `${moduleKey}:${section.id}`;
+      const result = state.completedQuizzes[sectionKey];
       const passedText = result
         ? result.passed
           ? `Passed (${result.score}%)`
@@ -1613,13 +1787,123 @@ function renderModuleChecklist(moduleKey) {
 
       return `
         <tr>
-          <td>Quiz ${index + 1}</td>
-          <td><a href="../${quizPath}">${quizPath.split("/")[1].replace(".html", "")}</a></td>
+          <td>Section ${index + 1}</td>
+          <td>${section.title}</td>
           <td>${passedText}</td>
         </tr>
       `;
     })
     .join("");
+}
+
+function renderModuleSections(moduleKey) {
+  const host = document.querySelector("[data-module-sections]");
+  if (!host) return;
+
+  const state = readState();
+  const module = FORGE_PROGRAM.modules.find((m) => m.key === moduleKey);
+  if (!module) return;
+
+  const sections = module.sections || [];
+  
+  host.innerHTML = sections
+    .map((section, index) => {
+      const sectionKey = `${moduleKey}:${section.id}`;
+      const result = state.completedQuizzes[sectionKey];
+      const isRead = state.readSections?.[sectionKey] || false;
+      
+      return `
+        <details class="panel-section module-section-dropdown" id="${section.id}" ${index === 0 ? 'open' : ''}>
+          <summary class="section-head dropdown-summary">
+            <h3>${index + 1}. ${section.title}</h3>
+            <span class="dropdown-icon">▼</span>
+          </summary>
+          
+          <div class="section-content">
+            ${section.notes ? `
+            <div class="module-notes">
+              <p>${section.notes.substring(0, 200)}${section.notes.length > 200 ? '...' : ''}</p>
+            </div>
+            ` : ''}
+            
+            <div class="button-row">
+              <button type="button" class="btn" data-view-article="${sectionKey}">
+                📖 View Article
+              </button>
+              
+              ${section.quiz && section.quiz.length > 0 ? `
+              <button type="button" class="btn primary" data-launch-quiz="${sectionKey}" ${isRead ? '' : 'disabled'}>
+                ${isRead ? '🎯 Take Quiz' : '🔒 Read Article First'}
+              </button>
+              ` : ''}
+              
+              ${section.quiz && section.quiz.length > 0 && result?.passed ? `
+              <button type="button" class="btn success" data-play-game="${sectionKey}">
+                🎮 Memory Game
+              </button>
+              ` : ''}
+            </div>
+            
+            ${result ? `
+            <div class="section-status ${result.passed ? 'passed' : 'retry'}">
+              ${result.passed ? `✓ Passed with ${result.score}%` : `Retry needed (${result.score}%)`}
+            </div>
+            ` : ''}
+            
+            <div class="quiz-result-inline" data-inline-result="${sectionKey}"></div>
+          </div>
+        </details>
+      `;
+    })
+    .join("");
+    
+  // Wire up the View Article buttons - use setTimeout to ensure DOM is ready
+  setTimeout(() => {
+    sections.forEach((section) => {
+      const sectionKey = `${moduleKey}:${section.id}`;
+      const viewButton = document.querySelector(`[data-view-article="${sectionKey}"]`);
+      
+      if (viewButton) {
+        // Remove any existing listeners to avoid duplicates
+        const newButton = viewButton.cloneNode(true);
+        viewButton.parentNode.replaceChild(newButton, viewButton);
+        
+        newButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          openReadingModal(section, module);
+        });
+      }
+      
+      // Wire up quiz launch buttons
+      const quizButton = document.querySelector(`[data-launch-quiz="${sectionKey}"]`);
+      const resultHost = document.querySelector(`[data-inline-result="${sectionKey}"]`);
+      
+      if (quizButton && section.quiz) {
+        const newQuizButton = quizButton.cloneNode(true);
+        quizButton.parentNode.replaceChild(newQuizButton, quizButton);
+        
+        newQuizButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          if (!newQuizButton.disabled) {
+            launchFullscreenQuiz(section, sectionKey, resultHost);
+          }
+        });
+      }
+      
+      // Wire up game buttons
+      const gameButton = document.querySelector(`[data-play-game="${sectionKey}"]`);
+      
+      if (gameButton && section.quiz) {
+        const newGameButton = gameButton.cloneNode(true);
+        gameButton.parentNode.replaceChild(newGameButton, gameButton);
+        
+        newGameButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          launchMemoryGame(section, sectionKey);
+        });
+      }
+    });
+  }, 0);
 }
 
 function wireQuizForm(quizFile, answers) {

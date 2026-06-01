@@ -1,0 +1,21 @@
+# Netlify redirects for extensionless URLs
+# https://docs.netlify.com/routing/redirects/
+
+# Main pages
+/auth              /auth.html              200
+/portal            /portal.html            200
+/account           /account.html           200
+/calendar          /calendar.html          200
+/members           /members.html           200
+/logs              /logs.html              200
+/posts             /posts.html             200
+/privacy           /privacy.html           200
+/terms             /terms.html             200
+/admin-approvals   /admin-approvals.html   200
+/members-dashboard /members-dashboard.html 200
+
+# Module pages
+/modules/*         /modules/:splat.html    200
+
+# Quiz pages
+/quizzes/*         /quizzes/:splat.html    200
