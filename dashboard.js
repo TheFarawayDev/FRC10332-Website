@@ -91,9 +91,8 @@ function bindDashboardModals() {
   const host = document.createElement('div');
   host.className = 'site-modal';
   host.hidden = true;
-  host.style.cssText = 'position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 24px; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px);';
   host.innerHTML = `
-    <div class="site-modal-card" role="dialog" aria-modal="true" aria-labelledby="memberModalTitle" style="max-width: 640px; width: 100%; max-height: 90vh; overflow: auto; padding: 32px; background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border);">
+    <div class="site-modal-card" role="dialog" aria-modal="true" aria-labelledby="memberModalTitle">
       <div class="site-modal-head">
         <h4 id="memberModalTitle"></h4>
         <button class="site-modal-close" type="button" data-modal-close aria-label="Close">✕</button>
