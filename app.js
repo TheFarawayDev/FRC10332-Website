@@ -2,6 +2,63 @@ const STORAGE_KEY = "forge-training-state-v1";
 const MIN_READ_SECONDS = 150;
 const MODAL_ROOT_ID = "forge-modal-root";
 
+// ─── Fallback / Resilience Helpers ───────────────────────────────────────────
+
+/** True when localStorage is actually available (some browsers block it). */
+const _storageAvailable = (() => {
+  try {
+    const k = "__forge_test__";
+    localStorage.setItem(k, "1");
+    localStorage.removeItem(k);
+    return true;
+  } catch (e) {
+    return false;
+  }
+})();
+
+let _storageWarningShown = false;
+function _warnStorageUnavailable() {
+  if (_storageWarningShown) return;
+  _storageWarningShown = true;
+  _showSystemNotice(
+    "Your browser is blocking local storage — training progress and sign-in will not be saved this session. Try disabling private/incognito mode or checking your browser settings.",
+    "warn"
+  );
+}
+
+function _showSystemNotice(message, level = "info") {
+  const id = "forge-system-notice";
+  let bar = document.getElementById(id);
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = id;
+    bar.className = "system-notice";
+    document.body.prepend(bar);
+  }
+  bar.className = `system-notice notice-${level}`;
+  bar.textContent = message;
+  bar.hidden = false;
+  // Auto-dismiss after 10 s unless it's a persistent warn/error
+  if (level === "info") {
+    setTimeout(() => { bar.hidden = true; }, 10000);
+  }
+}
+
+function _renderDataError(host, context) {
+  host.innerHTML = `
+    <div class="forge-error-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="48" height="48" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12" opacity="0.4"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <h2>Training data unavailable</h2>
+      <p>The FORGE program data could not be loaded. This is usually a temporary network issue.</p>
+      <div class="button-row" style="justify-content:center;margin-top:20px">
+        <button class="btn primary" type="button" onclick="location.reload()">Reload Page</button>
+        <a class="btn alt" href="./">Back to Home</a>
+      </div>
+      <p class="forge-error-detail" style="font-size:0.75rem;color:var(--muted);margin-top:16px">Context: ${context} · data.js may have failed to load</p>
+    </div>
+  `;
+}
+
 // ─── Cookie Consent ───────────────────────────────────────────────────────────
 const COOKIE_CONSENT_KEY = "frc10332-cookie-consent";
 
@@ -77,18 +134,27 @@ function extractVideoId(url) {
 }
 
 function getVideoWatched(sectionKey) {
-  const state = readState();
-  return Boolean(state.readSections?.[sectionKey] || state.watchedVideos?.[sectionKey]);
+  try {
+    const state = readState();
+    return Boolean(state.readSections?.[sectionKey] || state.watchedVideos?.[sectionKey]);
+  } catch (e) {
+    return false;
+  }
 }
 
 function markVideoWatched(sectionKey) {
-  const state = readState();
-  state.readSections = state.readSections || {};
-  state.readSections[sectionKey] = true;
-  state.watchedVideos = state.watchedVideos || {};
-  state.watchedVideos[sectionKey] = true;
-  saveState(state);
-  unlockQuizGate(sectionKey);
+  try {
+    const state = readState();
+    state.readSections = state.readSections || {};
+    state.readSections[sectionKey] = true;
+    state.watchedVideos = state.watchedVideos || {};
+    state.watchedVideos[sectionKey] = true;
+    saveState(state);
+    unlockQuizGate(sectionKey);
+  } catch (e) {
+    console.warn("[FORGE] markVideoWatched failed:", e);
+    _showSystemNotice("Could not save reading completion — progress may not persist.", "warn");
+  }
 }
 
 function unlockQuizGate(sectionKey) {
@@ -242,6 +308,8 @@ function openReadingModal(section, module) {
       timerDone = true;
       secondsLeft = 0;
       window.clearInterval(timer);
+      // If content was never scrollable, ensure bottom is marked when timer ends
+      checkScrollability();
     }
     updateStatus();
   }, 1000);
@@ -255,6 +323,21 @@ function openReadingModal(section, module) {
   };
 
   scrollHost.addEventListener("scroll", onScroll);
+
+  // Bug fix: if content is too short to scroll, mark bottom as reached immediately
+  // Also re-check whenever the timer ticks (content may have reflowed)
+  const checkScrollability = () => {
+    if (reachedBottom) return;
+    const threshold = 8;
+    if (scrollHost.scrollHeight <= scrollHost.clientHeight + threshold) {
+      reachedBottom = true;
+      updateStatus();
+    }
+  };
+  checkScrollability();
+  // Defer one frame in case content renders async (e.g. rich-notes images)
+  requestAnimationFrame(checkScrollability);
+
   updateStatus();
 
   closeButton.addEventListener("click", () => {
@@ -524,38 +607,43 @@ function ensureFavicon() {
 }
 
 function readState() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    return {
-      role: "rookie",
-      team: null,
-      overrideRequired: false,
-      completedQuizzes: {},
-      watchedVideos: {},
-      readSections: {}
-    };
+  if (!_storageAvailable) {
+    _warnStorageUnavailable();
+    return _defaultState();
   }
-
   try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return _defaultState();
     const parsed = JSON.parse(raw);
     if (!parsed.watchedVideos) parsed.watchedVideos = {};
     if (!parsed.readSections) parsed.readSections = { ...(parsed.watchedVideos || {}) };
     if (parsed.team === undefined) parsed.team = null;
     return parsed;
   } catch (error) {
-    return {
-      role: "rookie",
-      team: null,
-      overrideRequired: false,
-      completedQuizzes: {},
-      watchedVideos: {},
-      readSections: {}
-    };
+    console.warn("[FORGE] readState parse error — resetting to defaults:", error);
+    return _defaultState();
   }
 }
 
+function _defaultState() {
+  return {
+    role: "rookie",
+    team: null,
+    overrideRequired: false,
+    completedQuizzes: {},
+    watchedVideos: {},
+    readSections: {}
+  };
+}
+
 function saveState(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (!_storageAvailable) { _warnStorageUnavailable(); return; }
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn("[FORGE] saveState failed (quota/permissions):", e);
+    _showSystemNotice("Could not save training progress — your storage may be full or restricted.", "warn");
+  }
 }
 
 function setRole(roleValue) {
@@ -1219,6 +1307,7 @@ function renderModuleAccordion(module, state, defaultOpen = false) {
 function renderDashboardContent() {
   const host = document.querySelector("[data-dashboard-content], .content-area");
   if (!host) return;
+  if (!window.FORGE_PROGRAM) { _renderDataError(host, "portal"); return; }
 
   const state = readState();
   const teamData = getTeamData(state);
@@ -1354,6 +1443,7 @@ function renderDashboardContent() {
 function renderModuleContent() {
   const host = document.querySelector("[data-module-content], .content-area");
   if (!host) return;
+  if (!window.FORGE_PROGRAM) { _renderDataError(host, "module"); return; }
 
   const module = getModuleFromPath();
   const state = readState();
@@ -1853,23 +1943,43 @@ function renderAccountContent() {
     return;
   }
 
-  // ── Logged-in content ─────────────────────────────────────────────────────
+  // ── Logged-in: render full member dashboard ───────────────────────────────
+  renderMemberDashboard(host, currentUser);
+}
+
+// ─── Member Dashboard ─────────────────────────────────────────────────────────
+
+function renderMemberDashboard(host, currentUser) {
   const state = readState();
   const summary = getOverallProgress(state);
   const demo = FORGE_PROGRAM.demo;
   const teamData = getTeamData(state);
+  const roleData = FORGE_PROGRAM.roles[state.role] || FORGE_PROGRAM.roles.rookie;
   const isAdmin = ["captain", "lead", "mentor"].includes(state.role);
+  const teamsObj = FORGE_PROGRAM.teams || {};
+
+  // Compute a few extra metrics for the dashboard
+  const readCount = Object.keys(state.readSections || state.watchedVideos || {}).length;
+  const quizPassCount = Object.values(state.completedQuizzes || {}).filter(r => r.passed).length;
+  const totalQuizzes = FORGE_PROGRAM.modules.reduce((n, m) => n + getModuleSections(m).length, 0);
+  const urgentModules = FORGE_PROGRAM.modules.filter(m => getModuleTeamStatus(m.key, state) === "required" && getModuleProgress(m, state).passedCount < getModuleProgress(m, state).totalCount);
+  const nextModule = urgentModules[0] || getSortedModulesForState(state).find(m => getModuleProgress(m, state).passedCount < getModuleProgress(m, state).totalCount);
+
+  // Recent completions (last 3)
+  const recentQuizzes = Object.entries(state.completedQuizzes || {})
+    .filter(([, r]) => r.completedAt)
+    .sort(([, a], [, b]) => new Date(b.completedAt) - new Date(a.completedAt))
+    .slice(0, 3);
 
   // Team assignment card
-  const teamsObj = FORGE_PROGRAM.teams || {};
   const teamCard = `
     <section class="account-card">
       <h3>Sub-Team Assignment</h3>
-      <p style="font-size:0.78rem;color:var(--ink-1);margin:0 0 10px;">Your assigned sub-team controls which modules are marked Required or Optional on your dashboard.</p>
+      <p style="font-size:0.78rem;color:var(--muted);margin:0 0 10px;">Your assigned sub-team controls which modules are marked Required or Optional on your dashboard.</p>
       <div class="team-card-list" data-team-form>
         <label class="team-card ${!state.team ? "selected" : ""}">
           <input type="radio" name="memberTeam" value="" ${!state.team ? "checked" : ""} />
-          <span class="team-card-dot" style="background:var(--ink-1)"></span>
+          <span class="team-card-dot" style="background:var(--muted)"></span>
           <span class="team-card-text">
             <strong>No Sub-Team</strong>
             <small>All modules listed without priority</small>
@@ -1890,19 +2000,43 @@ function renderAccountContent() {
     </section>
   `;
 
-  // Admin panel: module matrix per team (only for admins)
+  // Role card
+  const roleCard = `
+    <section class="account-card">
+      <h3>Role &amp; Access Level</h3>
+      <div class="role-selector" data-role-form>
+        <label class="override-toggle switch-row">
+          <input type="checkbox" name="mentorOverride" ${state.overrideRequired ? "checked" : ""} />
+          <span class="switch-control" aria-hidden="true"></span>
+          <span class="switch-copy">
+            <strong>Mentor override</strong>
+            <small>Require the full training track regardless of role.</small>
+          </span>
+        </label>
+        <div class="role-card-list">
+          ${Object.entries(FORGE_PROGRAM.roles).map(([key, role]) => `
+            <label class="role-card ${state.role === key ? "selected" : ""}" style="border-left-color:${state.role === key ? role.color : "transparent"}">
+              <input type="radio" name="memberRole" value="${key}" ${state.role === key ? "checked" : ""} />
+              <span class="role-card-dot" style="background:${role.color}"></span>
+              <span class="role-card-text">
+                <strong>${role.label}</strong>
+                <small>${role.description}</small>
+              </span>
+              <span class="role-level-pip" style="border-color:${role.color};color:${role.color}">L${role.level}</span>
+            </label>
+          `).join("")}
+        </div>
+      </div>
+    </section>
+  `;
+
+  // Admin panel
   const adminPanel = isAdmin ? `
     <div class="admin-panel">
       <h3>Admin — Module Requirement Matrix</h3>
-      <p style="font-size:0.78rem;color:var(--ink-1);margin:4px 0 0;">Shows which modules each sub-team must complete. Assign teams to members via the roster (coming soon).</p>
+      <p style="font-size:0.78rem;color:var(--muted);margin:4px 0 0;">Shows which modules each sub-team must complete. Assign teams to members via the roster (coming soon).</p>
       <table class="admin-matrix">
-        <thead>
-          <tr>
-            <th>Sub-Team</th>
-            <th>Required Modules</th>
-            <th>Optional Modules</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Sub-Team</th><th>Required Modules</th><th>Optional Modules</th></tr></thead>
         <tbody>
           ${Object.entries(teamsObj).map(([, t]) => `
             <tr>
@@ -1917,64 +2051,240 @@ function renderAccountContent() {
   ` : "";
 
   host.innerHTML = `
-    <article class="account-hero">
-      <div class="account-badge">${demo.initials}</div>
-      <div>
-        <h2>${demo.name}</h2>
-        <p>${demo.memberId} &nbsp;·&nbsp; ${teamData ? `[${teamData.code}] ${teamData.label}` : demo.subteam} &nbsp;·&nbsp; ${demo.joined}</p>
-      </div>
-      <div style="margin-left:auto">
-        <span class="badge role-badge" style="--role-color:${(FORGE_PROGRAM.roles[state.role]||{}).color}">${(FORGE_PROGRAM.roles[state.role]||{label:"—"}).label}</span>
-      </div>
-    </article>
-    <div class="account-grid">
-      <section class="account-card">
-        <h3>Profile</h3>
-        <div class="account-row"><span>Email</span><strong>${demo.email}</strong></div>
-        <div class="account-row"><span>Joined</span><strong>${demo.joined}</strong></div>
-        <div class="account-row"><span>Subteam</span><strong>${teamData ? teamData.label : demo.subteam}</strong></div>
-      </section>
-      <section class="account-card">
-        <h3>Training Status</h3>
-        <div class="account-row"><span>Program progress</span><strong>${summary.percentage}%</strong></div>
-        <div class="account-row"><span>Modules complete</span><strong>${summary.completedModules}/${summary.totalModules}</strong></div>
-        <div class="account-row"><span>Exempt</span><strong>${isExempt(state) ? "Yes" : "No"}</strong></div>
-      </section>
-      <section class="account-card">
-        <h3>Role &amp; Access Level</h3>
-        <div class="role-selector" data-role-form>
-          <label class="override-toggle switch-row">
-            <input type="checkbox" name="mentorOverride" ${state.overrideRequired ? "checked" : ""} />
-            <span class="switch-control" aria-hidden="true"></span>
-            <span class="switch-copy">
-              <strong>Mentor override</strong>
-              <small>Require the full training track regardless of role.</small>
-            </span>
-          </label>
-          <div class="role-card-list">
-            ${Object.entries(FORGE_PROGRAM.roles).map(([key, role]) => `
-              <label class="role-card ${state.role === key ? "selected" : ""}" style="border-left-color:${state.role === key ? role.color : "transparent"}">
-                <input type="radio" name="memberRole" value="${key}" ${state.role === key ? "checked" : ""} />
-                <span class="role-card-dot" style="background:${role.color}"></span>
-                <span class="role-card-text">
-                  <strong>${role.label}</strong>
-                  <small>${role.description}</small>
-                </span>
-                <span class="role-level-pip" style="border-color:${role.color};color:${role.color}">L${role.level}</span>
-              </label>
-            `).join("")}
+    <!-- ── Dashboard Hero ── -->
+    <article class="mbr-dash-hero">
+      <div class="mbr-dash-hero-left">
+        <div class="mbr-dash-avatar" style="background:${roleData.color}18;color:${roleData.color};border-color:${roleData.color}40">${demo.initials}</div>
+        <div class="mbr-dash-greet">
+          <span class="mbr-dash-eyebrow">Member Dashboard</span>
+          <h2>Welcome back, ${demo.name.split(" ")[0]}</h2>
+          <div class="mbr-dash-meta">
+            <span class="badge role-badge" style="--role-color:${roleData.color}">${roleData.label}</span>
+            ${teamData ? `<span class="badge" style="background:${teamData.color}18;color:${teamData.color};border:1px solid ${teamData.color}30">[${teamData.code}] ${teamData.label}</span>` : ""}
+            <span style="color:var(--muted);font-size:0.8rem">${demo.memberId}</span>
           </div>
         </div>
-      </section>
-      ${teamCard}
-    </div>
-    ${adminPanel}
+      </div>
+      <div class="mbr-dash-progress-wrap">
+        <div class="mbr-dash-progress-ring" style="--prog:${summary.percentage}">
+          <svg viewBox="0 0 64 64" width="72" height="72" aria-hidden="true">
+            <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/>
+            <circle cx="32" cy="32" r="26" fill="none" stroke="${roleData.color}" stroke-width="6"
+              stroke-dasharray="${2 * Math.PI * 26}" stroke-dashoffset="${2 * Math.PI * 26 * (1 - summary.percentage / 100)}"
+              stroke-linecap="round" transform="rotate(-90 32 32)"/>
+          </svg>
+          <span class="ring-label">${summary.percentage}%</span>
+        </div>
+        <div>
+          <strong style="display:block;font-size:0.95rem">${summary.completedModules}/${summary.totalModules} modules</strong>
+          <span style="color:var(--muted);font-size:0.8rem">${isExempt(state) ? "Exempt track" : urgentModules.length > 0 ? `${urgentModules.length} required remaining` : "All required done"}</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- ── Quick Access ── -->
+    <section class="panel mbr-dash-section">
+      <div class="section-head compact">
+        <h3>Quick Access</h3>
+        <p>Jump to where you need to go</p>
+      </div>
+      <div class="mbr-quick-grid">
+        <a class="mbr-quick-card mbr-quick-primary" href="${assetPrefix()}portal">
+          <div class="mbr-quick-icon" aria-hidden="true">${UI_ICONS.dashboard}</div>
+          <div class="mbr-quick-body">
+            <strong>FORGE Training Portal</strong>
+            <span>Full training dashboard, all modules &amp; assessments</span>
+          </div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
+        ${nextModule ? `
+        <a class="mbr-quick-card" href="${nextModule.modulePage}">
+          <div class="mbr-quick-icon" aria-hidden="true">${UI_ICONS[nextModule.icon] || UI_ICONS.dashboard}</div>
+          <div class="mbr-quick-body">
+            <strong>Continue: ${nextModule.title}</strong>
+            <span>${getModuleProgress(nextModule, state).passedCount}/${getModuleProgress(nextModule, state).totalCount} sections done</span>
+          </div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
+        ` : ""}
+        <a class="mbr-quick-card" href="${assetPrefix()}modules/safety">
+          <div class="mbr-quick-icon" aria-hidden="true">${UI_ICONS.safety}</div>
+          <div class="mbr-quick-body">
+            <strong>Safety Modules</strong>
+            <span>Required for all members · PPE &amp; shop zones</span>
+          </div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
+        <a class="mbr-quick-card" href="${assetPrefix()}logs">
+          <div class="mbr-quick-icon" aria-hidden="true">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="9" y1="12" x2="15" y2="12" opacity="0.4"/><line x1="9" y1="16" x2="15" y2="16" opacity="0.4"/></svg>
+          </div>
+          <div class="mbr-quick-body">
+            <strong>Sub-Team Logs</strong>
+            <span>Progress updates &amp; notes from every sub-team</span>
+          </div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
+        <a class="mbr-quick-card" href="${assetPrefix()}calendar">
+          <div class="mbr-quick-icon" aria-hidden="true">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6" opacity="0.4"/><line x1="8" y1="2" x2="8" y2="6" opacity="0.4"/><line x1="3" y1="10" x2="21" y2="10" opacity="0.4"/></svg>
+          </div>
+          <div class="mbr-quick-body">
+            <strong>Team Calendar</strong>
+            <span>Build sessions, outreach milestones &amp; comp windows</span>
+          </div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
+        <a class="mbr-quick-card" href="${assetPrefix()}members">
+          <div class="mbr-quick-icon" aria-hidden="true">${UI_ICONS.account}</div>
+          <div class="mbr-quick-body">
+            <strong>Member Directory</strong>
+            <span>Public directory &amp; sub-team highlights</span>
+          </div>
+          <svg class="mbr-quick-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19" opacity="0.5"/></svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- ── Training Metrics ── -->
+    <section class="panel mbr-dash-section">
+      <div class="section-head compact">
+        <h3>Training Overview</h3>
+        <p>Your progress across all FORGE program modules</p>
+      </div>
+      <div class="mbr-metric-grid">
+        <div class="mbr-metric-tile">
+          <span class="mbr-metric-value" data-count="${summary.completedModules}" data-suffix="">${summary.completedModules}</span>
+          <span class="mbr-metric-label">Modules Complete</span>
+          <div class="mbr-metric-sub">${summary.totalModules} total</div>
+        </div>
+        <div class="mbr-metric-tile">
+          <span class="mbr-metric-value" data-count="${quizPassCount}" data-suffix="">${quizPassCount}</span>
+          <span class="mbr-metric-label">Quizzes Passed</span>
+          <div class="mbr-metric-sub">${totalQuizzes} available</div>
+        </div>
+        <div class="mbr-metric-tile">
+          <span class="mbr-metric-value" data-count="${readCount}" data-suffix="">${readCount}</span>
+          <span class="mbr-metric-label">Reading Sessions</span>
+          <div class="mbr-metric-sub">Sections read</div>
+        </div>
+        <div class="mbr-metric-tile">
+          <span class="mbr-metric-value" data-count="${summary.percentage}" data-suffix="%">${summary.percentage}%</span>
+          <span class="mbr-metric-label">Overall Progress</span>
+          <div class="mbr-metric-sub-bar"><div style="width:${summary.percentage}%;background:${roleData.color}"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Recent Activity ── -->
+    ${recentQuizzes.length > 0 ? `
+    <section class="panel mbr-dash-section">
+      <div class="section-head compact">
+        <h3>Recent Activity</h3>
+        <p>Your latest quiz completions</p>
+      </div>
+      <div class="mbr-activity-list">
+        ${recentQuizzes.map(([key, r]) => {
+          const d = new Date(r.completedAt);
+          const dStr = isNaN(d) ? "" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          const [, sectionId] = key.split(":");
+          return `
+            <div class="mbr-activity-row">
+              <div class="mbr-activity-icon ${r.passed ? "pass" : "fail"}" aria-hidden="true">
+                ${r.passed ? "&#x2713;" : "&#x2715;"}
+              </div>
+              <div class="mbr-activity-body">
+                <strong>${sectionId || key}</strong>
+                <span>${r.passed ? `Passed · ${r.score}%` : `Needs review · ${r.score}%`}</span>
+              </div>
+              ${dStr ? `<span class="mbr-activity-date">${dStr}</span>` : ""}
+            </div>
+          `;
+        }).join("")}
+        <a class="btn alt" style="margin-top:8px" href="${assetPrefix()}portal">View All Progress</a>
+      </div>
+    </section>
+    ` : `
+    <section class="panel mbr-dash-section mbr-dash-empty">
+      <div class="mbr-dash-empty-inner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="40" height="40" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" opacity="0.4"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <h4>No training activity yet</h4>
+        <p>Head to the FORGE Training Portal to start your first module.</p>
+        <a class="btn primary" href="${assetPrefix()}portal">Open Training Portal</a>
+      </div>
+    </section>
+    `}
+
+    <!-- ── Announcements ── -->
+    <section class="panel mbr-dash-section">
+      <div class="section-head compact">
+        <h3>Team Announcements</h3>
+        <p>Latest updates from team leadership</p>
+      </div>
+      <div class="mbr-announce-list">
+        <div class="mbr-announce-item">
+          <div class="mbr-announce-meta"><span class="mbr-announce-tag">Safety</span><span class="mbr-announce-date">May 30</span></div>
+          <strong>Safety refresh due — all members</strong>
+          <p>All pit crew and drive team members must complete the safety module re-check before the next build session. PPE is always in style.</p>
+        </div>
+        <div class="mbr-announce-item">
+          <div class="mbr-announce-meta"><span class="mbr-announce-tag">Training</span><span class="mbr-announce-date">May 28</span></div>
+          <strong>New FORGE modules now live</strong>
+          <p>Design DFM and Strategy Scouting modules have been updated with new content. Complete them to keep your progress current.</p>
+        </div>
+        <div class="mbr-announce-item">
+          <div class="mbr-announce-meta"><span class="mbr-announce-tag">Competition</span><span class="mbr-announce-date">May 25</span></div>
+          <strong>Scrimmage prep packet posted</strong>
+          <p>Review autonomous priorities and communication callouts in the strategy module. Drive smooth, think faster.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Settings (collapsible) ── -->
+    <details class="panel mbr-settings-accordion">
+      <summary class="mbr-settings-summary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" opacity="0.4"/></svg>
+        Role &amp; Team Settings
+        <svg class="mbr-settings-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </summary>
+      <div class="mbr-settings-body">
+        <div class="account-grid">
+          <section class="account-card">
+            <h3>Profile</h3>
+            <div class="account-row"><span>Email</span><strong>${demo.email}</strong></div>
+            <div class="account-row"><span>Joined</span><strong>${demo.joined}</strong></div>
+            <div class="account-row"><span>Sub-team</span><strong>${teamData ? teamData.label : demo.subteam}</strong></div>
+          </section>
+          ${roleCard}
+          ${teamCard}
+        </div>
+        ${adminPanel}
+      </div>
+    </details>
+
+    <!-- ── Account Management ── -->
     ${renderAccountManagementSection(currentUser)}
   `;
 
   renderRoleControls();
   wireTeamControls();
   wireAccountManagement();
+
+  // Animate metric counters
+  host.querySelectorAll(".mbr-metric-value[data-count]").forEach((el) => {
+    const target = parseFloat(el.dataset.count) || 0;
+    const suffix = el.dataset.suffix || "";
+    if (target === 0) { el.textContent = "0" + suffix; return; }
+    const duration = Math.min(800, 300 + target * 10);
+    const start = performance.now();
+    const tick = (now) => {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(target * eased) + suffix;
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
 }
 
 function wireTeamControls() {
@@ -2547,9 +2857,21 @@ document.addEventListener("DOMContentLoaded", () => {
   } else if (pageKind === "account") {
     // Wire auth state changes so the page re-renders on sign-in/sign-out
     if (window.FirebaseSystems) {
-      FirebaseSystems.onAuthChange(() => renderAccountContent());
+      FirebaseSystems.onAuthChange(() => {
+        try { renderAccountContent(); } catch(e) { console.error("[FORGE] renderAccountContent error:", e); }
+      });
     } else {
-      renderAccountContent();
+      // FirebaseSystems may still be initializing — try immediately, then retry
+      try { renderAccountContent(); } catch(e) { console.error("[FORGE] renderAccountContent error:", e); }
+      // Retry after 800ms in case firebase-init.js is loading slowly
+      setTimeout(() => {
+        if (window.FirebaseSystems) {
+          FirebaseSystems.onAuthChange(() => {
+            try { renderAccountContent(); } catch(e) { console.error("[FORGE] renderAccountContent retry error:", e); }
+          });
+        }
+        try { renderAccountContent(); } catch(e) { /* silently ignore duplicate render */ }
+      }, 800);
     }
   } else {
     renderHomeContent();
