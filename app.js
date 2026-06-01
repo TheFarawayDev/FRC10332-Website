@@ -1104,20 +1104,20 @@ function renderDashboardContent() {
     <article class="panel hero dashboard-hero forge-hero-v2">
       <div class="hero-grid dashboard-hero-grid">
         <div class="hero-copy">
-          <span class="eyebrow">✨ Advanced Training Platform</span>
+          <span class="eyebrow">Advanced Training Platform</span>
           <h2>FORGE Training System</h2>
           <p class="hero-subtitle">Focused Operations for Robotics Growth &amp; Excellence</p>
           <p>A comprehensive workspace designed for safety readiness, technical skill development, and team operational excellence. Master the fundamentals, advance your capabilities, and prepare for competition success.</p>
           <div class="hero-chip-row">
-            <span class="glass-chip chip-primary">⚡ ${summary.percentage}% Complete</span>
+            <span class="glass-chip chip-primary">${summary.percentage}% Complete</span>
             <span class="glass-chip">${teamData ? `[${teamData.code}] ${teamData.label}` : "All-team view"}</span>
-            <span class="glass-chip">📚 ${videosWatched} Lessons</span>
-            <span class="glass-chip">✓ ${quizAttempts} Assessments</span>
+            <span class="glass-chip">${videosWatched} Lessons</span>
+            <span class="glass-chip">${quizAttempts} Assessments</span>
           </div>
         </div>
         <aside class="hero-side">
           <div class="preview-card compact forge-status-card">
-            <span class="preview-kicker">🎯 Training Status</span>
+            <span class="preview-kicker">Training Status</span>
             <h3>${expectation.title}</h3>
             <p>${expectation.body}</p>
             <div class="status-progress-wrap">
@@ -1650,9 +1650,12 @@ function renderModuleChecklist(moduleKey) {
   const module = FORGE_PROGRAM.modules.find((m) => m.key === moduleKey);
   if (!module) return;
 
-  host.innerHTML = module.quizzes
-    .map((quizPath, index) => {
-      const result = state.completedQuizzes[quizPath];
+  const sections = module.sections || [];
+  
+  host.innerHTML = sections
+    .map((section, index) => {
+      const sectionKey = `${moduleKey}:${section.id}`;
+      const result = state.completedQuizzes[sectionKey];
       const passedText = result
         ? result.passed
           ? `Passed (${result.score}%)`
@@ -1661,13 +1664,115 @@ function renderModuleChecklist(moduleKey) {
 
       return `
         <tr>
-          <td>Quiz ${index + 1}</td>
-          <td><a href="../${quizPath}">${quizPath.split("/")[1].replace(".html", "")}</a></td>
+          <td>Section ${index + 1}</td>
+          <td>${section.title}</td>
           <td>${passedText}</td>
         </tr>
       `;
     })
     .join("");
+}
+
+function renderModuleSections(moduleKey) {
+  const host = document.querySelector("[data-module-sections]");
+  if (!host) return;
+
+  const state = readState();
+  const module = FORGE_PROGRAM.modules.find((m) => m.key === moduleKey);
+  if (!module) return;
+
+  const sections = module.sections || [];
+  
+  host.innerHTML = sections
+    .map((section, index) => {
+      const sectionKey = `${moduleKey}:${section.id}`;
+      const result = state.completedQuizzes[sectionKey];
+      const isWatched = state.watchedVideos?.[sectionKey] || state.readSections?.[sectionKey] || false;
+      
+      return `
+        <section class="panel-section module-section" id="${section.id}">
+          <div class="section-head">
+            <h3>${index + 1}. ${section.title}</h3>
+          </div>
+          
+          ${section.notes ? `
+          <div class="module-notes">
+            ${section.notes}
+          </div>
+          ` : ''}
+          
+          ${section.video ? `
+          <div class="module-video">
+            <iframe src="${section.video}" title="${section.title} video" allowfullscreen style="width:100%;aspect-ratio:16/9;border:none;border-radius:var(--radius-soft);"></iframe>
+          </div>
+          ` : ''}
+          
+          ${section.quiz && section.quiz.length > 0 ? `
+          <div class="module-quiz">
+            <h4>Quiz: ${section.title}</h4>
+            <form class="quiz-form" data-section-quiz="${sectionKey}">
+              ${section.quiz.map((q, qIdx) => `
+                <div class="quiz-question">
+                  <p><strong>Question ${qIdx + 1}:</strong> ${q.q}</p>
+                  ${q.options.map((opt, optIdx) => `
+                    <label class="quiz-option">
+                      <input type="radio" name="q${qIdx}" value="${optIdx}" required />
+                      <span>${opt}</span>
+                    </label>
+                  `).join('')}
+                </div>
+              `).join('')}
+              <button type="submit" class="btn">Submit Quiz</button>
+              <div class="quiz-result" data-quiz-result="${sectionKey}"></div>
+            </form>
+          </div>
+          ` : ''}
+          
+          ${result ? `
+          <div class="section-status ${result.passed ? 'passed' : 'retry'}">
+            ${result.passed ? `✓ Passed with ${result.score}%` : `Retry needed (${result.score}%)`}
+          </div>
+          ` : ''}
+        </section>
+      `;
+    })
+    .join("");
+    
+  // Wire up the quiz forms
+  sections.forEach((section) => {
+    const sectionKey = `${moduleKey}:${section.id}`;
+    const form = document.querySelector(`[data-section-quiz="${sectionKey}"]`);
+    const resultHost = document.querySelector(`[data-quiz-result="${sectionKey}"]`);
+    
+    if (form && resultHost && section.quiz) {
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        
+        let correct = 0;
+        const total = section.quiz.length;
+        
+        section.quiz.forEach((q, idx) => {
+          const selected = form.querySelector(`input[name='q${idx}']:checked`);
+          if (selected && parseInt(selected.value) === q.answer) {
+            correct += 1;
+          }
+        });
+        
+        const score = Math.round((correct / total) * 100);
+        const passed = score >= FORGE_PROGRAM.passingScore;
+        
+        markQuizResult(sectionKey, passed, score);
+        
+        resultHost.className = `quiz-result ${passed ? 'pass' : 'fail'}`;
+        resultHost.textContent = passed
+          ? `Passed with ${score}% - this section now counts toward your module completion.`
+          : `Scored ${score}% - needs ${FORGE_PROGRAM.passingScore}% to pass. Review the content and try again.`;
+          
+        // Refresh the checklist
+        renderModuleChecklist(moduleKey);
+      });
+    }
+  });
 }
 
 function wireQuizForm(quizFile, answers) {

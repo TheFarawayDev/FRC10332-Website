@@ -36,17 +36,18 @@
         <div class="hero-card">
           <h2>Safety Module</h2>
           <p>Focus: PPE standards, shop zones, pit behavior, and incident prevention procedures.</p>
-          <iframe src="https://www.youtube.com/embed/6J4J5Jf3DoY" title="Safety video" allowfullscreen style="width:100%;aspect-ratio:16/9;border:none;border-radius:var(--radius-soft);"></iframe>
         </div>
       </section>
 
+      <div data-module-sections></div>
+
       <section class="panel-section">
         <div class="section-head">
-          <h3>Required Quiz Files</h3>
+          <h3>Section Progress</h3>
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Quiz</th><th>File</th><th>Status</th></tr></thead>
+            <thead><tr><th>Section</th><th>Title</th><th>Status</th></tr></thead>
             <tbody data-module-checklist></tbody>
           </table>
         </div>
@@ -78,6 +79,6 @@
     <script src="../topography-bg.js"></script>
     <script src="../data.js"></script>
     <script src="../app.js"></script>
-    <script>document.addEventListener("DOMContentLoaded", () => renderModuleChecklist("safety"));</script>
+    <script>document.addEventListener("DOMContentLoaded", () => { renderModuleSections("safety"); renderModuleChecklist("safety"); });</script>
   </body>
 </html>

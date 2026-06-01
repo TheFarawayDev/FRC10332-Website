@@ -36,17 +36,18 @@
         <div class="hero-card">
           <h2>Fabrication Module</h2>
           <p>Focus: measurement discipline, machine setup, and quality assurance on parts.</p>
-          <iframe src="https://www.youtube.com/embed/PfCKY8th6FA" title="Fabrication video" allowfullscreen style="width:100%;aspect-ratio:16/9;border:none;border-radius:var(--radius-soft);"></iframe>
         </div>
       </section>
 
+      <div data-module-sections></div>
+
       <section class="panel-section">
         <div class="section-head">
-          <h3>Required Quiz Files</h3>
+          <h3>Section Progress</h3>
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Quiz</th><th>File</th><th>Status</th></tr></thead>
+            <thead><tr><th>Section</th><th>Title</th><th>Status</th></tr></thead>
             <tbody data-module-checklist></tbody>
           </table>
         </div>
@@ -78,6 +79,6 @@
     <script src="../topography-bg.js"></script>
     <script src="../data.js"></script>
     <script src="../app.js"></script>
-    <script>document.addEventListener("DOMContentLoaded", () => renderModuleChecklist("fabrication"));</script>
+    <script>document.addEventListener("DOMContentLoaded", () => { renderModuleSections("fabrication"); renderModuleChecklist("fabrication"); });</script>
   </body>
 </html>
