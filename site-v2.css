@@ -2306,7 +2306,74 @@ body[data-page="forge"] .section-head h3 {
   font-family: monospace;
 }
 
+.role-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.role-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-soft);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.role-card:hover {
+  border-color: var(--accent);
+}
+
+.role-card.selected {
+  border-color: var(--accent);
+  background: rgba(0, 112, 243, 0.05);
+}
+
+.role-card-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.role-card-text {
+  flex: 1;
+}
+
+.role-card-text strong {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.role-card-text small {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.role-level-pip {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: monospace;
+  border: 2px solid;
+}
+
 /* Responsive adjustments for portal and account */
+@media (max-width: 1024px) {
+  .account-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   .panel {
     padding: 20px;
@@ -2321,6 +2388,68 @@ body[data-page="forge"] .section-head h3 {
   }
 
   .forge-footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .account-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .account-card {
+    padding: 20px;
+  }
+
+  .account-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .account-hero > div:last-child {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .team-card,
+  .role-card {
+    padding: 14px;
+  }
+
+  .team-card-text strong,
+  .role-card-text strong {
+    font-size: 0.9rem;
+  }
+
+  .team-card-text small,
+  .role-card-text small {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-card {
+    padding: 16px;
+  }
+
+  .account-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .account-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 10px 0;
+  }
+
+  .team-card,
+  .role-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .quick-grid {
     grid-template-columns: 1fr;
   }
 }

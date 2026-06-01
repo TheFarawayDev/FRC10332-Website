@@ -1244,12 +1244,13 @@ function renderModuleContent() {
         <article class="stat"><span class="value">${isExempt(state) ? "Exempt" : "Required"}</span><span>Current rule</span></article>
       </div>
     </article>
-    <article class="panel canvas-module-list">
-      <div class="module-accordion-list single-module">
-        ${renderModuleAccordion(module, state, true)}
-      </div>
-    </article>
+    <div class="module-accordion-list single-module">
+      ${renderModuleAccordion(module, state, true)}
+    </div>
   `;
+  
+  // Wire the reading session buttons after rendering
+  wireReadCountdownTimers();
 }
 
 function renderAccountContent() {
@@ -1329,7 +1330,7 @@ function renderAccountContent() {
         <span class="badge role-badge" style="--role-color:${(FORGE_PROGRAM.roles[state.role]||{}).color}">${(FORGE_PROGRAM.roles[state.role]||{label:"—"}).label}</span>
       </div>
     </article>
-    <article class="panel account-grid">
+    <div class="account-grid">
       <section class="account-card">
         <h3>Profile</h3>
         <div class="account-row"><span>Email</span><strong>${demo.email}</strong></div>
@@ -1369,7 +1370,7 @@ function renderAccountContent() {
         </div>
       </section>
       ${teamCard}
-    </article>
+    </div>
     ${adminPanel}
   `;
 
