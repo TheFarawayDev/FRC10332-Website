@@ -382,42 +382,48 @@ function renderCanvasRail() {
   document.body.prepend(rail);
 }
 
+const FORGE_BOTTOM_NAV = [
+  { href: "portal.html",                      label: "Dashboard",  key: "portal"           },
+  { href: "modules/safety.html",              label: "Safety",     key: "safety"           },
+  { href: "modules/business-media.html",      label: "Business",   key: "business-media"   },
+  { href: "modules/control.html",             label: "Control",    key: "control"          },
+  { href: "modules/design.html",              label: "Design",     key: "design"           },
+  { href: "modules/fabrication.html",         label: "Fabrication",key: "fabrication"      },
+  { href: "modules/art.html",                 label: "Art",        key: "art"              },
+  { href: "modules/strategy.html",            label: "Strategy",   key: "strategy"         },
+  { href: "modules/site-maintenance.html",    label: "Maintenance",key: "site-maintenance" },
+  { href: "account.html",                     label: "Account",    key: "account"          },
+];
+
 function injectTabletNav() {
-  const shell = document.querySelector(".page-shell");
-  if (!shell || shell.querySelector(".tablet-nav")) return;
+  // Only applies to Forge pages
+  if (document.body.dataset.page !== "forge") return;
 
   const current = window.location.pathname;
-  const isRoot = current === "/" || current === "";
+  const prefix = assetPrefix();
 
-  const nav = document.createElement("nav");
-  nav.className = "tablet-nav";
-  nav.setAttribute("aria-label", "Navigation");
-  nav.innerHTML = `<div class="tablet-nav-inner">
-    ${RAIL_LINKS.map((link) => {
-      const pageKey = link.href.replace(".html", "");
-      const active =
-        (pageKey === "index" && isRoot) ||
-        current.includes(`/${pageKey}`) ||
-        current.endsWith(link.href);
-      return `<a class="tablet-nav-link${active ? " active" : ""}" href="${resolveAppHref(link.href)}" aria-label="${link.label}">
-        ${UI_ICONS[link.icon]}
-        <span>${link.label}</span>
-      </a>`;
-    }).join("")}
-  </div>`;
+  const items = FORGE_BOTTOM_NAV.map(({ href, label, key }) => {
+    const active = current.includes(`/${key}`);
+    return `<a href="${resolveAppHref(href)}" class="bottom-nav-item${active ? " active" : ""}">
+      <img src="${prefix}favicon.svg" alt="" class="nav-icon" />
+      <span class="nav-label">${label}</span>
+    </a>`;
+  }).join("");
 
-  // Insert right after the topbar header
-  const topbar = shell.querySelector(".topbar");
-  if (topbar && topbar.nextSibling) {
-    shell.insertBefore(nav, topbar.nextSibling);
+  const existing = document.querySelector("nav.bottom-nav");
+  if (existing) {
+    existing.innerHTML = items;
   } else {
-    shell.appendChild(nav);
+    const nav = document.createElement("nav");
+    nav.className = "bottom-nav";
+    nav.setAttribute("aria-label", "Primary");
+    nav.innerHTML = items;
+    document.body.appendChild(nav);
   }
-  normalizeExtensionlessLinks(nav);
 }
 
 function injectMobileNavToggle() {
-  // Legacy toggle removed — tablet nav replaces this on all non-desktop widths
+  // Legacy — bottom nav replaces this
 }
 
 function decorateSideNav() {
