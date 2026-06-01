@@ -1445,6 +1445,101 @@ function renderMemoryGame(section, gameState) {
   `;
 }
 
+function launchMemoryGame(section, sectionKey) {
+  const root = getOrCreateModalRoot();
+  let gameState = {
+    deck: shuffleList(createMemoryDeck(section)),
+    openCards: [],
+    matchedCards: new Set(),
+    matches: 0,
+    totalPairs: section.quiz.length
+  };
+
+  const drawGame = () => {
+    const cards = gameState.deck
+      .map((card, index) => {
+        const open = gameState.openCards.includes(index) || gameState.matchedCards.has(index);
+        return `
+          <button type="button" class="memory-card ${open ? "open" : ""}" data-memory-card="${index}">
+            <span>${open ? card.label : "?"}</span>
+          </button>
+        `;
+      })
+      .join("");
+
+    const status = gameState.matches === gameState.totalPairs
+      ? "🎉 Memory game complete! Nice recall."
+      : `Matches: ${gameState.matches}/${gameState.totalPairs}`;
+
+    root.innerHTML = `
+      <div class="forge-modal-overlay quiz-fullscreen-modal" role="dialog" aria-modal="true" aria-label="Memory game">
+        <div class="forge-modal-card quiz-fullscreen-card">
+          <header class="forge-modal-head">
+            <div>
+              <h3>${section.title} — Memory Match</h3>
+              <p>Match each question card with its correct answer card.</p>
+            </div>
+            <button type="button" class="btn" data-close-modal>Close</button>
+          </header>
+          <div class="quiz-fullscreen-body">
+            <div class="memory-game-wrap">
+              <div class="memory-game-grid">${cards}</div>
+              <div class="quiz-meta">${status}</div>
+              <div class="button-row">
+                <button type="button" class="btn" data-memory-reset>🔄 Shuffle Game</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    bindGameInteractions();
+  };
+
+  const bindGameInteractions = () => {
+    root.querySelector("[data-close-modal]")?.addEventListener("click", () => {
+      closeModal();
+    });
+
+    root.querySelectorAll("[data-memory-card]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const index = Number(button.dataset.memoryCard);
+        if (gameState.openCards.includes(index) || gameState.matchedCards.has(index)) return;
+        if (gameState.openCards.length === 2) return;
+        gameState.openCards.push(index);
+        drawGame();
+        if (gameState.openCards.length < 2) return;
+        const [first, second] = gameState.openCards;
+        const firstCard = gameState.deck[first];
+        const secondCard = gameState.deck[second];
+        if (firstCard.id === secondCard.id && firstCard.type !== secondCard.type) {
+          gameState.matchedCards.add(first);
+          gameState.matchedCards.add(second);
+          gameState.matches += 1;
+        }
+        gameState.openCards = [];
+        window.setTimeout(() => {
+          drawGame();
+        }, 350);
+      });
+    });
+
+    root.querySelector("[data-memory-reset]")?.addEventListener("click", () => {
+      gameState = {
+        deck: shuffleList(createMemoryDeck(section)),
+        openCards: [],
+        matchedCards: new Set(),
+        matches: 0,
+        totalPairs: section.quiz.length
+      };
+      drawGame();
+    });
+  };
+
+  document.body.classList.add("modal-open");
+  drawGame();
+}
+
 function launchFullscreenQuiz(section, quizKey, resultHost) {
   const root = getOrCreateModalRoot();
   const passingScore = FORGE_PROGRAM.passingScore;
@@ -1726,6 +1821,12 @@ function renderModuleSections(moduleKey) {
                 ${isRead ? '🎯 Take Quiz' : '🔒 Read Article First'}
               </button>
               ` : ''}
+              
+              ${section.quiz && section.quiz.length > 0 && result?.passed ? `
+              <button type="button" class="btn success" data-play-game="${sectionKey}">
+                🎮 Memory Game
+              </button>
+              ` : ''}
             </div>
             
             ${result ? `
@@ -1759,6 +1860,15 @@ function renderModuleSections(moduleKey) {
     if (quizButton && section.quiz) {
       quizButton.addEventListener("click", () => {
         launchFullscreenQuiz(section, sectionKey, resultHost);
+      });
+    }
+    
+    // Wire up game buttons
+    const gameButton = document.querySelector(`[data-play-game="${sectionKey}"]`);
+    
+    if (gameButton && section.quiz) {
+      gameButton.addEventListener("click", () => {
+        launchMemoryGame(section, sectionKey);
       });
     }
   });
