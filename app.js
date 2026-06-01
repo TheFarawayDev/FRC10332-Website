@@ -1748,7 +1748,7 @@ function renderModuleSections(moduleKey) {
     
     if (viewButton) {
       viewButton.addEventListener("click", () => {
-        launchReadingSession(module, section);
+        openReadingModal(section, module);
       });
     }
     
