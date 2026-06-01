@@ -1,5 +1,5 @@
 const STORAGE_KEY = "forge-training-state-v1";
-const MIN_READ_SECONDS = 300;
+const MIN_READ_SECONDS = 150;
 const MODAL_ROOT_ID = "forge-modal-root";
 
 // ─── YouTube Player Registry ──────────────────────────────────────────────────
