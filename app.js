@@ -2,6 +2,68 @@ const STORAGE_KEY = "forge-training-state-v1";
 const MIN_READ_SECONDS = 150;
 const MODAL_ROOT_ID = "forge-modal-root";
 
+// ─── Cookie Consent ───────────────────────────────────────────────────────────
+const COOKIE_CONSENT_KEY = "frc10332-cookie-consent";
+
+function getCookieConsent() {
+  try {
+    const raw = localStorage.getItem(COOKIE_CONSENT_KEY);
+    if (raw === null) return null; // no decision yet
+    const parsed = JSON.parse(raw);
+    return parsed?.accepted === true;
+  } catch (e) {
+    return null;
+  }
+}
+
+function setCookieConsent(accepted) {
+  try {
+    localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify({ accepted, ts: Date.now() }));
+  } catch (e) { /* silent */ }
+}
+
+function renderCookieBanner() {
+  if (getCookieConsent() !== null) return; // already decided
+  if (document.getElementById("cookie-banner")) return;
+  const banner = document.createElement("div");
+  banner.className = "cookie-banner";
+  banner.id = "cookie-banner";
+  banner.setAttribute("role", "dialog");
+  banner.setAttribute("aria-label", "Cookie consent");
+  banner.innerHTML = `
+    <div class="cookie-banner-inner">
+      <div class="cookie-banner-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="8.5" cy="13.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="14" cy="9" r="1" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.25" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <div class="cookie-banner-text">
+        <strong>Cookies &amp; Local Storage</strong>
+        <p>We use local storage for your login session, training progress, and settings. Required for sign-in and the FORGE training system.</p>
+      </div>
+      <div class="cookie-banner-actions">
+        <button class="btn alt cookie-deny-btn" type="button">Deny</button>
+        <button class="btn primary cookie-accept-btn" type="button">Accept &amp; Continue</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(banner);
+  requestAnimationFrame(() => banner.classList.add("cookie-banner-visible"));
+  banner.querySelector(".cookie-accept-btn").addEventListener("click", () => {
+    setCookieConsent(true);
+    _dismissCookieBanner(banner);
+    if (getPageKind() === "account") renderAccountContent();
+  });
+  banner.querySelector(".cookie-deny-btn").addEventListener("click", () => {
+    setCookieConsent(false);
+    _dismissCookieBanner(banner);
+    if (getPageKind() === "account") renderAccountContent();
+  });
+}
+
+function _dismissCookieBanner(banner) {
+  banner.classList.remove("cookie-banner-visible");
+  setTimeout(() => banner.remove(), 350);
+}
+
 // ─── YouTube Player Registry ──────────────────────────────────────────────────
 const VIDEO_PLAYERS = {};
 
@@ -1319,10 +1381,483 @@ function renderModuleContent() {
   wireReadCountdownTimers();
 }
 
+// ─── Auth Form Rendering ──────────────────────────────────────────────────────
+
+function renderAuthShell(activeTab) {
+  const tab = activeTab || "sign-in";
+  const teams = Object.entries(FORGE_PROGRAM.teams || {}).map(([, t]) => ({
+    label: t.label,
+    color: t.color,
+  }));
+  const teamCheckboxes = teams
+    .map(
+      (t) => `
+    <label class="team-choice">
+      <input type="checkbox" name="teams" value="${t.label}" />
+      <span class="team-choice-dot" style="background:${t.color}"></span>
+      <span>${t.label}</span>
+    </label>`
+    )
+    .join("");
+  const gradeOpts = [
+    "Freshman (9th)",
+    "Sophomore (10th)",
+    "Junior (11th)",
+    "Senior (12th)",
+    "Alumni",
+    "Mentor / Coach",
+    "Other",
+  ]
+    .map((g) => `<option>${g}</option>`)
+    .join("");
+  const expOpts = ["First year", "2 years", "3 years", "4 years", "5+ years"]
+    .map((e, i) => `<option value="${i + 1}">${e}</option>`)
+    .join("");
+
+  return `
+    <div class="auth-shell">
+      <div class="auth-hero">
+        <span class="kicker">Member Access</span>
+        <h1>FORGE<br>Training</h1>
+        <p>Log in to access your personalized training dashboard, track module progress, and manage your team assignments.</p>
+        <ul class="auth-highlights">
+          <li>Progress tracking across all modules</li>
+          <li>Quiz scores &amp; certifications</li>
+          <li>Sub-team assignment &amp; role management</li>
+          <li>Competition preparation resources</li>
+        </ul>
+      </div>
+      <div class="auth-card">
+        <div class="auth-tabs" role="tablist">
+          <button class="${tab === "sign-in" ? "active" : ""}" data-auth-tab="sign-in" role="tab" aria-selected="${tab === "sign-in"}">Sign In</button>
+          <button class="${tab === "sign-up" ? "active" : ""}" data-auth-tab="sign-up" role="tab" aria-selected="${tab === "sign-up"}">Create Account</button>
+        </div>
+
+        <div data-auth-panel="sign-in"${tab !== "sign-in" ? " hidden" : ""}>
+          <form class="auth-form" id="sign-in-form" novalidate>
+            <h2 class="auth-form-title">Welcome back</h2>
+            <p class="auth-form-note">Sign in with your team credentials to access FORGE.</p>
+            <label>
+              Email address
+              <input type="email" name="email" autocomplete="username" placeholder="you@example.com" required />
+            </label>
+            <label>
+              Password
+              <div class="input-with-toggle">
+                <input type="password" name="password" autocomplete="current-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required />
+                <button type="button" class="input-toggle-btn" aria-label="Show password" data-toggle-password>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </label>
+            <div class="auth-form-row-end">
+              <button type="button" class="link-btn" data-auth-forgot>Forgot password?</button>
+            </div>
+            <button type="submit" class="btn primary btn-full" id="sign-in-submit">
+              <span class="btn-label">Sign In</span>
+            </button>
+            <p class="status" id="sign-in-status" aria-live="polite"></p>
+          </form>
+        </div>
+
+        <div data-auth-panel="sign-up"${tab !== "sign-up" ? " hidden" : ""}>
+          <form class="auth-form" id="sign-up-form" novalidate>
+            <h2 class="auth-form-title">Create account</h2>
+            <p class="auth-form-note">New members: request access below. An admin will review and approve your application.</p>
+            <div class="auth-form-cols">
+              <label>
+                First name
+                <input type="text" name="firstName" autocomplete="given-name" placeholder="Alex" required />
+              </label>
+              <label>
+                Last name
+                <input type="text" name="lastName" autocomplete="family-name" placeholder="Johnson" required />
+              </label>
+            </div>
+            <label>
+              Team email address
+              <input type="email" name="email" autocomplete="username" placeholder="ajohnson@example.com" required />
+            </label>
+            <div class="auth-form-cols">
+              <label>
+                Grade / Level
+                <select name="grade">
+                  <option value="">Select&hellip;</option>
+                  ${gradeOpts}
+                </select>
+              </label>
+              <label>
+                FRC experience
+                <select name="experience">
+                  <option value="">Select&hellip;</option>
+                  ${expOpts}
+                </select>
+              </label>
+            </div>
+            <div class="auth-form-cols">
+              <label>
+                Password
+                <div class="input-with-toggle">
+                  <input type="password" name="password" autocomplete="new-password" placeholder="Min. 8 characters" required minlength="8" />
+                  <button type="button" class="input-toggle-btn" aria-label="Show password" data-toggle-password>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </label>
+              <label>
+                Confirm password
+                <input type="password" name="confirmPassword" autocomplete="new-password" placeholder="Repeat password" required />
+              </label>
+            </div>
+            <fieldset>
+              <legend>Sub-team interest <span style="font-weight:400;color:var(--muted)">(select all that apply)</span></legend>
+              <div class="team-choices-grid">
+                ${teamCheckboxes}
+              </div>
+            </fieldset>
+            <label class="policy-check">
+              <input type="checkbox" name="terms" required />
+              <span>I agree to the <a href="#" data-policy="terms">Terms of Service</a> and <a href="#" data-policy="privacy">Privacy Policy</a>, and consent to my training data being stored for team use.</span>
+            </label>
+            <button type="submit" class="btn primary btn-full" id="sign-up-submit">
+              <span class="btn-label">Request Access</span>
+            </button>
+            <p class="status" id="sign-up-status" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function wireAuthForms() {
+  const host = document.querySelector("[data-account-content], .content-area");
+  if (!host) return;
+
+  // Tab switching
+  host.querySelectorAll("[data-auth-tab]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tab = btn.dataset.authTab;
+      host.querySelectorAll("[data-auth-tab]").forEach((b) => {
+        b.classList.toggle("active", b.dataset.authTab === tab);
+        b.setAttribute("aria-selected", String(b.dataset.authTab === tab));
+      });
+      host.querySelectorAll("[data-auth-panel]").forEach((p) => {
+        p.hidden = p.dataset.authPanel !== tab;
+      });
+    });
+  });
+
+  // Password visibility toggles
+  host.querySelectorAll("[data-toggle-password]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const input = btn.parentElement.querySelector("input");
+      const showing = input.type === "text";
+      input.type = showing ? "password" : "text";
+      btn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+    });
+  });
+
+  // Forgot password (placeholder)
+  host.querySelector("[data-auth-forgot]")?.addEventListener("click", () => {
+    _showAuthToast("Password reset is coming soon. Contact your team admin for access help.");
+  });
+
+  // Policy links (placeholder)
+  host.querySelectorAll("[data-policy]").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      _showAuthToast("Full policy documents coming soon. Contact your team admin for details.");
+    });
+  });
+
+  // Sign-in
+  const signInForm = host.querySelector("#sign-in-form");
+  if (signInForm) {
+    signInForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const statusEl = signInForm.querySelector("#sign-in-status");
+      const submitBtn = signInForm.querySelector("#sign-in-submit");
+      const email = signInForm.querySelector('[name="email"]').value.trim();
+      const password = signInForm.querySelector('[name="password"]').value;
+      if (!email || !password) {
+        _setAuthStatus(statusEl, "Please fill in all fields.", "error");
+        return;
+      }
+      _setAuthBusy(submitBtn, true, "Signing in\u2026");
+      _setAuthStatus(statusEl, "", "");
+      try {
+        const fs = window.FirebaseSystems;
+        if (!fs) throw new Error("Auth system unavailable \u2014 try refreshing the page.");
+        await fs.signIn(email, password);
+        // onAuthChange will trigger re-render
+      } catch (err) {
+        _setAuthStatus(statusEl, err.message || "Sign-in failed. Please try again.", "error");
+        _setAuthBusy(submitBtn, false, "Sign In");
+      }
+    });
+  }
+
+  // Sign-up
+  const signUpForm = host.querySelector("#sign-up-form");
+  if (signUpForm) {
+    signUpForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const statusEl = signUpForm.querySelector("#sign-up-status");
+      const submitBtn = signUpForm.querySelector("#sign-up-submit");
+      const firstName = signUpForm.querySelector('[name="firstName"]').value.trim();
+      const lastName = signUpForm.querySelector('[name="lastName"]').value.trim();
+      const email = signUpForm.querySelector('[name="email"]').value.trim();
+      const password = signUpForm.querySelector('[name="password"]').value;
+      const confirmPw = signUpForm.querySelector('[name="confirmPassword"]').value;
+      const teams = [...signUpForm.querySelectorAll('[name="teams"]:checked')].map((cb) => cb.value);
+      const terms = signUpForm.querySelector('[name="terms"]').checked;
+
+      if (!firstName || !lastName || !email || !password) {
+        _setAuthStatus(statusEl, "Please fill in all required fields.", "error");
+        return;
+      }
+      if (password.length < 8) {
+        _setAuthStatus(statusEl, "Password must be at least 8 characters.", "error");
+        return;
+      }
+      if (password !== confirmPw) {
+        _setAuthStatus(statusEl, "Passwords do not match.", "error");
+        return;
+      }
+      if (!teams.length) {
+        _setAuthStatus(statusEl, "Select at least one sub-team interest.", "error");
+        return;
+      }
+      if (!terms) {
+        _setAuthStatus(statusEl, "You must agree to the Terms of Service to continue.", "error");
+        return;
+      }
+
+      _setAuthBusy(submitBtn, true, "Submitting\u2026");
+      _setAuthStatus(statusEl, "", "");
+      try {
+        const fs = window.FirebaseSystems;
+        if (!fs) throw new Error("Auth system unavailable \u2014 try refreshing the page.");
+        await fs.signUp(email, password, `${firstName} ${lastName}`, { teams });
+        _setAuthStatus(
+          statusEl,
+          "\u2713 Request submitted! An admin will review your application. You\u2019ll receive access once approved.",
+          "ok"
+        );
+        signUpForm.reset();
+        _setAuthBusy(submitBtn, false, "Request Access");
+      } catch (err) {
+        _setAuthStatus(statusEl, err.message || "Sign-up failed. Please try again.", "error");
+        _setAuthBusy(submitBtn, false, "Request Access");
+      }
+    });
+  }
+}
+
+function _setAuthStatus(el, message, type) {
+  if (!el) return;
+  el.textContent = message;
+  el.className = `status${type ? " " + type : ""}`;
+}
+
+function _setAuthBusy(btn, busy, label) {
+  if (!btn) return;
+  btn.disabled = busy;
+  const labelEl = btn.querySelector(".btn-label");
+  if (labelEl) labelEl.textContent = label;
+}
+
+function _showAuthToast(message) {
+  const existing = document.querySelector(".auth-toast");
+  if (existing) existing.remove();
+  const toast = document.createElement("div");
+  toast.className = "auth-toast";
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("auth-toast-visible"));
+  setTimeout(() => {
+    toast.classList.remove("auth-toast-visible");
+    setTimeout(() => toast.remove(), 350);
+  }, 4500);
+}
+
+// ─── Account Management Section ───────────────────────────────────────────────
+
+function renderAccountManagementSection(user) {
+  const displayName = user?.displayName || user?.email || "Team Member";
+  const email = user?.email || "";
+  return `
+    <section class="account-mgmt">
+      <header class="account-mgmt-header">
+        <h3>Privacy &amp; Account Management</h3>
+        <p>Manage your personal data, account access, and privacy preferences. Requests are processed by team admins within 5&ndash;7 school days.</p>
+      </header>
+      <div class="account-mgmt-grid">
+        <div class="mgmt-card">
+          <div class="mgmt-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </div>
+          <h4>Export My Data</h4>
+          <p>Download a copy of your training records, quiz scores, and account details in a portable format.</p>
+          <button class="btn alt mgmt-btn" data-mgmt-action="export" type="button">Request Data Export</button>
+        </div>
+        <div class="mgmt-card">
+          <div class="mgmt-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h4>Change Password</h4>
+          <p>Update your account password. Instructions will be sent to your registered email address.</p>
+          <button class="btn alt mgmt-btn" data-mgmt-action="password" type="button">Send Reset Email</button>
+        </div>
+        <div class="mgmt-card mgmt-card-danger">
+          <div class="mgmt-card-icon mgmt-card-icon-danger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </div>
+          <h4>Delete Account</h4>
+          <p>Permanently remove your account and all associated training data. This cannot be undone.</p>
+          <button class="btn alt mgmt-btn mgmt-btn-danger" data-mgmt-action="delete" type="button">Request Deletion</button>
+        </div>
+      </div>
+      <div class="mgmt-privacy-settings">
+        <h4>Privacy Preferences</h4>
+        <label class="privacy-toggle">
+          <input type="checkbox" name="analyticsConsent" checked />
+          <span>Allow my anonymized training progress to be included in team analytics</span>
+        </label>
+        <label class="privacy-toggle">
+          <input type="checkbox" name="leaderboardConsent" />
+          <span>Show my name on team progress leaderboards</span>
+        </label>
+        <label class="privacy-toggle">
+          <input type="checkbox" name="emailNotifications" checked />
+          <span>Receive notifications about account status changes</span>
+        </label>
+      </div>
+      <div class="mgmt-sign-out-row">
+        <p class="mgmt-session-info">Signed in as <strong>${displayName}</strong>${email ? ` &mdash; ${email}` : ""}</p>
+        <button class="btn alt" data-sign-out type="button">Sign Out</button>
+      </div>
+    </section>
+  `;
+}
+
+function wireAccountManagement() {
+  const host = document.querySelector("[data-account-content], .content-area");
+  if (!host) return;
+
+  host.querySelector("[data-sign-out]")?.addEventListener("click", async () => {
+    const fs = window.FirebaseSystems;
+    if (!fs) return;
+    await fs.signOut();
+    // onAuthChange will re-render to show sign-in form
+  });
+
+  host.querySelector('[data-mgmt-action="export"]')?.addEventListener("click", () => {
+    _showMgmtModal(
+      "data-export",
+      "Export My Data",
+      "Your data export request has been noted. A team admin will compile your training records and contact you at your registered email within 5\u20137 school days.",
+      "Got it",
+      false
+    );
+  });
+
+  host.querySelector('[data-mgmt-action="password"]')?.addEventListener("click", () => {
+    _showMgmtModal(
+      "password-reset",
+      "Change Password",
+      "Password reset via email will be available once email authentication is fully configured. For now, contact your team admin to update your password.",
+      "Got it",
+      false
+    );
+  });
+
+  host.querySelector('[data-mgmt-action="delete"]')?.addEventListener("click", () => {
+    _showMgmtModal(
+      "account-delete",
+      "Request Account Deletion",
+      "Submitting this request will notify a team admin. Your account and all training data will be permanently deleted within 30 days. This action cannot be undone.",
+      "Submit Deletion Request",
+      true
+    );
+  });
+}
+
+function _showMgmtModal(id, title, body, btnLabel, isDanger) {
+  document.querySelector(".mgmt-modal")?.remove();
+  const modal = document.createElement("div");
+  modal.className = "site-modal mgmt-modal";
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.innerHTML = `
+    <div class="site-modal-card" style="max-width:420px;padding:28px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:12px">
+        <h3 style="margin:0;font-size:18px">${title}</h3>
+        <button class="modal-close-btn" aria-label="Close" data-modal-close type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <p style="color:var(--muted);font-size:14px;margin:0 0 24px;line-height:1.6">${body}</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn alt" data-modal-close type="button">Cancel</button>
+        <button class="btn${isDanger ? "" : " primary"}" style="${isDanger ? "background:#e53935;color:#fff" : ""}" data-modal-confirm type="button">${btnLabel}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.querySelectorAll("[data-modal-close],[data-modal-confirm]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      modal.style.transition = "opacity 0.2s ease";
+      modal.style.opacity = "0";
+      setTimeout(() => modal.remove(), 220);
+    });
+  });
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.style.transition = "opacity 0.2s ease";
+      modal.style.opacity = "0";
+      setTimeout(() => modal.remove(), 220);
+    }
+  });
+}
+
 function renderAccountContent() {
   const host = document.querySelector("[data-account-content], .content-area");
   if (!host) return;
 
+  // ── Auth gate: require cookie consent ─────────────────────────────────────
+  const consent = getCookieConsent();
+  const fs = window.FirebaseSystems;
+  const currentUser = fs ? fs.getCurrentUser() : null;
+
+  if (consent !== true) {
+    host.innerHTML = `
+      <div class="auth-consent-wall">
+        <div class="auth-consent-wall-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="48" height="48"><circle cx="12" cy="12" r="10"/><circle cx="8.5" cy="13.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="14" cy="9" r="1" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.25" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <h2>Cookies &amp; Storage Required</h2>
+        <p>FORGE uses local storage to save your login session and training progress. You must accept cookies to sign in or create an account.</p>
+        <button class="btn primary" id="open-cookie-settings" type="button">Review Cookie Settings</button>
+      </div>
+    `;
+    host.querySelector("#open-cookie-settings")?.addEventListener("click", () => {
+      document.getElementById("cookie-banner")?.remove();
+      try { localStorage.removeItem(COOKIE_CONSENT_KEY); } catch (e) { /* ignore */ }
+      renderCookieBanner();
+    });
+    return;
+  }
+
+  // ── Auth gate: require sign-in ────────────────────────────────────────────
+  if (!currentUser) {
+    host.innerHTML = renderAuthShell();
+    wireAuthForms();
+    return;
+  }
+
+  // ── Logged-in content ─────────────────────────────────────────────────────
   const state = readState();
   const summary = getOverallProgress(state);
   const demo = FORGE_PROGRAM.demo;
@@ -1438,10 +1973,12 @@ function renderAccountContent() {
       ${teamCard}
     </div>
     ${adminPanel}
+    ${renderAccountManagementSection(currentUser)}
   `;
 
   renderRoleControls();
   wireTeamControls();
+  wireAccountManagement();
 }
 
 function wireTeamControls() {
@@ -1992,6 +2529,7 @@ function wireQuizForm(quizFile, answers) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  renderCookieBanner();
   cleanVisibleUrl();
   ensureFavicon();
   wireExtensionlessNavigation();
@@ -2011,7 +2549,12 @@ document.addEventListener("DOMContentLoaded", () => {
   } else if (pageKind === "module") {
     renderModuleContent();
   } else if (pageKind === "account") {
-    renderAccountContent();
+    // Wire auth state changes so the page re-renders on sign-in/sign-out
+    if (window.FirebaseSystems) {
+      FirebaseSystems.onAuthChange(() => renderAccountContent());
+    } else {
+      renderAccountContent();
+    }
   } else {
     renderHomeContent();
     renderPortalMetrics();
