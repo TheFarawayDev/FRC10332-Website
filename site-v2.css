@@ -1207,3 +1207,357 @@ input[type="radio"]:focus {
     font-size: 16px;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   FORGE-SPECIFIC STYLES
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Forge header info section */
+[data-forge-header] {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  margin-bottom: 24px;
+}
+
+[data-forge-header] h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+[data-forge-header] p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+[data-forge-header] .badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+[data-forge-header] .badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+[data-forge-header] .role-badge {
+  border-color: var(--accent);
+  background: rgba(0, 112, 243, 0.1);
+  color: var(--accent-2);
+}
+
+[data-forge-header] .team-badge {
+  border-color: var(--accent);
+  background: rgba(0, 112, 243, 0.15);
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
+[data-forge-header] .exempt-badge {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.1);
+  color: #34d399;
+}
+
+/* Forge navigation links */
+[data-forge-nav] a {
+  position: relative;
+}
+
+[data-forge-nav] a.active {
+  color: var(--accent);
+}
+
+[data-forge-nav] a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* Module cards */
+.card {
+  padding: 24px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: grid;
+  gap: 16px;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Progress tracking */
+.progress-track {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: var(--radius-pill);
+  transition: width 0.3s ease;
+}
+
+/* Quiz forms */
+.quiz-form {
+  display: grid;
+  gap: 24px;
+}
+
+.question {
+  display: grid;
+  gap: 12px;
+}
+
+.question h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.question label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius-soft);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.question label:hover {
+  border-color: var(--border-hover);
+  background: var(--surface-2);
+}
+
+.question input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.result {
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 14px;
+  text-align: center;
+}
+
+.result.pass {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.1);
+  color: #34d399;
+}
+
+.result.fail {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+}
+
+/* Notice boxes */
+.notice {
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--accent);
+  background: rgba(0, 112, 243, 0.08);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-top: 16px;
+}
+
+.notice strong {
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
+/* Button row */
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.btn.alt {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn.alt:hover {
+  background: var(--surface);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+/* Role cards */
+.role-card {
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: grid;
+  gap: 12px;
+}
+
+.role-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.role-card.selected {
+  border-color: var(--accent);
+  background: rgba(0, 112, 243, 0.05);
+}
+
+.role-card h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.role-card p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* Quick grid for stats */
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.stat {
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: grid;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.stat:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.stat .value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.stat span:last-child {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+/* Module grid */
+[data-module-grid] {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+/* Forge-specific panels */
+body[data-page="forge"] .panel-section {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+body[data-page="forge"] .hero-card {
+  padding: clamp(24px, 4vw, 48px);
+}
+
+body[data-page="forge"] .section-head h3 {
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: -0.01em;
+  background: linear-gradient(to bottom, var(--text), var(--muted));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

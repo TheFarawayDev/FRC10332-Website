@@ -4,12 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FORGE Quiz | Business Branding</title>
-    <link rel="icon" type="image/svg+xml" href="../favicon.svg" /><link rel="stylesheet" href="../styles.css" />
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg" /><link rel="stylesheet" href="../site-v2.css" />
   </head>
-  <body>
+  <body data-page="forge" data-forge-view="quiz">
     <main class="page-shell">
       <header class="topbar" data-forge-header></header>
-      <section class="panel hero">
+      <section class="panel-section"><div class="hero-card">
         <h2>Quiz: Business Branding Basics</h2>
         <p>File: quizzes/business-branding.html</p>
         <iframe src="https://www.youtube.com/embed/4KlyPZ6ztiM" title="Branding clip" allowfullscreen></iframe>
@@ -17,7 +17,7 @@
           <a class="btn alt" href="../modules/business-media.html">Back to Module</a>
           <a class="btn alt" href="../portal.html">Back to Dashboard</a>
         </div>
-      </section>
+      </div></section>
       <section class="panel">
         <form class="quiz-form" data-quiz-form>
           <div class="question">
@@ -35,9 +35,9 @@
           <button class="btn primary" type="submit">Submit Quiz</button>
         </form>
         <div class="result" data-quiz-result>Submit to see result.</div>
-      </section>
-    </main>
-    <script src="../data.js"></script><script src="../app.js"></script>
+      </div></section>
+    </main><footer class="site-footer"><div class="site-footer-grid"><section class="footer-column"><p class="footer-title">FORGE Training System</p><p class="footer-credit">Powered by FRC 10332 Chargebotics</p></div></section><section class="footer-column"><p class="footer-title">Navigation</p><div class="footer-links"><a href="../portal">Dashboard</a><a href="../account">Account</a><a href="/">Back to Main Site</a></div></div></section></div><div class="site-footer-bottom"><p>&copy; 2024 FRC Team 10332 Chargebotics. Built by Marshall E.</p><p class="footer-trademarks">Forge™ and the Chargebotics name and logo are trademarks of FRC Team 10332.</p></div></footer>
+    <script src="../topography-bg.js"></script><script src="../data.js"></script><script src="../app.js"></script>
     <script>document.addEventListener("DOMContentLoaded", () => wireQuizForm("quizzes/business-branding.html", ["b", "b"]));</script>
   </body>
 </html>
