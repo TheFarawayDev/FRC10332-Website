@@ -112,6 +112,10 @@ function renderCookieBanner() {
   banner.querySelector(".cookie-deny-btn").addEventListener("click", () => {
     setCookieConsent(false);
     _dismissCookieBanner(banner);
+    // Sign out any active session — consent is required for auth storage
+    if (window.FirebaseSystems?.getCurrentUser()) {
+      window.FirebaseSystems.signOut().catch(() => {});
+    }
     if (getPageKind() === "account") renderAccountContent();
   });
 }
@@ -532,11 +536,6 @@ const FORGE_BOTTOM_NAV = [
   { href: "modules/safety.html",              label: "Safety",     key: "safety",          icon: "safety"       },
   { href: "modules/business-media.html",      label: "Business",   key: "business-media",  icon: "business"     },
   { href: "modules/control.html",             label: "Control",    key: "control",         icon: "control"      },
-  { href: "modules/design.html",              label: "Design",     key: "design",          icon: "design"       },
-  { href: "modules/fabrication.html",         label: "Fabrication",key: "fabrication",     icon: "fabrication"  },
-  { href: "modules/art.html",                 label: "Art",        key: "art",             icon: "art"          },
-  { href: "modules/strategy.html",            label: "Strategy",   key: "strategy",        icon: "strategy"     },
-  { href: "modules/site-maintenance.html",    label: "Maintenance",key: "site-maintenance",icon: "design"       },
   { href: "account.html",                     label: "Account",    key: "account",         icon: "account"      },
 ];
 

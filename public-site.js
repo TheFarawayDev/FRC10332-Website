@@ -368,9 +368,71 @@ function bindPublicModalCards() {
   });
 }
 
+// ─── Cookie Consent ───────────────────────────────────────────────────────────
+const _COOKIE_CONSENT_KEY = "frc10332-cookie-consent";
+
+function _getCookieConsent() {
+  try {
+    const raw = localStorage.getItem(_COOKIE_CONSENT_KEY);
+    if (raw === null) return null;
+    return JSON.parse(raw)?.accepted === true;
+  } catch (e) { return null; }
+}
+
+function _setCookieConsent(accepted) {
+  try {
+    localStorage.setItem(_COOKIE_CONSENT_KEY, JSON.stringify({ accepted, ts: Date.now() }));
+  } catch (e) { /* silent */ }
+}
+
+function _dismissPublicCookieBanner(banner) {
+  banner.classList.remove("cookie-banner-visible");
+  setTimeout(() => banner.remove(), 350);
+}
+
+function initCookieBanner() {
+  if (_getCookieConsent() !== null) return; // already decided
+  if (document.getElementById("cookie-banner")) return;
+  const banner = document.createElement("div");
+  banner.className = "cookie-banner";
+  banner.id = "cookie-banner";
+  banner.setAttribute("role", "dialog");
+  banner.setAttribute("aria-label", "Cookie consent");
+  banner.innerHTML = `
+    <div class="cookie-banner-inner">
+      <div class="cookie-banner-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="28" height="28" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="8.5" cy="13.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="14" cy="9" r="1" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.25" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <div class="cookie-banner-text">
+        <strong>Cookies &amp; Local Storage</strong>
+        <p>We use local storage to remember your preferences and enable the FORGE training system. Your choice is saved site-wide.</p>
+      </div>
+      <div class="cookie-banner-actions">
+        <button class="btn alt cookie-deny-btn" type="button">Deny</button>
+        <button class="btn primary cookie-accept-btn" type="button">Accept &amp; Continue</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(banner);
+  requestAnimationFrame(() => banner.classList.add("cookie-banner-visible"));
+  banner.querySelector(".cookie-accept-btn").addEventListener("click", () => {
+    _setCookieConsent(true);
+    _dismissPublicCookieBanner(banner);
+  });
+  banner.querySelector(".cookie-deny-btn").addEventListener("click", () => {
+    _setCookieConsent(false);
+    _dismissPublicCookieBanner(banner);
+    // Sign out any active FORGE session — consent is required for auth storage
+    if (window.FirebaseSystems?.getCurrentUser()) {
+      window.FirebaseSystems.signOut().catch(() => {});
+    }
+  });
+}
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   renderPublicSite();
   bindPublicSearch();
   bindPublicModalCards();
+  initCookieBanner();
 });
