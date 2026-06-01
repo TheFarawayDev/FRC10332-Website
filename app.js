@@ -588,9 +588,20 @@ function getSortedModulesForState(state) {
 }
 
 function getRecommendedModules(state, limit = 3) {
-  return getSortedModulesForState(state)
-    .filter((module) => !getModuleProgress(module, state).complete)
-    .slice(0, limit);
+  const sorted = getSortedModulesForState(state);
+  const incomplete = sorted.filter((module) => !getModuleProgress(module, state).complete);
+  
+  // First, get all incomplete required modules
+  const incompleteRequired = incomplete.filter((module) => getModuleTeamStatus(module.key, state) === "required");
+  
+  // If there are incomplete required modules, only show those
+  if (incompleteRequired.length > 0) {
+    return incompleteRequired.slice(0, limit);
+  }
+  
+  // If all required modules are complete, show optional modules
+  const incompleteOptional = incomplete.filter((module) => getModuleTeamStatus(module.key, state) === "optional");
+  return incompleteOptional.slice(0, limit);
 }
 
 function getTrainingExpectation(state) {
