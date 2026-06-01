@@ -2465,29 +2465,48 @@ body[data-page="forge"] .section-head h3 {
 .team-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
+  gap: 14px;
+  padding: 18px;
   border-radius: var(--radius-soft);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  border-left: 4px solid transparent;
 }
 
 .team-card:hover {
   border-color: var(--accent);
+  background: var(--surface-2);
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .team-card.selected {
   border-color: var(--accent);
   background: rgba(0, 112, 243, 0.05);
+  box-shadow: 0 4px 16px rgba(0, 112, 243, 0.15);
+}
+
+.team-card input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .team-card-dot {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   flex-shrink: 0;
+  border: 2px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.team-card.selected .team-card-dot {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(0, 112, 243, 0.2);
 }
 
 .team-card-text {
@@ -2498,6 +2517,27 @@ body[data-page="forge"] .section-head h3 {
   display: block;
   margin-bottom: 4px;
   font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.team-card-text small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.team-code-pill {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
   color: var(--text);
 }
 
@@ -2700,7 +2740,7 @@ body[data-page="forge"] .section-head h3 {
 
 @media (max-width: 480px) {
   .account-card {
-    padding: 16px;
+    padding: 20px;
   }
 
   .account-card h3 {
@@ -2711,7 +2751,13 @@ body[data-page="forge"] .section-head h3 {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
-    padding: 10px 0;
+    padding: 14px 0;
+  }
+
+  .account-badge {
+    width: 64px;
+    height: 64px;
+    font-size: 1.75rem;
   }
 
   .team-card,
